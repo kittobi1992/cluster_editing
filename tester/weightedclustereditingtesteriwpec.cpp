@@ -435,7 +435,7 @@ void createRandomGraph2 (CostsGraph &CG, bool save_cr, bool unweigthed, string c
 	if(save_cr){
 		cr_file.open (cr_fname.c_str());
 		if (!cr_file) {
-			cout << "try to open: " << cr_file << std::endl;
+			cout << "try to open: " << cr_fname << std::endl;
 			cout << "Can not open output file!" << endl;
 			exit(0);
 		}
