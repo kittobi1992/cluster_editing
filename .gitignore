@@ -5,6 +5,9 @@ tools/reducedgraphroducer
 tools/reducedgraphroducer_ipec
 tools/weightedclusterediting
 tools/weightedclusterreduction
+tester/cckerneltester
+tester/weightedclustereditingtester
+tester/weightedclustereditingtesteriwpec
 
 
 
