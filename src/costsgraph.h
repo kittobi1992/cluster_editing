@@ -244,9 +244,6 @@ private:
 	void initMatrices(char* fname, double_file_fct_type fct, costs_parsing_fct_type cost_fct);
 	void initMatrices(char* fname, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct);
 
-	// swap two elements
-	inline void swap(int &i, int &j);
-
 	// translate index to internal index
 	inline int getIntern(int i) const;
 	

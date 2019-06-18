@@ -21,8 +21,6 @@ void fillParameters(int argc, char **argv, std::string &fname, char* &output_fna
 
 double solveForConnectedComponent(CostsGraph G, int nr, double &min_parameter, long &solutions_nr, double parameter, int parameter_steps, std::ofstream &log_file, short pi_type, bool merging, bool just_max, bool split, double &costs, std::ofstream &output_file, bool &loginfo);
 
-double abs(double x);
-
 void writeVertexList(CostsGraph::index_list_type &vertex_list, std::ofstream &log_file, bool &loginfo);
 void writeObviousComponent(int nr, CostsGraph &G, std::ofstream &log_file, bool &loginfo);
 void writeHeaderOfSolution(int nr, CostsGraph &graph, std::ofstream &log_file, bool &loginfo);
@@ -288,7 +286,7 @@ double solveForConnectedComponent(CostsGraph G, int nr, double &min_parameter, l
 		     for(int k=0; k < i;k++) {
 		          double e = G.getEdge(i,k);
 		          if (static_cast<int>(e/G.forbidden+0.001) != 1  && static_cast<int>(e/G.permanent+0.001) != 1) {
-		               sum += abs(e);
+		               sum += std::abs(e);
 		          }
 		     }
 		}
@@ -392,11 +390,6 @@ double solveForConnectedComponent(CostsGraph G, int nr, double &min_parameter, l
 	
 }
 
-
-double abs(double x)
-{
-	return (x < 0) ? x * -1 : x;
-}
 
 template<typename Type>
 Type convertStringTo(std::string s) 

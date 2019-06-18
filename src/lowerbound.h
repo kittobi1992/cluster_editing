@@ -82,7 +82,7 @@ public:
 		          }
 
 		          // calculate edge value divided by #conflict triples
-		          double ratio = (ik_nr_confl_triples > 0) ? (abs(graph.getEdge(i,k)) / ik_nr_confl_triples) : graph.permanent;
+		          double ratio = (ik_nr_confl_triples > 0) ? (std::abs(graph.getEdge(i,k)) / ik_nr_confl_triples) : graph.permanent;
 
 		          // insert edge with the ratio into the edge list as many times as it is occurs in conflict triples
 		          for (int h = 0; h < ik_nr_confl_triples; h++) {
@@ -150,11 +150,11 @@ public:
 		               double min;
 		               int min_triple;
 		               not_set += (graph.getEdge(i,k) <= 0) ? 1 : 0;
-		               min = abs(graph.getEdge(i,k));
+		               min = std::abs(graph.getEdge(i,k));
 		               not_set += (graph.getEdge(h,k) <= 0) ? 1 : 0;
-		               min = (abs(graph.getEdge(h,k)) < min) ? abs(graph.getEdge(h,k)) : min;
+		               min = (std::abs(graph.getEdge(h,k)) < min) ? std::abs(graph.getEdge(h,k)) : min;
 		               not_set += (graph.getEdge(i,h) <= 0) ? 1 : 0;
-		               min = (abs(graph.getEdge(i,h)) < min) ? abs(graph.getEdge(i,h)) : min;
+		               min = (std::abs(graph.getEdge(i,h)) < min) ? std::abs(graph.getEdge(i,h)) : min;
 
 		               // found conflict, save it array, first index=min solving costs
 		               if (not_set == 1) {
@@ -219,11 +219,11 @@ public:
 		               double min;
 		               int min_triple;
 		               not_set += (graph.getEdge(i,k) <= 0) ? 1 : 0;
-		               min = abs(graph.getEdge(i,k));
+		               min = std::abs(graph.getEdge(i,k));
 		               not_set += (graph.getEdge(h,k) <= 0) ? 1 : 0;
-		               min = (abs(graph.getEdge(h,k)) < min) ? abs(graph.getEdge(h,k)) : min;
+		               min = (std::abs(graph.getEdge(h,k)) < min) ? std::abs(graph.getEdge(h,k)) : min;
 		               not_set += (graph.getEdge(i,h) <= 0) ? 1 : 0;
-		               min = (abs(graph.getEdge(i,h)) < min) ? abs(graph.getEdge(i,h)) : min;
+		               min = (std::abs(graph.getEdge(i,h)) < min) ? std::abs(graph.getEdge(i,h)) : min;
 	
 		               // found conclict triple
 		               if (not_set == 1) {
@@ -337,14 +337,6 @@ public:
 		// the greater lower bound is then returned
 		return (bound1 < bound2) ? bound2 : bound1;		
 	}
-
-private:
-
-	// help function for absolute value
-	inline static double abs(double a) {
-		return (a<0) ? (-1*a) : a;
-	};
-
 };
 
 

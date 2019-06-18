@@ -20,6 +20,8 @@ using std::endl;
 using std::ofstream;
 using std::istringstream;
 using std::string;
+using std::swap;
+using std::abs;
 
 
 
@@ -29,8 +31,6 @@ void createRandomGraph2(CostsGraph &CG, bool save_cr, bool unweigthed, string cr
 double ranf();
 double generateGaussianDistributedNumber(double mue, double sigma);
 void createTesterGraph(CostsGraph &CG, int mue_ex, int sigma_ex, int mue_in, int sigma_in, bool save_cr, bool unweigthed, string cr_fname, double &k, int Graph_size, short  RandomGraph, int &k2);
-void swap(int &i, int &j);
-double abs(double x);
 string toString(int x);
 void fillParameters(int argc, char **argv, int &mue_ex, int &sigma_ex, int &mue_in, int &sigma_in, int &Graph_size, bool &unweighted, bool &test, short &RandomGraph, int &k2, int &runs, string &output_path);
 
@@ -534,18 +534,6 @@ void createTesterGraph(CostsGraph &CG, int mue_ex, int sigma_ex, int mue_in, int
 		}
 
 	}
-}
-
-
-void swap (int &i, int &j){
-	int help = i;
-	i = j;
-	j= help;
-}
-
-
-double abs(double x){
-	return (x < 0) ? x * -1 : x;
 }
 
 

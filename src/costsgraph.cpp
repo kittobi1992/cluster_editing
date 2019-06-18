@@ -279,14 +279,6 @@ void CostsGraph::initMatrices(char* fname, matrix_file_fct_type2 fct, costs_pars
 	fct(fname, *this, cost_fct, _threshold);
 }
 
-// swap two elements
-void CostsGraph::swap(int &i, int &j)
-{
-	int help = i;
-	i = j;
-	j = help;
-}
-
 
 // converts element of any type to string
 template<typename T>
@@ -673,7 +665,7 @@ void CostsGraph::mergeVertices(int index1, int index2, double_array_type costs)
 
 	// be sure that intern_index2 is the node which disappears
 	if (intern_index1 > intern_index2 ) {
-		swap(intern_index1, intern_index2);
+		std::swap(intern_index1, intern_index2);
 	}
 
 	// add names of vertex 2 to vertex 1
@@ -682,7 +674,7 @@ void CostsGraph::mergeVertices(int index1, int index2, double_array_type costs)
 
 	// be sure that index2 node is the deleted one
 	if (index1 > index2 ) {
-		swap(index1, index2);
+		std::swap(index1, index2);
 	}
 
 	// delete node index2

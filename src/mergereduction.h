@@ -173,15 +173,6 @@ public:
 		
 		return to_pay;	
 	}
-
-
-private:
-	inline static void swap(int &i, int &j) {
-		int help = i;
-		i = j;
-		j = help;
-	}
-
 };
 
 

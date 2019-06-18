@@ -44,25 +44,6 @@ WeightedProblemInstance::~WeightedProblemInstance()
 /* ---------------------- general help functions ------------------ */
 
 
-
-// since the matrices are triangular the swap functions swaps two integer indices
-template <class Type>
-inline void WeightedProblemInstance::swap(Type &i, Type &j)
-{
-	Type help = i;
-	i = j;
-	j = help;
-}
-
-
-// generic absolute weight function
-template <class Type>
-inline Type WeightedProblemInstance::abs(Type a)
-{
-	return (a<0) ? -1 * a : a;
-}
-
-
 // set edge to new value (permanent or forbidden)
 // in any case the min insert and delete costs will be updated and
 // consequently the egdes will be copied updated to other edge lists
@@ -210,7 +191,7 @@ inline void WeightedProblemInstance::setEdgesToPermanent(CostsGraph::edge_list_t
 		                    permanent_list[k].j = permanent_list[i].j;
 		               }
 		               if (permanent_list[k].i < permanent_list[k].j) {
-		                    swap<unsigned short>(permanent_list[k].i, permanent_list[k].j);
+				       std::swap<unsigned short>(permanent_list[k].i, permanent_list[k].j);
 		               }
 		          }
 		     }
@@ -342,7 +323,7 @@ inline int WeightedProblemInstance::criticalCliqueReduction(int max_edge, bool c
 		for (int i=0; i<_graph.getSize();i++) {	
 			for (int k=0; k < i;k++) {
 				double x = _graph.getEdge(i,k);
-				max = (x != _graph.forbidden && max < abs<double>(x) ) ? abs<double>(x)  : max;
+				max = (x != _graph.forbidden && max < std::abs(x) ) ? std::abs(x)  : max;
 			}
 		}
 
@@ -394,13 +375,13 @@ inline int WeightedProblemInstance::criticalCliqueApproximation()
 		                         delta_i += edge1;
 		                         delta_k -= edge2;
 		                    } else {
-		                         neighbor_sum += abs<double>(edge1-edge2);
+		                         neighbor_sum += std::abs(edge1-edge2);
 		                    }
 		               } else if (edge2 > 0){
 		                    delta_k += edge2;
 		                    delta_i -= edge1;
 		               } else {
-		                    neighbor_sum += abs<double>(edge1-edge2);
+		                    neighbor_sum += std::abs(edge1-edge2);
 		               }
 		          }
 		          for (int h = k+1; h < i; h++) {
@@ -411,13 +392,13 @@ inline int WeightedProblemInstance::criticalCliqueApproximation()
 		                         delta_i += edge1;
 		                         delta_k -= edge2;
 		                    } else {
-		                         neighbor_sum += abs<double>(edge1-edge2);
+		                         neighbor_sum += std::abs(edge1-edge2);
 		                    }
 		               } else if (edge2 > 0){
 		                    delta_k += edge2;
 		                    delta_i -= edge1;
 		               } else {
-		                    neighbor_sum += abs<double>(edge1-edge2);
+		                    neighbor_sum += std::abs(edge1-edge2);
 		               }
 		          }
 		          for (int h = i+1; h < size; h++) {
@@ -428,13 +409,13 @@ inline int WeightedProblemInstance::criticalCliqueApproximation()
 		                         delta_i += edge1;
 		                         delta_k -= edge2;
 		                    } else {
-		                         neighbor_sum += abs<double>(edge1-edge2);
+		                         neighbor_sum += std::abs(edge1-edge2);
 		                    }
 		               } else if (edge2 > 0){
 		                    delta_k += edge2;
 		                    delta_i -= edge1;
 		               } else {
-		                    neighbor_sum += abs<double>(edge1-edge2);
+		                    neighbor_sum += std::abs(edge1-edge2);
 		               }
 		          }
 
@@ -530,7 +511,7 @@ inline void WeightedProblemInstance::mergeVertices(int i, int j)
 		
 	// since the matrices are triangular make i the bigger index
 	if (i < j) {
-		swap(i,j);
+		std::swap(i,j);
 	}
 
 	// get new costs adjecencies for new vertex and save modification costs
@@ -778,7 +759,7 @@ int WeightedProblemInstance::ccReduce()
 	     // correct edges such that first index is always greater than second
 	     for (int i = 0; i < permanent_list.size(); i++) {
 	          if (permanent_list[i].i < permanent_list[i].j) {
-	               swap(permanent_list[i].i, permanent_list[i].j);
+			  std::swap(permanent_list[i].i, permanent_list[i].j);
 	          }
 	     }
 	
@@ -825,7 +806,7 @@ int WeightedProblemInstance::ccKernelization()
 	     // correct edges such that first index is always greater than second
 	     for (int i = 0; i < permanent_list.size(); i++) {
 	          if (permanent_list[i].i < permanent_list[i].j) {
-	               swap(permanent_list[i].i, permanent_list[i].j);
+			  std::swap(permanent_list[i].i, permanent_list[i].j);
 	          }
 	     }
 	

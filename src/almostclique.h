@@ -299,14 +299,6 @@ public:
 		}
 		return false;
 	}
-
-
-private:
-
-	inline static double abs(double a) {
-		return (a>0) ? a : 0;
-	}
-
 };
 
 

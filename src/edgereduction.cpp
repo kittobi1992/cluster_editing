@@ -52,18 +52,18 @@ inline void EdgeReduction::getInDelCosts(double e1, double e2, double &sum_inser
 {
 	// both are positiv --> just delete costs will be added
 	if (e1 > 0 && e2 > 0) {
-	          sum_delete += min(e1, e2);
+	          sum_delete += std::min(e1, e2);
 	// one is negative --> min of add and del operation will be added
 	} else if (e1 > 0 || e2 > 0) {
 		if (e1 > 0) {
 		     if (e2 != forbidden) {
-		          sum_insert += min(e1,e2 * -1);
+		          sum_insert += std::min(e1,e2 * -1);
 		     } else {
 		          sum_insert += e1;
 		     }
 		} else {
 		     if (e1 != forbidden) {
-		          sum_insert += min(e2, e1 * -1);
+		          sum_insert += std::min(e2, e1 * -1);
 		     } else {
 		          sum_insert += e2;
 		     }
@@ -124,30 +124,6 @@ inline void EdgeReduction::createCostsMatrices()
 /* ---------------------- general help functions ------------------ */
 
 
-// returns minimum of both double values
-inline double EdgeReduction::min(double a, double b)
-{
-	return (a <= b) ? a :b ;
-}
-
-
-// returns absolute value of double value
-inline double EdgeReduction::abs(double a)
-{
-	return (a < 0) ? a * -1 :a;
-}
-
-
-// since the matrices are triangular the swap functions swaps two integer indices
-template <class Type>
-inline void EdgeReduction::swap(Type &i, Type &j)
-{
-	Type help = i;
-	i = j;
-	j = help;
-}
-
-
 // since the matrices are triangular this function helps to get the min deletion costs
 double EdgeReduction::getMinDeleteCosts(unsigned short i, unsigned short j) const
 {
@@ -182,7 +158,7 @@ inline double EdgeReduction::setMinInsertCosts(unsigned short i, unsigned short 
 inline void EdgeReduction::updateEdgeReference(int i, int j, char type, double value)
 {
 	if (i < j) {
-		swap<int>(i, j);
+		std::swap(i, j);
 	}
 
 	if (_graph->getEdge(i, j) != forbidden) {
@@ -206,7 +182,7 @@ inline double EdgeReduction::minDelEdge(double a, double b)
 		if (b == forbidden) {
 		     return 0.0;
 		} else {
-		     return min(abs(a), abs(b));
+		     return std::min(std::abs(a), std::abs(b));
 		}
 	}
 }
@@ -220,14 +196,14 @@ inline double EdgeReduction::minInDelEdge(double a, double b)
 		     // if b is already forbidden, the costs are zero
 		     return 0.0;
 		} else {
-		     return abs(b);
+		     return std::abs(b);
 		}
 	} else {
 		if (b == forbidden) {
 		     // if b is forbidden its cheap = 0 to delete it
 		     return 0.0;
 		} else {
-		     return min(abs(a), abs(b));
+		     return std::min(std::abs(a), std::abs(b));
 		}
 	}
 }

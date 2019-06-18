@@ -27,8 +27,6 @@ void setPath (int Vred, int krest, string &path, bool &help);
 int solve(CostsGraph &G);
 void createRandomGraph (CostsGraph &CG, int Graph_size);
 void createTesterGraph(CostsGraph &CG, int graph_size, int c);
-void swap (int &i, int &j);
-double abs(double x);
 string toString(int x);
 void fillParameters(int argc, char **argv, int &Graph_size, double &c, double &c_max, int &nr, int &number, int &size_max, int &runs);
 
@@ -439,7 +437,7 @@ void createTesterGraph(CostsGraph &CG, int graph_size, int c){
 			continue;
 		}
 		if (node1 < node2){
-			swap(node1,node2);
+			std::swap(node1,node2);
 		}
 		if (changed_edges[node1][node2]) {
 			continue;
@@ -450,15 +448,6 @@ void createTesterGraph(CostsGraph &CG, int graph_size, int c){
 	}
 }
 
-void swap (int &i, int &j){
-	int help = i;
-	i = j;
-	j= help;
-}
-
-double abs(double x){
-	return (x < 0) ? x * -1 : x;
-}
 
 string toString(int x){	
 	std::ostringstream o;

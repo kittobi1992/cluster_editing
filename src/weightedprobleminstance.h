@@ -175,14 +175,7 @@ private:
 
 	// save changed edge in list
 	inline void saveChangedEdge(int i, int j, double costs, char operation);
-
-	// since the matrices are triangular the swap functions swaps two integer indices
-	template <class Type>
-	inline void swap(Type &i, Type &j);
-
-	template <class Type>
-	inline Type abs(Type a);
-
+	
 	// merge two vertices and all other structures like tripel lists and min insert & delete lists
 	inline void mergeVertices(int i, int j);
 

@@ -55,14 +55,6 @@ public:
 
 private:
 
-	// since the matrices are triangular the swap functions swaps two integer indices
-	static inline void swap(double &i, double &j) 
-	{
-		double help = i;
-		i = j;
-		j = help;
-	}
-
 	// calculate log branching number of (del, in costs)
 	static inline double getLogBN(double a, double b, double permanent)
 	{
@@ -71,7 +63,7 @@ private:
 		}
 
 		if (a > b) {
-		     swap(a, b);
+			std::swap(a, b);
 		};
 
 		double x = b / a;

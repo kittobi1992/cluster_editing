@@ -71,13 +71,6 @@ SearchTreeWeighted::solutions_type SearchTreeWeighted::getSolutions()
 }
 
 
-// help function to obtain the absolute value
-inline double abs(double a)
-{
-	return (a>0) ? a : -1 * a;
-}
-
-
 // start split tree search
 void SearchTreeWeighted::splitSearch(WeightedProblemInstance &new_root, CostsGraph::vertex_matrix_type vertex_matrix, int depth)
 {

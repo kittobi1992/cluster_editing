@@ -39,10 +39,6 @@ public:
 	
 	~CriticalClique(){};
 	 
-	inline static double min(double a, double b) {
-		return (a<b) ? a : b;
-	}	
-
 	// function which give back a list of pairs of vertices which can be merged
 	// it therefore computes creates a integer trianglematrix from the graph
 	// computes a list of tuples and uses then dynamic programming
@@ -143,14 +139,6 @@ private:
 		return G; 
 	} 
 	
-	
-	// function to swap two int vaules
-	inline static void swap(int &i, int &j){
-		int help = i;
-		i = j;
-		j= help;
-	}
-
 
 	// help-function to compute tuple (x,y) and to add it to our tuple list
 	// more precise we save not only x and y, but x rounded up and down and analog y
@@ -188,7 +176,7 @@ private:
 	
 		// swap to guarantee that v > u
 		if (v<u) {
-			swap(u,v);
+			std::swap(u,v);
 		}
 
 		// neccessary for unweighted instances since real zero weight edges may occur

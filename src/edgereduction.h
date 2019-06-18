@@ -152,16 +152,10 @@ private:
 	/* ####  general help functions  #### */
 
 	// converting array for converting costs to lists in O(1)
-	inline double abs(double a);
-	inline double min(double a, double b);
 	inline double minDelEdge(double a, double b);
 	inline double minInDelEdge(double a, double b);
 	inline double setMinDeleteCosts(unsigned short i, unsigned short j, double value);
 	inline double setMinInsertCosts(unsigned short i, unsigned short j, double value);
-
-	// since the matrices are triangular the swap functions swaps two integer indices
-	template <class Type>
-	inline void swap(Type &i, Type &j);
 
 	// copies edge from one list to another considering the update in the reference matrix
 	//void copyEdgeAndUpdateReference(int i, int j, char type, int from, int to);
