@@ -317,7 +317,7 @@ EdgeFileParser::initGraphSetFromXColumnFile(char *fname, GraphSet &graph_set, do
     vertex_matrix_type cc = getConnectedVertices(heuristic);
 
     // create second graph set for backward scores
-    GraphSet graph_set2 = GraphSet(0);
+    GraphSet graph_set2;
 
     // create graph sets for forward and backward direction
     // + create vector with index in the main graph as key with

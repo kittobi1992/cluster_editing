@@ -11,13 +11,10 @@ This idea copies somehow the concept of Exceptions
 from Java.
 */
 
-class GraphException {
+class GraphException : std::exception {
 public:
 	// Constructor
 	explicit GraphException(std::string msg);
-
-	// Destructor
-	~GraphException() = default;
 
 	// access function
 	std::string getMessage();

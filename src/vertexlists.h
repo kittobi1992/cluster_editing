@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 
-#include <vertexlistsexception.h>
+#include <Exceptions/vertexlistsexception.h>
 
 /*
  Implements a set of lists where each list contains

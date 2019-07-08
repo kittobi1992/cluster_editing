@@ -1,6 +1,6 @@
 /*+++++++++++++++++ class VertexListsException +++++++++++++++++++ */
 
-#include <vertexlistsexception.h>
+#include <Exceptions/vertexlistsexception.h>
 
 /* #################  Constructor  ##################### */
 

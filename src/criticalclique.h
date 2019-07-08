@@ -11,7 +11,7 @@
 
 #include <sys/types.h>
 #include <trianglematrix.h>
-#include <graphexception.h>
+#include <Exceptions/graphexception.h>
 #include <graphset.h>
 #include <napsack.h>
 

@@ -8,7 +8,7 @@
 
 #include <searchtreeweighted.h>
 #include <weightedprobleminstance.h>
-#include <graphexception.h>
+#include <Exceptions/graphexception.h>
 #include <costsgraph.h>
 #include <matrixparser.h>
 

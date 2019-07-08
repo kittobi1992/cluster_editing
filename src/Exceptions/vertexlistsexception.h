@@ -11,20 +11,17 @@ This idea copies somehow the concept of Exceptions
 from Java.
 */
 
-class VertexListsException {
+class VertexListsException : std::exception {
 public:
-	// Constructor
-	explicit VertexListsException(std::string message);
+    // Constructor
+    explicit VertexListsException(std::string message);
 
-	// Destructor
-	~VertexListsException() = default;
-
-	// access function
-	std::string getMessage();
+    // access function
+    std::string getMessage();
 
 private:
-	// error message
-	std::string _message;
+    // error message
+    std::string _message;
 };
 
 #endif

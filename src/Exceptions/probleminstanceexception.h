@@ -11,13 +11,10 @@ This idea copies somehow the concept of Exceptions
 from Java.
 */
 
-class ProblemInstanceException {
+class ProblemInstanceException : std::exception {
 public:
     /* ####  Constructor  #### */
     explicit ProblemInstanceException(std::string message);
-
-    /* ####  Destructor  #### */
-    ~ProblemInstanceException() = default;
 
     /* ####  access function  #### */
     std::string getMessage();

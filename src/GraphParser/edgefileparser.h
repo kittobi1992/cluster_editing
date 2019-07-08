@@ -15,7 +15,7 @@
 #include <vertexlists.h>
 
 #include <../costsgraph.h>
-#include <../graphexception.h>
+#include <Exceptions/graphexception.h>
 #include <../graphset.h>
 
 class EdgeFileParser {

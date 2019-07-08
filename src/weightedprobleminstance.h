@@ -16,7 +16,7 @@
 #include <bnmanager.h>
 #include <costsgraph.h>
 #include <lowerbound.h>
-#include <probleminstanceexception.h>
+#include <Exceptions/probleminstanceexception.h>
 #include <almostclique.h>
 #include <criticalclique.h>
 #include <cc-kernel.h>

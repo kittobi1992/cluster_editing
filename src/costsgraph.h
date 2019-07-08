@@ -16,7 +16,7 @@
 
 #include <limits>
 
-#include <graphexception.h>
+#include <Exceptions/graphexception.h>
 
 // - costs graph saves a normal undirected weighted graph
 // - used costs matrix is a linearized triangle matrix since its a undirected graph

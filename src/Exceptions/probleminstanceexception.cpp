@@ -1,6 +1,6 @@
 /*+++++++++++++++++ class ProblemInstanceException +++++++++++++++++++ */
 
-#include <probleminstanceexception.h>
+#include <Exceptions/probleminstanceexception.h>
 
 ProblemInstanceException::ProblemInstanceException(std::string message) : _message(std::move(message)) {
 };

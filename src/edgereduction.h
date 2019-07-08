@@ -10,7 +10,7 @@
 #include <math.h>
 
 #include <costsgraph.h>
-#include <probleminstanceexception.h>
+#include <Exceptions/probleminstanceexception.h>
 #include <mincut.h>
 #include <lowerbound.h>
 #include <algorithm>

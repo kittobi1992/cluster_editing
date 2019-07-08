@@ -8,7 +8,7 @@
 
 #include <graphset.h>
 #include <costsgraph.h>
-#include <graphexception.h>
+#include <Exceptions/graphexception.h>
 
 using std::string;
 using std::vector;

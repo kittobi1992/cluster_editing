@@ -27,23 +27,23 @@ add_executable(weighted_cluster_editing_tester
         src/criticalclique.h
         src/edgereduction.cpp
         src/edgereduction.h
-        src/graphexception.cpp
-        src/graphexception.h
+        src/Exceptions/graphexception.cpp
+        src/Exceptions/graphexception.h
         src/graphset.cpp
         src/graphset.h
         src/lowerbound.h
         src/mergereduction.h
         src/mincut.h
         src/napsack.h
-        src/probleminstanceexception.cpp
-        src/probleminstanceexception.h
+        src/Exceptions/probleminstanceexception.cpp
+        src/Exceptions/probleminstanceexception.h
         src/searchtreeweighted.cpp
         src/searchtreeweighted.h
         src/trianglematrix.h
         src/vertexlists.cpp
         src/vertexlists.h
-        src/vertexlistsexception.cpp
-        src/vertexlistsexception.h
+        src/Exceptions/vertexlistsexception.cpp
+        src/Exceptions/vertexlistsexception.h
         src/weightedprobleminstance.cpp
         src/weightedprobleminstance.h
         tester/weightedclustereditingtester.cpp
@@ -67,23 +67,23 @@ add_executable(weighted_cluster_editing
         src/criticalclique.h
         src/edgereduction.cpp
         src/edgereduction.h
-        src/graphexception.cpp
-        src/graphexception.h
+        src/Exceptions/graphexception.cpp
+        src/Exceptions/graphexception.h
         src/graphset.cpp
         src/graphset.h
         src/lowerbound.h
         src/mergereduction.h
         src/mincut.h
         src/napsack.h
-        src/probleminstanceexception.cpp
-        src/probleminstanceexception.h
+        src/Exceptions/probleminstanceexception.cpp
+        src/Exceptions/probleminstanceexception.h
         src/searchtreeweighted.cpp
         src/searchtreeweighted.h
         src/trianglematrix.h
         src/vertexlists.cpp
         src/vertexlists.h
-        src/vertexlistsexception.cpp
-        src/vertexlistsexception.h
+        src/Exceptions/vertexlistsexception.cpp
+        src/Exceptions/vertexlistsexception.h
         src/weightedprobleminstance.cpp
         src/weightedprobleminstance.h
         tools/weightedclusterediting.cpp

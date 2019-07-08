@@ -1,6 +1,6 @@
 /*+++++++++++++++++ class GraphException +++++++++++++++++++ */
 
-#include <graphexception.h>
+#include <Exceptions/graphexception.h>
 
 // Constructor
 GraphException::GraphException(std::string msg) : message(std::move(msg)) {}

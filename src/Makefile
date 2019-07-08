@@ -9,7 +9,7 @@ weightedprobleminstance.o: weightedprobleminstance.h weightedprobleminstance.cpp
 cc-kernel.o: cc-kernel.h graphset.o costsgraph.o graphexception.o
 	g++ -c -O2 -I. cc-kernel.h
 
-criticalclique.o: criticalclique.h costsgraph.o trianglematrix.h graphexception.h graphset.h napsack.o
+criticalclique.o: criticalclique.h costsgraph.o trianglematrix.h Exceptions/graphexception.h graphset.h napsack.o
 	g++ -c -O2 -I. criticalclique.h
 
 napsack.o: napsack.h
@@ -33,7 +33,7 @@ edgereduction.o: edgereduction.cpp edgereduction.h costsgraph.o probleminstancee
 lowerbound.o: costsgraph.o array.o lowerbound.h edgereduction.o
 	g++ -c -O2 -I. lowerbound.h
 
-probleminstanceexception.o: probleminstanceexception.cpp probleminstanceexception.h
+probleminstanceexception.o: Exceptions/probleminstanceexception.cpp Exceptions/probleminstanceexception.h
 	g++ -c -O2 -I. probleminstanceexception.cpp
 
 graphset.o: graphset.cpp graphset.h vertexlists.o
@@ -48,13 +48,13 @@ graphset.o: graphset.cpp graphset.h vertexlists.o
 costsgraph.o: costsgraph.cpp costsgraph.h vertexlists.o graphexception.o array.h trianglematrix.h
 	g++ -c -O2 -I. costsgraph.cpp
 
-graphexception.o: graphexception.cpp graphexception.h
+graphexception.o: Exceptions/graphexception.cpp Exceptions/graphexception.h
 	g++ -c -O2 -I. graphexception.cpp
 
 vertexlists.o: vertexlists.cpp vertexlists.h vertexlistsexception.o
 	g++ -c -O2 -I. vertexlists.cpp
 	
-vertexlistsexception.o: vertexlistsexception.cpp vertexlistsexception.h
+vertexlistsexception.o: Exceptions/vertexlistsexception.cpp Exceptions/vertexlistsexception.h
 	g++ -c -O2 -I. vertexlistsexception.cpp
 
 trianglematrix.o: trianglematrix.h array.h

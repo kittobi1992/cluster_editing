@@ -193,7 +193,7 @@ CostsGraph::CostsGraph(char *file_name, double_file_fct_type fct, costs_parsing_
         std::numeric_limits<double>::max()), _cost_matrix() {
     try {
         initMatrices(file_name, fct, cost_fct);
-    } catch (GraphException e) {
+    } catch (GraphException &e) {
         throw GraphException(e);
     }
 }
@@ -208,7 +208,7 @@ CostsGraph::CostsGraph(std::string file_name, double_file_fct_type fct, costs_pa
     try {
         char *str = strdup(file_name.c_str());
         initMatrices(str, fct, cost_fct);
-    } catch (GraphException e) {
+    } catch (GraphException &e) {
         throw GraphException(e);
     }
 }
@@ -230,7 +230,7 @@ CostsGraph::CostsGraph(char *file_name, matrix_file_fct_type2 fct, costs_parsing
 
     try {
         initMatrices(file_name, fct, cost_fct);
-    } catch (GraphException e) {
+    } catch (GraphException &e) {
         throw GraphException(e);
     }
 }
@@ -243,7 +243,7 @@ CostsGraph::CostsGraph(std::string file_name, matrix_file_fct_type2 fct, costs_p
     try {
         char *str = strdup(file_name.c_str());
         initMatrices(str, fct, cost_fct);
-    } catch (GraphException e) {
+    } catch (GraphException &e) {
         throw GraphException(e);
     }
 }
