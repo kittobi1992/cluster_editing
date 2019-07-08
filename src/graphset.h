@@ -23,76 +23,79 @@
 
 class GraphSet {
 public:
-	// list of pointers to graph objects
-	typedef std::vector< CostsGraph* > graph_list_type;
+    // list of pointers to graph objects
+    typedef std::vector<CostsGraph *> graph_list_type;
 
-	// function pointer to cost parsing function
-	typedef double (*costs_parsing_fct_type)(double blast_value, double threshold);
+    // function pointer to cost parsing function
+    typedef double (*costs_parsing_fct_type)(double blast_value, double threshold);
 
-	// function pointer to double IO function
-	typedef void (*graph_set_parser_fct_type) (char* fname, GraphSet& graph_set, double th, costs_parsing_fct_type fct);
+    // function pointer to double IO function
+    typedef void (*graph_set_parser_fct_type)(char *fname, GraphSet &graph_set, double th, costs_parsing_fct_type fct);
 
-	// function pointer to matrix init function
-	typedef CostsGraph::matrix_file_fct_type matrix_file_fct_type;
+    // function pointer to matrix init function
+    typedef CostsGraph::matrix_file_fct_type matrix_file_fct_type;
 
-	// function pointer to weight matrix initializer function using a cost parsing function
-	typedef CostsGraph::matrix_file_fct_type2 matrix_file_fct_type2;
-
-
-	/* ####  Constructor  #### */
-
-	// emtpy constructor
-	GraphSet();
-
-	// copy constructor
-	GraphSet(GraphSet const &graph_set);
-
-	// gets graph and will save every connected component in the graph as a graph
-	GraphSet(CostsGraph graph);
-
-	// inits a graph from file, function can be choosen to seperate graph in connected components
-	GraphSet(char* fname, double th, costs_parsing_fct_type fct, graph_set_parser_fct_type parser_fct);
-	GraphSet(std::string fname, double th, costs_parsing_fct_type fct, graph_set_parser_fct_type parser_fct);
-
-	// reads in a weight graph and using the appropriate costs parser to create costs graph(s) out of it
-	GraphSet(char* file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th);
-	GraphSet(std::string file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th);
-
-	// reads a directory full of graphs in
-	GraphSet(char* dir_name, matrix_file_fct_type fct);
-	GraphSet(std::string dir_name, matrix_file_fct_type fct);
-
-	/* ####  Destructor  #### */
-	~GraphSet();
+    // function pointer to weight matrix initializer function using a cost parsing function
+    typedef CostsGraph::matrix_file_fct_type2 matrix_file_fct_type2;
 
 
-	/* ####  access functions  #### */
+    /* ####  Constructor  #### */
 
-	// returns number of graphs
-	int getSetSize();
+    // emtpy constructor
+    GraphSet();
 
-	// returns reference to graph
-	CostsGraph& getGraph(int i);
+    // copy constructor
+    GraphSet(GraphSet const &graph_set);
 
-	// deletes graph from set
-	void deleteGraph(int i);
+    // gets graph and will save every connected component in the graph as a graph
+    GraphSet(CostsGraph graph);
 
-	// add another graph, gets reference and will save pointer to deep copy of graph
-	void addGraph(CostsGraph &graph);
+    // inits a graph from file, function can be choosen to seperate graph in connected components
+    GraphSet(char *fname, double th, costs_parsing_fct_type fct, graph_set_parser_fct_type parser_fct);
 
-	// prints out statistc of the graph set
-	void printStat();
+    GraphSet(std::string fname, double th, costs_parsing_fct_type fct, graph_set_parser_fct_type parser_fct);
 
-	GraphSet &operator=(const GraphSet &graph_set);	
+    // reads in a weight graph and using the appropriate costs parser to create costs graph(s) out of it
+    GraphSet(char *file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th);
+
+    GraphSet(std::string file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th);
+
+    // reads a directory full of graphs in
+    GraphSet(char *dir_name, matrix_file_fct_type fct);
+
+    GraphSet(std::string dir_name, matrix_file_fct_type fct);
+
+    /* ####  Destructor  #### */
+    ~GraphSet();
+
+
+    /* ####  access functions  #### */
+
+    // returns number of graphs
+    int getSetSize();
+
+    // returns reference to graph
+    CostsGraph &getGraph(int i);
+
+    // deletes graph from set
+    void deleteGraph(int i);
+
+    // add another graph, gets reference and will save pointer to deep copy of graph
+    void addGraph(CostsGraph &graph);
+
+    // prints out statistc of the graph set
+    void printStat();
+
+    GraphSet &operator=(const GraphSet &graph_set);
 
 private:
-	/* ####  member variables  #### */
+    /* ####  member variables  #### */
 
-	// list of graph pointers
-	graph_list_type _graph_list;
+    // list of graph pointers
+    graph_list_type _graph_list;
 
-	// set size
-	int _size;
+    // set size
+    int _size;
 };
 
 #endif

@@ -3,13 +3,9 @@
 #include <graphexception.h>
 
 // Constructor
-GraphException::GraphException(std::string msg) : message(msg) { }
-
-// Destructor
-GraphException::~GraphException() { }
+GraphException::GraphException(std::string msg) : message(std::move(msg)) {}
 
 // return error message
-std::string GraphException::getMessage()
-{
-	return this->message;
+std::string GraphException::getMessage() {
+    return this->message;
 };

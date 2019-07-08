@@ -16,36 +16,39 @@
 
 class MatrixParser {
 public:
-	/* ####  constructors  #### */
-	MatrixParser();
-	/* ####  destructor  #### */
-	~MatrixParser();
+    /* ####  constructors  #### */
+    MatrixParser() = default;
 
-	// function pointer to cost parsing function
-	typedef double (*costs_parsing_fct_type)(double value, double threshold);
-	
-	/* ####  access functions  #### */
-	static void toMatrixFile(char* fname, CostsGraph& G);
+    /* ####  destructor  #### */
+    ~MatrixParser() = default;
+
+    // function pointer to cost parsing function
+    typedef double (*costs_parsing_fct_type)(double value, double threshold);
+
+    /* ####  access functions  #### */
+    static void toMatrixFile(char *fname, CostsGraph &G);
+
 /*
 	static void fileToGraph(char* fname, CostsGraph& G, double *matrix);
 	static void fileToGraph(char* fname, CostsGraph& G, int *matrix);
 	static void fileToGraph(char* fname, CostsGraph& G, short *matrix);
 	static void fileToGraph(char* fname, CostsGraph& G, char *matrix);
 */
-	static void initFromMatrixFile(char* fname, CostsGraph& G);
+    static void initFromMatrixFile(char *fname, CostsGraph &G);
 
-	static void initFromWeightMatrixFile(char* fname, CostsGraph& G, costs_parsing_fct_type fct, double threshold);
+    static void initFromWeightMatrixFile(char *fname, CostsGraph &G, costs_parsing_fct_type fct, double threshold);
 
 private:
-	/* ####  member variables  #### */
-	template <typename Type>
-	static inline std::string toString(Type x);
-	
-	template <typename Type>
-	static inline Type stringToType(std::string& s);
-	template <typename Type>
-	static inline Type stringToType(char* s);
-	
+    /* ####  member variables  #### */
+    template<typename Type>
+    static inline std::string toString(Type x);
+
+    template<typename Type>
+    static inline Type stringToType(std::string &s);
+
+    template<typename Type>
+    static inline Type stringToType(char *s);
+
 /*
 	template <typename Type>
 	static void fromMatrixFile(char* fname, CostsGraph& G, Type *matrix);

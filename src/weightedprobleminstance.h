@@ -45,165 +45,171 @@
 
 class WeightedProblemInstance {
 public:
-	/* ####  Constants  #### */
+    /* ####  Constants  #### */
 
-	// constants for different adjacency status
-	// note that any other adjacency values should be below/above the given values
-	const double permanent;
-	const double forbidden;
+    // constants for different adjacency status
+    // note that any other adjacency values should be below/above the given values
+    const double permanent;
+    const double forbidden;
 
 
-	/* ####  type definitions  #### */
+    /* ####  type definitions  #### */
 
-	// edge struct to save an edge and its changing costs
-	// it also saves the original indices of this edge, since merging could change the indices
-	struct edge_type {
-		CostsGraph::index_list_type i;
-		CostsGraph::index_list_type j;
-		double costs;
-		char operation;
-	};
+    // edge struct to save an edge and its changing costs
+    // it also saves the original indices of this edge, since merging could change the indices
+    struct edge_type {
+        CostsGraph::index_list_type i;
+        CostsGraph::index_list_type j;
+        double costs;
+        char operation;
+    };
 
-	// vector to save a list of edge changes
-	typedef std::vector<edge_type> edge_list_type;
+    // vector to save a list of edge changes
+    typedef std::vector<edge_type> edge_list_type;
 
-	// pair type (=edge) for simple reduction rules
-	typedef CostsGraph::pair_type pair_type;
+    // pair type (=edge) for simple reduction rules
+    typedef CostsGraph::pair_type pair_type;
 
-	// for new_costs array in case of merging
-	typedef CostsGraph::double_array_type double_array_type;
+    // for new_costs array in case of merging
+    typedef CostsGraph::double_array_type double_array_type;
 
-	// list of problem instance objects to divide objects whenever there are different connected components
-	typedef std::vector<WeightedProblemInstance*> pi_list_type;
+    // list of problem instance objects to divide objects whenever there are different connected components
+    typedef std::vector<WeightedProblemInstance *> pi_list_type;
 
-	/* ####  Constructors  #### */
-	WeightedProblemInstance(CostsGraph graph, double parameter, bool para_independent = false);
-	WeightedProblemInstance(const WeightedProblemInstance& PI);
-	WeightedProblemInstance(CostsGraph &graph, double parameter, double start_parameter, EdgeReduction edge_reduction, bool para_independent = false);
+    /* ####  Constructors  #### */
+    WeightedProblemInstance(CostsGraph graph, double parameter, bool para_independent = false);
 
-	/* ####  Destructor  #### */
-	~WeightedProblemInstance();
+    WeightedProblemInstance(const WeightedProblemInstance &PI);
 
-	/* ####  main function reduce  #### */
+    WeightedProblemInstance(CostsGraph &graph, double parameter, double start_parameter, EdgeReduction edge_reduction,
+                            bool para_independent = false);
 
-	// reduces the problem kernel, by setting edges to permanent/forbidden, since
-	// other operations will cause costs bigger then the parameter
-	int reduce();
+    /* ####  Destructor  #### */
+    ~WeightedProblemInstance();
 
-	// stronger reduce which includes more involved reduction rules
-	int strongReduce();
+    /* ####  main function reduce  #### */
 
-	// maximal reduce which includes more involved reduction rules and reduces as long as possible
-	int maxReduce();
+    // reduces the problem kernel, by setting edges to permanent/forbidden, since
+    // other operations will cause costs bigger then the parameter
+    int reduce();
 
-	// unweighted critical clique merging
-	int ccReduce();
+    // stronger reduce which includes more involved reduction rules
+    int strongReduce();
 
-	// unweighted critical clique reduction after Guo to achieve a 4k kernel in the unweighted case
-	int ccKernelization();
+    // maximal reduce which includes more involved reduction rules and reduces as long as possible
+    int maxReduce();
 
-	// use heuristic to solve instance...simply by iterativley setting edges to permanent and forbidden
-	// dependend on their icp and icf costs
-	int heuristicSolve();
+    // unweighted critical clique merging
+    int ccReduce();
 
-	// set edge to values in the underlying graph and do every other necessary update
-	void setEdge(int i, int j, double value);
+    // unweighted critical clique reduction after Guo to achieve a 4k kernel in the unweighted case
+    int ccKernelization();
 
-	// return edge value of the underlying graph
-	inline double getEdge(short i, short j) const { return _graph.getEdge(i,j); };
+    // use heuristic to solve instance...simply by iterativley setting edges to permanent and forbidden
+    // dependend on their icp and icf costs
+    int heuristicSolve();
 
-	// returns changes in the graph made by the object
-	inline edge_list_type getChangedEdges() const{ return _changed_edges; }
+    // set edge to values in the underlying graph and do every other necessary update
+    void setEdge(int i, int j, double value);
 
-	// saves new changes, if it makes sence or not
-	inline void setChangedEdges(edge_list_type new_edges) { _changed_edges = new_edges; }
+    // return edge value of the underlying graph
+    inline double getEdge(short i, short j) const { return _graph.getEdge(i, j); };
 
-	// returns parameter
-	inline double getParameter() const { return _parameter; };
+    // returns changes in the graph made by the object
+    inline edge_list_type getChangedEdges() const { return _changed_edges; }
 
-	// return start parameter + 1
-	// gives the border for costs which exceed the parameter
-	inline double getStartParameter() const { return _start_parameter; };
+    // saves new changes, if it makes sence or not
+    inline void setChangedEdges(edge_list_type new_edges) { _changed_edges = new_edges; }
 
-	// returns a copy of the graph
-	inline CostsGraph getGraph() const { return _graph; };
+    // returns parameter
+    inline double getParameter() const { return _parameter; };
 
-	inline double getMinInsertCosts(int i, int j) { return _edge_reduction.getMinInsertCosts(i,j); };
+    // return start parameter + 1
+    // gives the border for costs which exceed the parameter
+    inline double getStartParameter() const { return _start_parameter; };
 
-	// return lower bound for instance
-	double getLowerBound() const;
+    // returns a copy of the graph
+    inline CostsGraph getGraph() const { return _graph; };
 
-	// return a upper bound for this instance...pidr needs to be default=false
-	double getUpperBound() const;
+    inline double getMinInsertCosts(int i, int j) { return _edge_reduction.getMinInsertCosts(i, j); };
 
-	// make a deep copy of the object
-	WeightedProblemInstance* clone() const;
+    // return lower bound for instance
+    double getLowerBound() const;
 
-	// return edge to branch for, -1 if there exists no edge
-	double getEdgeForBranching(int &i, int &j) const;
+    // return a upper bound for this instance...pidr needs to be default=false
+    double getUpperBound() const;
 
-	// functions to divide and merge instances
-	pi_list_type divideInstance(CostsGraph::vertex_matrix_type vertex_matrix);
+    // make a deep copy of the object
+    WeightedProblemInstance *clone() const;
 
-	// sets parameter and therefore changes the problem kernel
-	void setParameter(double _new_parameter);
+    // return edge to branch for, -1 if there exists no edge
+    double getEdgeForBranching(int &i, int &j) const;
+
+    // functions to divide and merge instances
+    pi_list_type divideInstance(CostsGraph::vertex_matrix_type vertex_matrix);
+
+    // sets parameter and therefore changes the problem kernel
+    void setParameter(double _new_parameter);
 
 private:
-	/* ####  additional member variables  #### */
-	EdgeReduction _edge_reduction;
+    /* ####  additional member variables  #### */
+    EdgeReduction _edge_reduction;
 
-	// reducable parameter for problem instance
-	double _parameter;
+    // reducable parameter for problem instance
+    double _parameter;
 
-	// original parameter
-	double _start_parameter;
+    // original parameter
+    double _start_parameter;
 
-	// option to switch of parameter-dependent red rules
-	bool _pid;
+    // option to switch of parameter-dependent red rules
+    bool _pid;
 
-	// underlying costs graph
-	CostsGraph _graph;
+    // underlying costs graph
+    CostsGraph _graph;
 
-	// contains all changed edges
-	edge_list_type _changed_edges;
+    // contains all changed edges
+    edge_list_type _changed_edges;
 
 
-	/* ####  general help functions  #### */
+    /* ####  general help functions  #### */
 
-	// sets edge to certain value and consider updates for number of (non)-common neighbors
-	inline void setEdgeToValue(int i, int j, double value);
+    // sets edge to certain value and consider updates for number of (non)-common neighbors
+    inline void setEdgeToValue(int i, int j, double value);
 
-	// save changed edge in list
-	inline void saveChangedEdge(int i, int j, double costs, char operation);
-	
-	// merge two vertices and all other structures like tripel lists and min insert & delete lists
-	inline void mergeVertices(int i, int j);
+    // save changed edge in list
+    inline void saveChangedEdge(int i, int j, double costs, char operation);
 
-	// deletes created clique from linked lists
-	inline void mergeVertices(CostsGraph::byte_vector_type &clique);
-	inline void deleteClique(CostsGraph::byte_vector_type &clique);
-	inline void deleteClique(int i);
+    // merge two vertices and all other structures like tripel lists and min insert & delete lists
+    inline void mergeVertices(int i, int j);
 
-	// help function to order edges
-	static bool compare(pair_type p1, pair_type p2) {
-		return (p1.i < p2.i);
-	}
+    // deletes created clique from linked lists
+    inline void mergeVertices(CostsGraph::byte_vector_type &clique);
 
-	// set a set of edges to forbidden or permanent respectivley
-	inline void setEdgesToForbidden(CostsGraph::edge_list_type forbiddden_list);
-	inline void setEdgesToPermanent(CostsGraph::edge_list_type permanent_list);
+    inline void deleteClique(CostsGraph::byte_vector_type &clique);
 
-	// try simple reduction rules
-	inline int simpleReduction();
+    inline void deleteClique(int i);
 
-	// do the approximation of the critical clique as simple reduction rule
-	inline int criticalCliqueApproximation();
+    // help function to order edges
+    static bool compare(pair_type p1, pair_type p2) {
+        return (p1.i < p2.i);
+    }
 
-	// call the more involved weighted critical clique rule which uses dynamic programming
-	inline int criticalCliqueReduction(int max_edge, bool check_for_int = false);
+    // set a set of edges to forbidden or permanent respectivley
+    inline void setEdgesToForbidden(CostsGraph::edge_list_type forbiddden_list);
 
-	// use the almost clique rule to detect cliques
-	inline int detectCliques();
+    inline void setEdgesToPermanent(CostsGraph::edge_list_type permanent_list);
+
+    // try simple reduction rules
+    inline int simpleReduction();
+
+    // do the approximation of the critical clique as simple reduction rule
+    inline int criticalCliqueApproximation();
+
+    // call the more involved weighted critical clique rule which uses dynamic programming
+    inline int criticalCliqueReduction(int max_edge, bool check_for_int = false);
+
+    // use the almost clique rule to detect cliques
+    inline int detectCliques();
 
 };
 

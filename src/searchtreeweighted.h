@@ -14,79 +14,79 @@
 
 class SearchTreeWeighted {
 public:
-	/* ####  Type definitions #### */
+    /* ####  Type definitions #### */
 
-	// record to save a solution
-	struct component_solution_type {
-		// adjacency matrices = costs graphs
-		GraphSet components;
-		// changes made during the search
-		WeightedProblemInstance::edge_list_type changes;
+    // record to save a solution
+    struct component_solution_type {
+        // adjacency matrices = costs graphs
+        GraphSet components;
+        // changes made during the search
+        WeightedProblemInstance::edge_list_type changes;
 
-		// = end parameter
-		double parameter;
-		// = starting point
-		double start_parameter;
-	};
+        // = end parameter
+        double parameter;
+        // = starting point
+        double start_parameter;
+    };
 
-	// vector for saving all solutions
-	typedef std::vector< component_solution_type > solutions_type;
-
-
-	/* ####  Constants  #### */
-	
-	// constants for different adjacency status
-	const double permanent;
-	const double forbidden;
+    // vector for saving all solutions
+    typedef std::vector<component_solution_type> solutions_type;
 
 
-	/* ####  Constructor  #### */
+    /* ####  Constants  #### */
 
-	SearchTreeWeighted(WeightedProblemInstance &rootInstance, int d);
-
-
-	/* ####  Destructor  #### */
-	~SearchTreeWeighted();
+    // constants for different adjacency status
+    const double permanent;
+    const double forbidden;
 
 
-	/* ####  main function #### */
+    /* ####  Constructor  #### */
 
-	// searching for all / just best solution in the search tree
-	void search(bool just_max, bool split);
-	
-	// returns solutions
-	solutions_type getSolutions();
+    SearchTreeWeighted(WeightedProblemInstance &rootInstance, int d);
+
+
+    /* ####  Destructor  #### */
+    ~SearchTreeWeighted();
+
+
+    /* ####  main function #### */
+
+    // searching for all / just best solution in the search tree
+    void search(bool just_max, bool split);
+
+    // returns solutions
+    solutions_type getSolutions();
 
 private:
 
-	/* ####  members  #### */
+    /* ####  members  #### */
 
-	// root of the search tree
-	WeightedProblemInstance _root;
+    // root of the search tree
+    WeightedProblemInstance _root;
 
-	// list of solutions
-	solutions_type _solutions;
+    // list of solutions
+    solutions_type _solutions;
 
-	// options
-	bool _split;
-	bool _just_max;
+    // options
+    bool _split;
+    bool _just_max;
 
-	int _depth;
+    int _depth;
 
-	// keep lower bound
-	double _lower_bound;
+    // keep lower bound
+    double _lower_bound;
 
-	/* ####  methods  #### */
+    /* ####  methods  #### */
 
-	// simple recursive function, each corresponds to a node in the search tree
-	void recSearch(WeightedProblemInstance &node, int depth);
+    // simple recursive function, each corresponds to a node in the search tree
+    void recSearch(WeightedProblemInstance &node, int depth);
 
-	// test whether the search tree and the instance shouls split
-	bool splitWorthIt(CostsGraph::vertex_matrix_type vertex_matrix);
+    // test whether the search tree and the instance shouls split
+    bool splitWorthIt(CostsGraph::vertex_matrix_type vertex_matrix);
 
-	// creates sub search tree objects and will run their search to get solutions
-	// for sub instances of the given problem instance
-	void splitSearch(WeightedProblemInstance &new_root, CostsGraph::vertex_matrix_type vertex_matrix, int depth);
+    // creates sub search tree objects and will run their search to get solutions
+    // for sub instances of the given problem instance
+    void splitSearch(WeightedProblemInstance &new_root, CostsGraph::vertex_matrix_type vertex_matrix, int depth);
 };
 
 #endif

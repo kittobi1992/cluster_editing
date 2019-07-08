@@ -21,9 +21,9 @@
 class MinCut {
 public:
 
-	MinCut();
+	MinCut() = delete;
 
-	~MinCut();
+	~MinCut() = delete;
 
 	/* ################ Graph Min Cut ############################### */
 

@@ -14,10 +14,10 @@ from Java.
 class VertexListsException {
 public:
 	// Constructor
-	VertexListsException(std::string message);
+	explicit VertexListsException(std::string message);
 
 	// Destructor
-	~VertexListsException() {};
+	~VertexListsException() = default;
 
 	// access function
 	std::string getMessage();

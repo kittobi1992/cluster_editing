@@ -7,18 +7,20 @@
 
 class BlastParser {
 public:
-	/* ####  constructors  #### */
-	BlastParser();
-	/* ####  destructor  #### */
-	~BlastParser();
-	
-	/* ####  access functions  #### */
-	static double exponentToCosts(double blast_value, double threshold);
-	static double simpleCutOff(double blast_value, double threshold);
+    /* ####  constructors  #### */
+    BlastParser() = default;
+
+    /* ####  destructor  #### */
+    ~BlastParser() = default;
+
+    /* ####  access functions  #### */
+    static double exponentToCosts(double blast_value, double threshold);
+
+    static double simpleCutOff(double blast_value, double threshold);
 
 private:
-	/* ####  member variables  #### */
-	
+    /* ####  member variables  #### */
+
 };
 
 #endif

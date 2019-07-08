@@ -13,16 +13,17 @@ from Java.
 
 class ProblemInstanceException {
 public:
-	/* ####  Constructor  #### */
-	ProblemInstanceException(std::string message);
+    /* ####  Constructor  #### */
+    explicit ProblemInstanceException(std::string message);
 
-	/* ####  Destructor  #### */
-	~ProblemInstanceException() {};
+    /* ####  Destructor  #### */
+    ~ProblemInstanceException() = default;
 
-	/* ####  access function  #### */
-	std::string getMessage();
+    /* ####  access function  #### */
+    std::string getMessage();
+
 private:
-	std::string _message;
+    std::string _message;
 };
 
 

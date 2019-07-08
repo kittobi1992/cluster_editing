@@ -14,10 +14,10 @@ from Java.
 class GraphException {
 public:
 	// Constructor
-	GraphException(std::string msg);
+	explicit GraphException(std::string msg);
 
 	// Destructor
-	~GraphException();
+	~GraphException() = default;
 
 	// access function
 	std::string getMessage();

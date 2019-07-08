@@ -1,8 +1,10 @@
 #if defined(__unix) && defined(__sun)
 #include <sys/time.h>
 #elif defined(__linux__)
+
 #include <sys/time.h>
 #include <sys/resource.h>
+
 #endif
 
 
@@ -22,20 +24,22 @@
  * @ingroup utils
  */
 class Stopwatch {
-	public:
-		/**
-		 * Creates a new stopwatch. The stopwatch is automatically started,
-		 * so there is no need to call start() directly after construction.
-		 */
-		Stopwatch() { start(); }
-		void start();
-		double elapsed() const;
+public:
+    /**
+     * Creates a new stopwatch. The stopwatch is automatically started,
+     * so there is no need to call start() directly after construction.
+     */
+    Stopwatch() { start(); }
 
-	private:
+    void start();
+
+    double elapsed() const;
+
+private:
 #if defined(__unix) && defined(__sun)
-		hrtime_t start_time;
+    hrtime_t start_time;
 #elif defined(__linux__)
-		timeval tv_start;
+    timeval tv_start;
 #endif
 };
 
@@ -45,9 +49,9 @@ class Stopwatch {
  */
 inline void Stopwatch::start() {
 #if defined(__unix) && defined(__sun)
-	start_time = gethrtime();
+    start_time = gethrtime();
 #elif defined(__linux__)
-	gettimeofday(&tv_start, NULL);
+    gettimeofday(&tv_start, NULL);
 #endif
 }
 
@@ -58,15 +62,15 @@ inline void Stopwatch::start() {
  */
 inline double Stopwatch::elapsed() const {
 #if defined(__unix) && defined(__sun)
-	hrtime_t now = gethrtime();
-	// convert to seconds since gethrtime() returns nanoseconds
-	return (now-start_time)/1e9;
+    hrtime_t now = gethrtime();
+    // convert to seconds since gethrtime() returns nanoseconds
+    return (now-start_time)/1e9;
 #elif defined(__linux__)
-	timeval tv_end;
-	gettimeofday(&tv_end, NULL);
-	timeval tv_elapsed;
-	timersub(&tv_end, &tv_start, &tv_elapsed);
-	return double(tv_elapsed.tv_sec) + tv_elapsed.tv_usec * 1e-6;
+    timeval tv_end;
+    gettimeofday(&tv_end, NULL);
+    timeval tv_elapsed;
+    timersub(&tv_end, &tv_start, &tv_elapsed);
+    return double(tv_elapsed.tv_sec) + tv_elapsed.tv_usec * 1e-6;
 #endif
 }
 
@@ -79,16 +83,18 @@ inline double Stopwatch::elapsed() const {
  * @ingroup utils
  */
 class ProcessStopwatch {
-	public:
-		ProcessStopwatch() { start(); }
-		void start();
-		double elapsed() const;
+public:
+    ProcessStopwatch() { start(); }
 
-	private:
+    void start();
+
+    double elapsed() const;
+
+private:
 #if defined(__unix) && defined(__sun)
-		hrtime_t start_time;
+    hrtime_t start_time;
 #elif defined(__linux__)
-		timeval tv_start;
+    timeval tv_start;
 #endif
 };
 
@@ -98,11 +104,11 @@ class ProcessStopwatch {
  */
 inline void ProcessStopwatch::start() {
 #if defined(__unix) && defined(__sun)
-	start_time = gethrvtime();
+    start_time = gethrvtime();
 #elif defined(__linux__)
-	rusage usage;
-	getrusage(RUSAGE_SELF, &usage);
-	tv_start = usage.ru_utime;
+    rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+    tv_start = usage.ru_utime;
 #endif
 }
 
@@ -115,15 +121,15 @@ inline void ProcessStopwatch::start() {
  */
 inline double ProcessStopwatch::elapsed() const {
 #if defined(__unix) && defined(__sun)
-	hrtime_t now = gethrvtime();
-	// convert to seconds since gethrvtime() returns nanoseconds
-	return (now-start_time)/1e9;
+    hrtime_t now = gethrvtime();
+    // convert to seconds since gethrvtime() returns nanoseconds
+    return (now-start_time)/1e9;
 #elif defined(__linux__)
-	rusage usage;
-	getrusage(RUSAGE_SELF, &usage);
-	timeval tv_end = usage.ru_utime;
-	timeval tv_elapsed;
-	timersub(&tv_end, &tv_start, &tv_elapsed);
-	return double(tv_elapsed.tv_sec) + tv_elapsed.tv_usec * 1e-6;
+    rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+    timeval tv_end = usage.ru_utime;
+    timeval tv_elapsed;
+    timersub(&tv_end, &tv_start, &tv_elapsed);
+    return double(tv_elapsed.tv_sec) + tv_elapsed.tv_usec * 1e-6;
 #endif
 }

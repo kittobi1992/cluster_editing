@@ -29,9 +29,9 @@
 class LowerBound {
 public:
 
-    LowerBound();
+    LowerBound() = delete;
 
-    ~LowerBound();
+    ~LowerBound() = delete;
 
     // structure to save a conflict triple and minimum solving value
     // float is used to avoid memory problems

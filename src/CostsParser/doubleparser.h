@@ -7,18 +7,20 @@
 
 class DoubleParser {
 public:
-	/* ####  constructors  #### */
-	DoubleParser();
-	/* ####  destructor  #### */
-	~DoubleParser();
-	
-	/* ####  access functions  #### */
-	static double valueToCosts(double value, double threshold);
-	static double simpleCutOff(double value, double threshold);
+    /* ####  constructors  #### */
+    DoubleParser() = default;
+
+    /* ####  destructor  #### */
+    ~DoubleParser() = default;
+
+    /* ####  access functions  #### */
+    static double valueToCosts(double value, double threshold);
+
+    static double simpleCutOff(double value, double threshold);
 
 private:
-	/* ####  member variables  #### */
-	
+    /* ####  member variables  #### */
+
 };
 
 #endif

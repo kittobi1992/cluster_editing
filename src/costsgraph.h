@@ -109,7 +109,7 @@ public:
 
     /* ####  Constructors  #### */
     // th = threshold, every value smaller then th will be set to set, else to not_set
-    CostsGraph(int size = 1, double th = 10e-20);
+    explicit CostsGraph(int size = 1, double th = 10e-20);
 
     CostsGraph(int size, std::string *edge_list, double th = 10e-20);
 
@@ -140,7 +140,7 @@ public:
 
 
     /* ####  Destructor  #### */
-    ~CostsGraph();
+    ~CostsGraph() = default;
 
 
     /* ####  access functions  #### */
