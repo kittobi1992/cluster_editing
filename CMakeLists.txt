@@ -1,0 +1,103 @@
+cmake_minimum_required(VERSION 3.14)
+project(cluster_editing)
+
+set(CMAKE_CXX_STANDARD 14)
+
+include_directories(src)
+include_directories(src/CostsParser)
+include_directories(src/GraphParser)
+include_directories(tester)
+include_directories(tools)
+
+add_executable(weighted_cluster_editing_tester
+        src/CostsParser/blastparser.cpp
+        src/CostsParser/blastparser.h
+        src/CostsParser/doubleparser.cpp
+        src/CostsParser/doubleparser.h
+        src/GraphParser/edgefileparser.cpp
+        src/GraphParser/edgefileparser.h
+        src/GraphParser/matrixparser.cpp
+        src/GraphParser/matrixparser.h
+        src/almostclique.h
+        src/array.h
+        src/bnmanager.h
+        src/cc-kernel.h
+        src/costsgraph.cpp
+        src/costsgraph.h
+        src/criticalclique.h
+        src/edgereduction.cpp
+        src/edgereduction.h
+        src/graphexception.cpp
+        src/graphexception.h
+        src/graphset.cpp
+        src/graphset.h
+        src/lowerbound.h
+        src/mergereduction.h
+        src/mincut.h
+        src/napsack.h
+        src/probleminstanceexception.cpp
+        src/probleminstanceexception.h
+        src/searchtreeweighted.cpp
+        src/searchtreeweighted.h
+        src/trianglematrix.h
+        src/vertexlists.cpp
+        src/vertexlists.h
+        src/vertexlistsexception.cpp
+        src/vertexlistsexception.h
+        src/weightedprobleminstance.cpp
+        src/weightedprobleminstance.h
+        tester/weightedclustereditingtester.cpp
+        )
+
+add_executable(weighted_cluster_editing
+        src/CostsParser/blastparser.cpp
+        src/CostsParser/blastparser.h
+        src/CostsParser/doubleparser.cpp
+        src/CostsParser/doubleparser.h
+        src/GraphParser/edgefileparser.cpp
+        src/GraphParser/edgefileparser.h
+        src/GraphParser/matrixparser.cpp
+        src/GraphParser/matrixparser.h
+        src/almostclique.h
+        src/array.h
+        src/bnmanager.h
+        src/cc-kernel.h
+        src/costsgraph.cpp
+        src/costsgraph.h
+        src/criticalclique.h
+        src/edgereduction.cpp
+        src/edgereduction.h
+        src/graphexception.cpp
+        src/graphexception.h
+        src/graphset.cpp
+        src/graphset.h
+        src/lowerbound.h
+        src/mergereduction.h
+        src/mincut.h
+        src/napsack.h
+        src/probleminstanceexception.cpp
+        src/probleminstanceexception.h
+        src/searchtreeweighted.cpp
+        src/searchtreeweighted.h
+        src/trianglematrix.h
+        src/vertexlists.cpp
+        src/vertexlists.h
+        src/vertexlistsexception.cpp
+        src/vertexlistsexception.h
+        src/weightedprobleminstance.cpp
+        src/weightedprobleminstance.h
+        tools/weightedclusterediting.cpp
+        )
+
+#[[
+        tester/weightedclustereditingtester.cpp
+        tester/cckerneltester.cpp
+        tester/weightedclustereditingtesteriwpec.cpp
+        tools/criticalcliquereduction.cpp
+        tools/graphvizcreator.cpp
+        tools/graphvizcreator_yed.cpp
+        tools/ReducedGraphProducer.cpp
+        tools/ReducedGraphProducer_iwpec.cpp
+        tools/stopwatch.h
+        tools/weightedclusterreduction.cpp)
+]]
