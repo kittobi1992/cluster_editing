@@ -6,30 +6,27 @@
 SearchTreeWeighted::SearchTreeWeighted(WeightedProblemInstance &root, int d) : _solutions(0), _root(root),
                                                                                permanent(root.permanent),
                                                                                forbidden(root.forbidden), _split(true),
+                                                                               _just_max(false),
                                                                                _depth(d) {
     // get an initial lower bound for the root instance
     _lower_bound = root.getLowerBound();
 }
 
-/* ########## Destructor ########### */
-
-SearchTreeWeighted::~SearchTreeWeighted() {
-}
 
 /* ########## Methods ########### */
 
 
 // return whether it is useful to split the search tree
-bool SearchTreeWeighted::splitWorthIt(CostsGraph::vertex_matrix_type vertex_matrix) {
+bool SearchTreeWeighted::splitWorthIt(const CostsGraph::vertex_matrix_type &vertex_matrix) {
 
-    // if there is  more than one connected componentn..
+    // if there is  more than one connected component..
     if (vertex_matrix.size() > 1) {
 
         // count number of not trivial instances and singletons
         int not_simple = 0;
         int singletons = 0;
-        for (int i = 0; i < vertex_matrix.size(); i++) {
-            if (vertex_matrix[i].size() > 5) {
+        for (const auto &vertex_set : vertex_matrix) {
+            if (vertex_set.size() > 5) {
                 not_simple++;
             } else {
                 singletons++;
@@ -37,7 +34,7 @@ bool SearchTreeWeighted::splitWorthIt(CostsGraph::vertex_matrix_type vertex_matr
         }
 
         // decide whether we should split the search tree or not
-        return (not_simple > 1 || singletons > 5) ? true : false;
+        return (not_simple > 1 || singletons > 5);
     } else {
         return false;
     }
@@ -70,12 +67,13 @@ SearchTreeWeighted::solutions_type SearchTreeWeighted::getSolutions() {
 
 
 // start split tree search
-void SearchTreeWeighted::splitSearch(WeightedProblemInstance &new_root, CostsGraph::vertex_matrix_type vertex_matrix,
-                                     int depth) {
+void
+SearchTreeWeighted::splitSearch(WeightedProblemInstance &new_root, const CostsGraph::vertex_matrix_type &vertex_matrix,
+                                int depth) {
     // divide Instance
     WeightedProblemInstance::pi_list_type pi_list = new_root.divideInstance(vertex_matrix);
 
-    // create solutionscontainer to solutions in subtrees
+    // create solutions container to solutions in subtrees
     solutions_type solutions_container = solutions_type(vertex_matrix.size());
 
     // save initial parameter
@@ -97,7 +95,7 @@ void SearchTreeWeighted::splitSearch(WeightedProblemInstance &new_root, CostsGra
             solutions_type solutions = subtree.getSolutions();
 
             // if any subtree is not solvable the whole tree is not solvable-->exception
-            if (solutions.size() < 1) {
+            if (solutions.empty()) {
                 throw ProblemInstanceException("branch not solvable");
             }
 
@@ -118,9 +116,9 @@ void SearchTreeWeighted::splitSearch(WeightedProblemInstance &new_root, CostsGra
             parameter = (solutions_container[i]).parameter;
 
             delete (pi_list[i]);
-            pi_list[i] = NULL;
+            pi_list[i] = nullptr;
 
-        } catch (ProblemInstanceException pe) {
+        } catch (ProblemInstanceException &pe) {
             // delete all other created problem instances
             for (int k = i; k < vertex_matrix.size(); k++) {
                 delete (pi_list[k]);
@@ -144,7 +142,7 @@ void SearchTreeWeighted::splitSearch(WeightedProblemInstance &new_root, CostsGra
     solutions_container[0].changes = sum_of_changes;
 
     // if not just maximum solution is requested or no solution so far...just add solution
-    if (!_just_max || _solutions.size() == 0) {
+    if (!_just_max || _solutions.empty()) {
         _solutions.insert(_solutions.end(), solutions_container[0]);
 
         // otherwise test if solution is better then existing one, and delete the rejected solution
@@ -156,12 +154,12 @@ void SearchTreeWeighted::splitSearch(WeightedProblemInstance &new_root, CostsGra
 
 
 // normal recursive search for a problem instance
-// this function will call itself recursivley for every branch
+// this function will call itself recursively for every branch
 void SearchTreeWeighted::recSearch(WeightedProblemInstance &node, int depth) {
     if (node.getParameter() >= 0) {
 
         // if no solution can be obtained abort here
-        if (_just_max && _solutions.size() > 0 && node.getParameter() < _solutions[0].parameter) {
+        if (_just_max && !_solutions.empty() && node.getParameter() < _solutions[0].parameter) {
             return;
         }
 
@@ -183,7 +181,7 @@ void SearchTreeWeighted::recSearch(WeightedProblemInstance &node, int depth) {
         if (branch_nr == -1) {
 
             // if not just maximum solution is requested or no solution so far...just add solution
-            if (!_just_max || _solutions.size() == 0) {
+            if (!_just_max || _solutions.empty()) {
 
                 // create a new solution
                 component_solution_type solution = {GraphSet(node.getGraph()), node.getChangedEdges(),
@@ -218,7 +216,7 @@ void SearchTreeWeighted::recSearch(WeightedProblemInstance &node, int depth) {
 
         // start recursive calls
         // case B1 (set (u,v) to forbidden, which decreases parameter
-        WeightedProblemInstance *PI;
+        WeightedProblemInstance *PI = nullptr;
         try {
             PI = node.clone();
             PI->setEdge(i, j, first);
@@ -228,7 +226,7 @@ void SearchTreeWeighted::recSearch(WeightedProblemInstance &node, int depth) {
                 PI->strongReduce();
             } else {
                 PI->reduce();
-            };
+            }
 
             // test if graph is divided and start recursion
             CostsGraph::vertex_matrix_type vertex_matrix = (PI->getGraph()).getConnectedVertices();
@@ -238,9 +236,10 @@ void SearchTreeWeighted::recSearch(WeightedProblemInstance &node, int depth) {
                 recSearch(*PI, depth + 1);
             }
 
-        } catch (ProblemInstanceException e) {
+        } catch (ProblemInstanceException &e) {
         }
         delete PI;
+        PI = nullptr;
 
         // case B2 (set (u,v) = (j,k) to permanent, (v,w) = (i,j) to forbidden
         // and (u,w) = (i,k) to forbidden, which decreases parameter
@@ -253,7 +252,7 @@ void SearchTreeWeighted::recSearch(WeightedProblemInstance &node, int depth) {
                 PI->strongReduce();
             } else {
                 PI->reduce();
-            };
+            }
 
             // test if graph is divided and start recursion
             CostsGraph::vertex_matrix_type vertex_matrix = (PI->getGraph()).getConnectedVertices();
@@ -262,7 +261,7 @@ void SearchTreeWeighted::recSearch(WeightedProblemInstance &node, int depth) {
             } else {
                 recSearch(*PI, depth + 1);
             }
-        } catch (ProblemInstanceException e) {
+        } catch (ProblemInstanceException &e) {
         }
         delete PI;
 

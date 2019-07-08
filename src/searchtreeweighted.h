@@ -46,7 +46,7 @@ public:
 
 
     /* ####  Destructor  #### */
-    ~SearchTreeWeighted();
+    ~SearchTreeWeighted() = default;
 
 
     /* ####  main function #### */
@@ -81,12 +81,12 @@ private:
     // simple recursive function, each corresponds to a node in the search tree
     void recSearch(WeightedProblemInstance &node, int depth);
 
-    // test whether the search tree and the instance shouls split
-    bool splitWorthIt(CostsGraph::vertex_matrix_type vertex_matrix);
+    // test whether the search tree and the instance should split
+    bool splitWorthIt(const CostsGraph::vertex_matrix_type &vertex_matrix);
 
     // creates sub search tree objects and will run their search to get solutions
     // for sub instances of the given problem instance
-    void splitSearch(WeightedProblemInstance &new_root, CostsGraph::vertex_matrix_type vertex_matrix, int depth);
+    void splitSearch(WeightedProblemInstance &new_root, const CostsGraph::vertex_matrix_type &vertex_matrix, int depth);
 };
 
 #endif

@@ -188,7 +188,7 @@ CostsGraph::CostsGraph(int size, double_matrix_type weight_matrix, costs_parsing
 // constructor with file name, double_file parsing function, cost parsing function and threshold
 // the file will be parsed with the double file fct and every read weight value will be converted
 // to costs with the costs parsing function using the threshold
-CostsGraph::CostsGraph(char *file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th) : _size(
+/* CostsGraph::CostsGraph(char *file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th) : _size(
         0), _threshold(th), forbidden(std::numeric_limits<double>::max() * -1), permanent(
         std::numeric_limits<double>::max()), _cost_matrix() {
     try {
@@ -196,13 +196,13 @@ CostsGraph::CostsGraph(char *file_name, double_file_fct_type fct, costs_parsing_
     } catch (GraphException &e) {
         throw GraphException(e);
     }
-}
+} */
 
 
 // constructor with file name, double_file parsing function, cost parsing function and threshold
 // the file will be parsed with the double file fct and every read weight value will be converted
 // to costs with the costs parsing function using the threshold
-CostsGraph::CostsGraph(std::string file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th)
+CostsGraph::CostsGraph(const std::string &file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th)
         : _size(0), _threshold(th), forbidden(std::numeric_limits<double>::max() * -1),
           permanent(std::numeric_limits<double>::max()), _cost_matrix() {
     try {
@@ -214,7 +214,7 @@ CostsGraph::CostsGraph(std::string file_name, double_file_fct_type fct, costs_pa
 }
 
 // constructor like above but reads in a matrix file which needs still cost parsing
-CostsGraph::CostsGraph(char *file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th) : _size(
+/* CostsGraph::CostsGraph(char *file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th) : _size(
         0),
                                                                                                                  _threshold(
                                                                                                                          th),
@@ -233,10 +233,10 @@ CostsGraph::CostsGraph(char *file_name, matrix_file_fct_type2 fct, costs_parsing
     } catch (GraphException &e) {
         throw GraphException(e);
     }
-}
+} */
 
 // constructor like above but reads in a matrix file which needs still cost parsing
-CostsGraph::CostsGraph(std::string file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th)
+CostsGraph::CostsGraph(const std::string &file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th)
         : _size(0),
           _threshold(th), forbidden(std::numeric_limits<double>::max() * -1),
           permanent(std::numeric_limits<double>::max()), _cost_matrix() {
@@ -251,17 +251,17 @@ CostsGraph::CostsGraph(std::string file_name, matrix_file_fct_type2 fct, costs_p
 
 // constructor with file name and a matrix file function, which just reads the raw matrix as cost graph
 // the threshold is no longer important...all other infos like names will also be read from file
-CostsGraph::CostsGraph(char *file_name, matrix_file_fct_type fct) : _size(0), _threshold(1e-20),
+/* CostsGraph::CostsGraph(char *file_name, matrix_file_fct_type fct) : _size(0), _threshold(1e-20),
                                                                     forbidden(std::numeric_limits<double>::max() * -1),
                                                                     permanent(std::numeric_limits<double>::max()),
                                                                     _cost_matrix() {
     fct(file_name, *this);
-}
+} */
 
 
 // constructor with file name and a matrix file function, which just reads the raw matrix as cost graph
 // the threshold is no longer important...all other infos like names will also be read from file
-CostsGraph::CostsGraph(std::string file_name, matrix_file_fct_type fct) : _size(0), _threshold(1e-20), forbidden(
+CostsGraph::CostsGraph(const std::string &file_name, matrix_file_fct_type fct) : _size(0), _threshold(1e-20), forbidden(
         std::numeric_limits<double>::max() * -1), permanent(std::numeric_limits<double>::max()), _cost_matrix() {
     char *str = strdup(file_name.c_str());
     fct(str, *this);

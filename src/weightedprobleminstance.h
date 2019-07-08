@@ -81,11 +81,12 @@ public:
 
     WeightedProblemInstance(const WeightedProblemInstance &PI);
 
-    WeightedProblemInstance(CostsGraph &graph, double parameter, double start_parameter, EdgeReduction edge_reduction,
+    WeightedProblemInstance(CostsGraph &graph, double parameter, double start_parameter,
+                            const EdgeReduction &edge_reduction,
                             bool para_independent = false);
 
     /* ####  Destructor  #### */
-    ~WeightedProblemInstance();
+    ~WeightedProblemInstance() = default;
 
     /* ####  main function reduce  #### */
 
@@ -119,7 +120,7 @@ public:
     inline edge_list_type getChangedEdges() const { return _changed_edges; }
 
     // saves new changes, if it makes sence or not
-    inline void setChangedEdges(edge_list_type new_edges) { _changed_edges = new_edges; }
+    // inline void setChangedEdges(edge_list_type new_edges) { _changed_edges = std::move(new_edges); }
 
     // returns parameter
     inline double getParameter() const { return _parameter; };
@@ -146,7 +147,7 @@ public:
     double getEdgeForBranching(int &i, int &j) const;
 
     // functions to divide and merge instances
-    pi_list_type divideInstance(CostsGraph::vertex_matrix_type vertex_matrix);
+    pi_list_type divideInstance(const CostsGraph::vertex_matrix_type &vertex_matrix);
 
     // sets parameter and therefore changes the problem kernel
     void setParameter(double _new_parameter);
@@ -187,15 +188,10 @@ private:
 
     inline void deleteClique(CostsGraph::byte_vector_type &clique);
 
-    inline void deleteClique(int i);
-
-    // help function to order edges
-    static bool compare(pair_type p1, pair_type p2) {
-        return (p1.i < p2.i);
-    }
+    // inline void deleteClique(int i);
 
     // set a set of edges to forbidden or permanent respectivley
-    inline void setEdgesToForbidden(CostsGraph::edge_list_type forbiddden_list);
+    inline void setEdgesToForbidden(const CostsGraph::edge_list_type &forbiddden_list);
 
     inline void setEdgesToPermanent(CostsGraph::edge_list_type permanent_list);
 

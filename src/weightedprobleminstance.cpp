@@ -35,26 +35,22 @@ WeightedProblemInstance::WeightedProblemInstance(const WeightedProblemInstance &
 
 // copy constructor which gets elements as parameters
 WeightedProblemInstance::WeightedProblemInstance(CostsGraph &graph, double parameter, double start_parameter,
-                                                 EdgeReduction edge_reduction, bool para_independent) : _graph(graph),
-                                                                                                        permanent(
-                                                                                                                graph.permanent),
-                                                                                                        forbidden(
-                                                                                                                graph.forbidden),
-                                                                                                        _parameter(
-                                                                                                                parameter),
-                                                                                                        _start_parameter(
-                                                                                                                start_parameter),
-                                                                                                        _changed_edges(
-                                                                                                                0),
-                                                                                                        _pid(para_independent) {
+                                                 const EdgeReduction &edge_reduction, bool para_independent) : _graph(
+        graph),
+                                                                                                               permanent(
+                                                                                                                       graph.permanent),
+                                                                                                               forbidden(
+                                                                                                                       graph.forbidden),
+                                                                                                               _parameter(
+                                                                                                                       parameter),
+                                                                                                               _start_parameter(
+                                                                                                                       start_parameter),
+                                                                                                               _changed_edges(
+                                                                                                                       0),
+                                                                                                               _pid(para_independent) {
     if (!_pid) {
         _edge_reduction = EdgeReduction(edge_reduction, &_graph);
     }
-}
-
-
-/* ###################### Destructor ###################### */
-WeightedProblemInstance::~WeightedProblemInstance() {
 }
 
 
@@ -122,8 +118,8 @@ inline void WeightedProblemInstance::mergeVertices(CostsGraph::byte_vector_type 
 
 // deletes a created clique by setting all surounding edges to forbidden and merging the clique
 inline void WeightedProblemInstance::deleteClique(CostsGraph::byte_vector_type &clique) {
-    // test wether i is in clique or not
-    if (clique.size() != 0) {
+    // test whether i is in clique or not
+    if (!clique.empty()) {
 
         // iterate over all clique members
         for (int k = 0; k < clique.size(); k++) {
@@ -162,18 +158,18 @@ inline void WeightedProblemInstance::deleteClique(CostsGraph::byte_vector_type &
 
 // check for vertex i whether it is in a completed clique
 // if yes delete it from the rest of the graph and merge it
-inline void WeightedProblemInstance::deleteClique(int i) {
+/* inline void WeightedProblemInstance::deleteClique(int i) {
     // get clique as vector
     CostsGraph::byte_vector_type clique = _graph.getClique(i);
     deleteClique(clique);
-}
+} */
 
 
 // set all edges from the list for forbidden and update all underlying objects
-inline void WeightedProblemInstance::setEdgesToForbidden(CostsGraph::edge_list_type forbidden_list) {
+inline void WeightedProblemInstance::setEdgesToForbidden(const CostsGraph::edge_list_type &forbidden_list) {
     // set edges to forbidden
-    for (int i = 0; i < forbidden_list.size(); i++) {
-        setEdgeToValue(forbidden_list[i].i, forbidden_list[i].j, forbidden);
+    for (const auto &edge : forbidden_list) {
+        setEdgeToValue(edge.i, edge.j, forbidden);
         //std::cout << "set(" << forbidden_list[i].i << "," << forbidden_list[i].j << ") forb -> new para=" << _parameter << std::endl;
     }
 }
@@ -294,14 +290,14 @@ inline int WeightedProblemInstance::simpleReduction() {
 
 
 // use weighted critical clique reduction as in thesis
-// therefore find first a multiplicator and then call CriticalClique object
+// therefore find first a multiplier and then call CriticalClique object
 // max_edge indicates the size of the greates edge should be this large after multiplication
 inline int WeightedProblemInstance::criticalCliqueReduction(int max_edge, bool check_for_int) {
     // define multiplier
-    double multipl;
+    double multiplier;
 
     // check whether it is an integer instance or not
-    bool integer_instance = true;
+    bool integer_instance;
 
     if (check_for_int) {
         // cut out first digit after the dot
@@ -340,14 +336,14 @@ inline int WeightedProblemInstance::criticalCliqueReduction(int max_edge, bool c
         }
 
         // calculate multiplier
-        multipl = max_edge / max;
+        multiplier = max_edge / max;
     } else {
         // otherwise its one
-        multipl = 1;
+        multiplier = 1;
     }
 
     // start reduction
-    CostsGraph::edge_list_type permanent_list = CriticalClique::reduce(_graph, multipl);
+    CostsGraph::edge_list_type permanent_list = CriticalClique::reduce(_graph, multiplier);
 
     // set edges to permanent
     setEdgesToPermanent(permanent_list);
@@ -459,7 +455,7 @@ inline int WeightedProblemInstance::detectCliques() {
     int reduced = 0;
 
     // apply almost clique rule and get set of cliques
-    bool found = AlmostClique::get(_graph, cliques, _parameter, false);
+    AlmostClique::get(_graph, cliques, _parameter, false);
 
     // for every returned clique do...
     for (int i = 0; i < cliques.size(); i++) {
@@ -489,7 +485,7 @@ inline int WeightedProblemInstance::detectCliques() {
             }
             // iterate through clique to delete equal vertices
             for (int h = 0; h < cliques[k].size(); h++) {
-                for (CostsGraph::byte_vector_type::iterator l = cliques[k].end() - 1;
+                for (auto l = cliques[k].end() - 1;
                      l != cliques[k].begin() + h; l--) {
                     if (*l == cliques[k][h]) {
                         cliques[k].erase(l);
@@ -513,9 +509,6 @@ inline int WeightedProblemInstance::detectCliques() {
 // might decrease the parameter, since the merge operation can trigger
 // new immediate changes
 inline void WeightedProblemInstance::mergeVertices(int i, int j) {
-    // save old graph size
-    int old_size = _graph.getSize();
-
     // create a vector just for the new edge value from the now merged ij and all other nodes
     double_array_type new_costs;
 
@@ -525,13 +518,10 @@ inline void WeightedProblemInstance::mergeVertices(int i, int j) {
     }
 
     // get new costs adjecencies for new vertex and save modification costs
-    double to_pay = to_pay = MergeReduction::mergeVertices(i, j, _graph, forbidden, new_costs);
+    double to_pay = MergeReduction::mergeVertices(i, j, _graph, forbidden, new_costs);
 
     // save changend edges
     saveChangedEdge(i, j, to_pay, 'm');
-
-    // save old parameter
-    double parameter_before = _parameter;
 
     // decrease parameter
     _parameter -= to_pay;
@@ -618,10 +608,6 @@ int WeightedProblemInstance::reduce() {
 int WeightedProblemInstance::strongReduce() {
     // counter for number of edges set to permanent or forbidden
     int count = 0;
-
-    int i = 0;
-    int j = 0;
-    double value = 0.0;
     int old_count = -30000;
 
     while (count - old_count > _graph.getSize()) {
@@ -677,10 +663,6 @@ int WeightedProblemInstance::maxReduce() {
     // if the instance is ment to be unweighted use guos 4k kernalization first
     //std::cout << "cc merging.." << std::endl;
     ccReduce();
-
-    int i = 0;
-    int j = 0;
-    double value = 0.0;
     int old_count = -30000;
 
     while (count - old_count > 0) {
@@ -761,9 +743,9 @@ int WeightedProblemInstance::ccReduce() {
         count += permanent_list.size();
 
         // correct edges such that first index is always greater than second
-        for (int i = 0; i < permanent_list.size(); i++) {
-            if (permanent_list[i].i < permanent_list[i].j) {
-                std::swap(permanent_list[i].i, permanent_list[i].j);
+        for (auto &edge : permanent_list) {
+            if (edge.i < edge.j) {
+                std::swap(edge.i, edge.j);
             }
         }
 
@@ -774,7 +756,7 @@ int WeightedProblemInstance::ccReduce() {
     return count;
 }
 
-// do the actual 4k kernalization, not just critical cliques
+// do the actual 4k kernelization, not just critical cliques
 int WeightedProblemInstance::ccKernelization() {
     // counter for number of edges set to permanent or forbidden
     int count = 0;
@@ -794,7 +776,7 @@ int WeightedProblemInstance::ccKernelization() {
         CostsGraph::edge_list_type permanent_list;
         CostsGraph::edge_list_type forbidden_list;
 
-        // apply critical clique kernalization
+        // apply critical clique kernelization
         CCKernel::makeCCKernel(_graph, permanent_list, forbidden_list);
 
 
@@ -807,9 +789,9 @@ int WeightedProblemInstance::ccKernelization() {
         setEdgesToForbidden(forbidden_list);
 
         // correct edges such that first index is always greater than second
-        for (int i = 0; i < permanent_list.size(); i++) {
-            if (permanent_list[i].i < permanent_list[i].j) {
-                std::swap(permanent_list[i].i, permanent_list[i].j);
+        for (auto &edge : permanent_list) {
+            if (edge.i < edge.j) {
+                std::swap(edge.i, edge.j);
             }
         }
 
@@ -851,6 +833,7 @@ int WeightedProblemInstance::heuristicSolve() {
         //std::cout << _graph.getSize() << std::endl;
     }
     //std::cout << "end:" << _graph << std::endl;
+    return count; // Added to avoid return-void warning
 }
 
 double WeightedProblemInstance::getUpperBound() const {
@@ -863,7 +846,7 @@ double WeightedProblemInstance::getUpperBound() const {
 
 // create deep copy of object
 WeightedProblemInstance *WeightedProblemInstance::clone() const {
-    WeightedProblemInstance *newObjPtr = new WeightedProblemInstance(*this);
+    auto newObjPtr = new WeightedProblemInstance(*this);
     return newObjPtr;
 }
 
@@ -895,7 +878,7 @@ double WeightedProblemInstance::getLowerBound() const {
 // normally each row corresponds to one connected component
 // always all vertices in one row will packed in one new object
 WeightedProblemInstance::pi_list_type
-WeightedProblemInstance::divideInstance(CostsGraph::vertex_matrix_type vertex_matrix) {
+WeightedProblemInstance::divideInstance(const CostsGraph::vertex_matrix_type &vertex_matrix) {
     // build new graphs
     CostsGraph::graph_list_type graph_list = _graph.getConnectedComponents(vertex_matrix);
     int cc_nr = vertex_matrix.size();

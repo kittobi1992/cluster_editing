@@ -124,17 +124,17 @@ public:
     CostsGraph(int size, double_matrix_type weight_matrix, costs_parsing_fct_type cost_fct, vertex_name_type edge_list,
                double th = 10e-20);
 
-    CostsGraph(char *file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th = 10e-20);
+    // CostsGraph(char *file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th = 10e-20);
 
-    CostsGraph(std::string file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th = 10e-20);
+    CostsGraph(const std::string &file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th = 10e-20);
 
-    CostsGraph(char *file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th = 10e-20);
+    // CostsGraph(char *file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th = 10e-20);
 
-    CostsGraph(std::string file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th = 10e-20);
+    CostsGraph(const std::string &file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th = 10e-20);
 
-    CostsGraph(char *file_name, matrix_file_fct_type fct);
+    // CostsGraph(char *file_name, matrix_file_fct_type fct);
 
-    CostsGraph(std::string file_name, matrix_file_fct_type fct);
+    CostsGraph(const std::string &file_name, matrix_file_fct_type fct);
 
     CostsGraph(CostsGraph const &new_graph);
 
@@ -239,7 +239,7 @@ public:
     void costsIOOperation(std::string fname, matrix_file_fct_type fct);
 
     /* ####  overloaded operators  #### */
-    operator std::string();
+    explicit operator std::string();
 
     friend std::ostream &operator<<(std::ostream &output, const CostsGraph &g);
 

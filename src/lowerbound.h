@@ -49,9 +49,13 @@ public:
             assert(_z < MaxUShort);
             assert(_value < MaxFloat);
         }
+
+        friend bool operator<(const triple_type& lhs, const triple_type &rhs) {
+            return lhs.value > rhs.value;
+        }
     };
 
-    // returns a lower bound by checking the minmal solving costs per conflict triple of an edge
+    // returns a lower bound by checking the minimal solving costs per conflict triple of an edge
     static inline double get(const CostsGraph &graph) {
 
         int size = graph.getSize();
@@ -60,7 +64,7 @@ public:
 
         std::vector<double> edge_list;
 
-        // iterate over all edes
+        // iterate over all edges
         for (int i = 0; i < size; i++) {
             for (int k = 0; k < i; k++) {
 
@@ -99,9 +103,7 @@ public:
                 }
 
                 // save minimum ratio (here not longer used...used for simple approximation)
-                if (ratio < min_costs_ratio) {
-                    min_costs_ratio = ratio;
-                }
+                min_costs_ratio = std::min(min_costs_ratio, ratio);
             }
         }
 
@@ -116,13 +118,6 @@ public:
 
         // return final lower bound
         return sum_of_edges;
-
-    }
-
-
-    // comparse two triples by their value
-    static inline bool compare(triple_type t1, triple_type t2) {
-        return (t1.value > t2.value);
     }
 
 
@@ -134,9 +129,9 @@ public:
         double bound = 0.0;
 
         // iterate through list
-        for (int i = 0; i < final_list.size(); i++) {
+        for (const auto& triple : final_list) {
             // add minimum solving costs to lower bound
-            bound += final_list[i][0];
+            bound += triple[0];
         }
         return bound;
 
@@ -155,7 +150,6 @@ public:
                 for (int h = 0; h < k; h++) {
                     int not_set = 0;
                     double min;
-                    int min_triple;
                     not_set += (graph.getEdge(i, k) <= 0) ? 1 : 0;
                     min = std::abs(graph.getEdge(i, k));
                     not_set += (graph.getEdge(h, k) <= 0) ? 1 : 0;
@@ -173,7 +167,7 @@ public:
         }
 
         // sort conflict triples by minimum solving costs
-        sort(triple_list.begin(), triple_list.end(), &compare);
+        sort(triple_list.begin(), triple_list.end());
 
         // create final list with independent conflict triples
         std::vector<Array<double>> final_list;
@@ -182,12 +176,10 @@ public:
         TriangleMatrix<bool> used_edges = TriangleMatrix<bool>(size, false);
 
         // iterate through list
-        for (int i = 0; i < triple_list.size(); i++) {
-            bool valid = true;
-
-            unsigned short x = triple_list[i].x;
-            unsigned short y = triple_list[i].y;
-            unsigned short z = triple_list[i].z;
+        for (const auto& triple : triple_list) {
+            unsigned short x = triple.x;
+            unsigned short y = triple.y;
+            unsigned short z = triple.z;
 
             // check if conflict triple was already rejected
             if (!used_edges.pos(x, y) &&
@@ -195,13 +187,12 @@ public:
                 !used_edges.pos(y, z)) {
 
                 // save conflict triple
-                //final_list.insert(final_list.end(), triple_list[i]);
-                Array<double> triple = Array<double>(4);
-                triple[0] = triple_list[i].value;
-                triple[1] = x;
-                triple[2] = y;
-                triple[3] = z;
-                final_list.push_back(triple);
+                Array<double> triple_array = Array<double>(4);
+                triple_array[0] = triple.value;
+                triple_array[1] = x;
+                triple_array[2] = y;
+                triple_array[3] = z;
+                final_list.push_back(triple_array);
 
                 used_edges.pos(x, y) = true;
                 used_edges.pos(x, z) = true;
@@ -210,12 +201,10 @@ public:
         }
 
         return final_list;
-
-
     }
 
 
-    // returns a lower bound by includint icp/icf and indpendent conflict triples
+    // returns a lower bound by including icp/icf and independent conflict triples
     static inline double get3(const CostsGraph &graph, const TriangleMatrix<double> &min_insert_costs,
                               const TriangleMatrix<double> &min_delete_costs) {
         int size = graph.getSize();
@@ -230,7 +219,6 @@ public:
                 for (int h = 0; h < k; h++) {
                     int not_set = 0;
                     double min;
-                    int min_triple;
                     not_set += (graph.getEdge(i, k) <= 0) ? 1 : 0;
                     min = std::abs(graph.getEdge(i, k));
                     not_set += (graph.getEdge(h, k) <= 0) ? 1 : 0;
@@ -275,57 +263,61 @@ public:
         }
 
         // sort conflict triples by minimal solving costs
-        sort(triple_list.begin(), triple_list.end(), &compare);
+        sort(triple_list.begin(), triple_list.end());
 
         // now 2 lower bounds are calculated simultanously
         // the first with used_edges1 like in the previous lower bound function
         // the second with used_edges2 includes the icf/icp costs
-        std::vector<Array<double>> final_list = std::vector<Array<double> >(0);
+        // std::vector<Array<double>> final_list;
         TriangleMatrix<bool> used_edges1 = TriangleMatrix<bool>(size, false);
         TriangleMatrix<bool> used_edges2 = TriangleMatrix<bool>(size, false);
         double bound1 = 0.0;
-        double bound2 = 0.0;
+        double bound2;
 
         // first set max induced triple, therefore set all edges including one vertex
         // of the conflict triple to false
         //std::cout << "max triple (" << max_triple[1] << "," << max_triple[2] << "," << max_triple[3] << ") with " << max_triple[0] << std::endl;
         bound2 = max_triple[0];
 
-        for (int i = 0; i < static_cast<int>(max_triple[1]); i++) {
-            used_edges2.pos(i, static_cast<int>(max_triple[1])) = true;
+        int max_triple_i = static_cast<int>(max_triple[1]);
+        int max_triple_k = static_cast<int>(max_triple[2]);
+        int max_triple_h = static_cast<int>(max_triple[3]);
+
+        for (int i = 0; i < max_triple_i; i++) {
+            used_edges2.pos(i, max_triple_i) = true;
         }
-        for (int i = static_cast<int>(max_triple[1]) + 1; i < used_edges2.size(); i++) {
-            used_edges2.pos(i, static_cast<int>(max_triple[1])) = true;
+        for (int i = max_triple_i + 1; i < used_edges2.size(); i++) {
+            used_edges2.pos(i, max_triple_i) = true;
         }
-        for (int i = 0; i < static_cast<int>(max_triple[2]); i++) {
-            used_edges2.pos(i, static_cast<int>(max_triple[2])) = true;
+        for (int i = 0; i < max_triple_k; i++) {
+            used_edges2.pos(i, max_triple_k) = true;
         }
-        for (int i = static_cast<int>(max_triple[2]) + 1; i < used_edges2.size(); i++) {
-            used_edges2.pos(i, static_cast<int>(max_triple[2])) = true;
+        for (int i = max_triple_k + 1; i < used_edges2.size(); i++) {
+            used_edges2.pos(i, max_triple_k) = true;
         }
-        for (int i = 0; i < static_cast<int>(max_triple[3]); i++) {
-            used_edges2.pos(i, static_cast<int>(max_triple[3])) = true;
+        for (int i = 0; i < max_triple_h; i++) {
+            used_edges2.pos(i, max_triple_h) = true;
         }
-        for (int i = static_cast<int>(max_triple[3]) + 1; i < used_edges2.size(); i++) {
-            used_edges2.pos(i, static_cast<int>(max_triple[3])) = true;
+        for (int i = max_triple_h + 1; i < used_edges2.size(); i++) {
+            used_edges2.pos(i, max_triple_h) = true;
         }
 
 
         // now insert to the lower bound all independent conflict triples
-        for (int i = 0; i < triple_list.size(); i++) {
-            unsigned short x = triple_list[i].x;
-            unsigned short y = triple_list[i].y;
-            unsigned short z = triple_list[i].z;
+        for (const auto& triple : triple_list) {
+            unsigned short x = triple.x;
+            unsigned short y = triple.y;
+            unsigned short z = triple.z;
             // check if conflict triple was already rejected
             if (!used_edges1.pos(x, y) && !used_edges1.pos(x, z) && !used_edges1.pos(y, z)) {
                 // save conflict triple
-                Array<double> triple = Array<double>(4);
-                triple[0] = triple_list[i].value;
-                triple[1] = x;
-                triple[2] = y;
-                triple[3] = z;
-                final_list.push_back(triple);
-                bound1 += triple_list[i].value;
+                /* Array<double> triple_array = Array<double>(4);
+                triple_array[0] = triple_list[i].value;
+                triple_array[1] = x;
+                triple_array[2] = y;
+                triple_array[3] = z;
+                final_list.push_back(triple_array); */
+                bound1 += triple.value;
                 //std::cout << "to b1 add (" << triple[1] << "," << triple[2] << "," << triple[3] << ") with " << triple[0] << std::endl;
 
                 used_edges1.pos(x, y) = true;
@@ -334,13 +326,13 @@ public:
             }
             if (!used_edges2.pos(x, y) && !used_edges2.pos(x, z) && !used_edges2.pos(y, z)) {
                 // save conflict triple
-                Array<double> triple = Array<double>(4);
-                triple[0] = triple_list[i].value;
-                triple[1] = x;
-                triple[2] = y;
-                triple[3] = z;
-                final_list.push_back(triple);
-                bound2 += triple_list[i].value;
+                /* Array<double> triple_array = Array<double>(4);
+                triple_array[0] = triple_list[i].value;
+                triple_array[1] = x;
+                triple_array[2] = y;
+                triple_array[3] = z;
+                final_list.push_back(triple_array); */
+                bound2 += triple.value;
                 //std::cout << "to b2 add (" << triple[1] << "," << triple[2] << "," << triple[3] << ") with " << triple[0] << std::endl;
 
                 used_edges2.pos(x, y) = true;
