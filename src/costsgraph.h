@@ -5,6 +5,7 @@
 // includes for IO
 #include <iostream>
 #include <sstream>
+#include <cassert>
 
 #include <vector>
 #include <algorithm>
@@ -31,228 +32,253 @@
 
 class CostsGraph {
 public:
-	/* ####  type definitions  #### */
+    /* ####  type definitions  #### */
 
-	// vector to save many names per vertex = name list
-	typedef std::vector<std::string> vertex_name_type;
+    // vector to save many names per vertex = name list
+    typedef std::vector<std::string> vertex_name_type;
 
-	// vector to save indices of vertices = index list
-	typedef std::vector<unsigned short> index_list_type;
+    // vector to save indices of vertices = index list
+    typedef std::vector<unsigned short> index_list_type;
 
-	// information record of one node, with a list of names and
-	// a list of original indices
-	struct vertex_info_type {
-		vertex_name_type names;
-		index_list_type indices;
-	};
+    // information record of one node, with a list of names and
+    // a list of original indices
+    struct vertex_info_type {
+        vertex_name_type names;
+        index_list_type indices;
+    };
 
-	// vector to save all the vertex infos
-	typedef std::vector<vertex_info_type> vertices_names_type;
+    // vector to save all the vertex infos
+    typedef std::vector<vertex_info_type> vertices_names_type;
 
-	// saves an edge
-	struct pair_type {
-		unsigned short i;
-		unsigned short j;
-	};
+    // saves an edge
+    struct pair_type {
+        unsigned short i;
+        unsigned short j;
 
-	// saves a list of edges
-	typedef std::vector< pair_type > edge_list_type;
+        pair_type() : i(0), j(0) {}
 
-	// double vector will used for inititalization
-	typedef std::vector<double> double_matrix_row_type;
-	typedef std::vector< double_matrix_row_type > double_matrix_type;
+        pair_type(int _i, int _j) : i(_i), j(_j) {
+            constexpr int MaxVal = std::numeric_limits<unsigned short>::max();
+            assert(_i < MaxVal);
+            assert(_j < MaxVal);
+        }
+    };
 
-	// double array will be used to get weight of edges if two vertices are merged
-	typedef Array< double > double_array_type;
+    // saves a list of edges
+    typedef std::vector<pair_type> edge_list_type;
 
-	// double triangle matrix
-	typedef TriangleMatrix< double > triangle_matrix_type;
+    // double vector will used for inititalization
+    typedef std::vector<double> double_matrix_row_type;
+    typedef std::vector<double_matrix_row_type> double_matrix_type;
 
-	// pos integer matrix and array for saving connected components
-	typedef std::vector< unsigned short > vertex_set_type;
-	typedef std::vector< vertex_set_type > vertex_matrix_type;
+    // double array will be used to get weight of edges if two vertices are merged
+    typedef Array<double> double_array_type;
 
-	// unsigned short for vector of indices for cliques
-	typedef std::vector< unsigned short > byte_vector_type;
+    // double triangle matrix
+    typedef TriangleMatrix<double> triangle_matrix_type;
 
-	// unsigned short array of translation table
-	typedef Array< unsigned short > byte_array_type;
+    // pos integer matrix and array for saving connected components
+    typedef std::vector<unsigned short> vertex_set_type;
+    typedef std::vector<vertex_set_type> vertex_matrix_type;
 
-	// vector of references to graphs to return connected components
-	typedef std::vector< CostsGraph* > graph_list_type;
+    // unsigned short for vector of indices for cliques
+    typedef std::vector<unsigned short> byte_vector_type;
 
-	// function pointer to cost parsing function
-	typedef double (*costs_parsing_fct_type)(double value, double threshold);
+    // unsigned short array of translation table
+    typedef Array<unsigned short> byte_array_type;
 
-	// function pointer to double init function, a function filling the internal double matrix, by parsing
-	// some values through the given cost function
-	typedef void (*double_file_fct_type)(char* fname, CostsGraph& object, costs_parsing_fct_type fct);
+    // vector of references to graphs to return connected components
+    typedef std::vector<CostsGraph *> graph_list_type;
 
-	// function pointer for matrix io function
-	typedef void (*matrix_file_fct_type)(char* fname, CostsGraph& G);
+    // function pointer to cost parsing function
+    typedef double (*costs_parsing_fct_type)(double value, double threshold);
 
-	// function pointer for matrix init function which needs still cost parsing
-	typedef void  (*matrix_file_fct_type2)(char* fname, CostsGraph& G, costs_parsing_fct_type fct, double threshold);
+    // function pointer to double init function, a function filling the internal double matrix, by parsing
+    // some values through the given cost function
+    typedef void (*double_file_fct_type)(char *fname, CostsGraph &object, costs_parsing_fct_type fct);
 
-	// constants for different adjacency status
-	const double permanent;
-	const double forbidden;
+    // function pointer for matrix io function
+    typedef void (*matrix_file_fct_type)(char *fname, CostsGraph &G);
 
-	/* ####  Constructors  #### */
-	// th = threshold, every value smaller then th will be set to set, else to not_set
-	CostsGraph(int size = 1, double th = 10e-20 );
-	CostsGraph(int size, std::string* edge_list, double th = 10e-20 );
-	CostsGraph(int size, vertex_name_type edge_list, double th = 10e-20 );
-	CostsGraph(int size, double_matrix_type costs, double th = 10e-20 );
-	CostsGraph(int size, double_matrix_type costs, vertex_name_type edge_list, double th = 10e-20 );
-	CostsGraph(int size, double_matrix_type weight_matrix, costs_parsing_fct_type cost_fct, double th = 10e-20 );
-	CostsGraph(int size, double_matrix_type weight_matrix, costs_parsing_fct_type cost_fct, vertex_name_type edge_list, double th = 10e-20 ); 
-	CostsGraph(char* file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th = 10e-20 );
-	CostsGraph(std::string file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th = 10e-20 );
-	
-	CostsGraph(char* file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th = 10e-20 );
-	CostsGraph(std::string file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th = 10e-20 );
+    // function pointer for matrix init function which needs still cost parsing
+    typedef void (*matrix_file_fct_type2)(char *fname, CostsGraph &G, costs_parsing_fct_type fct, double threshold);
 
-	CostsGraph(char* file_name, matrix_file_fct_type fct);
-	CostsGraph(std::string file_name, matrix_file_fct_type fct);
-	CostsGraph(CostsGraph const &new_graph);
+    // constants for different adjacency status
+    const double permanent;
+    const double forbidden;
+
+    /* ####  Constructors  #### */
+    // th = threshold, every value smaller then th will be set to set, else to not_set
+    CostsGraph(int size = 1, double th = 10e-20);
+
+    CostsGraph(int size, std::string *edge_list, double th = 10e-20);
+
+    CostsGraph(int size, vertex_name_type edge_list, double th = 10e-20);
+
+    CostsGraph(int size, double_matrix_type costs, double th = 10e-20);
+
+    CostsGraph(int size, double_matrix_type costs, vertex_name_type edge_list, double th = 10e-20);
+
+    CostsGraph(int size, double_matrix_type weight_matrix, costs_parsing_fct_type cost_fct, double th = 10e-20);
+
+    CostsGraph(int size, double_matrix_type weight_matrix, costs_parsing_fct_type cost_fct, vertex_name_type edge_list,
+               double th = 10e-20);
+
+    CostsGraph(char *file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th = 10e-20);
+
+    CostsGraph(std::string file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th = 10e-20);
+
+    CostsGraph(char *file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th = 10e-20);
+
+    CostsGraph(std::string file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th = 10e-20);
+
+    CostsGraph(char *file_name, matrix_file_fct_type fct);
+
+    CostsGraph(std::string file_name, matrix_file_fct_type fct);
+
+    CostsGraph(CostsGraph const &new_graph);
 
 
-	/* ####  Destructor  #### */
-	~CostsGraph();
+    /* ####  Destructor  #### */
+    ~CostsGraph();
 
 
-	/* ####  access functions  #### */
+    /* ####  access functions  #### */
 
-	// set edge to given adjacency status
-	void setEdge(int i, int j, double value);
+    // set edge to given adjacency status
+    void setEdge(int i, int j, double value);
 
-	// return costs of edge
-	inline double getEdge(int i, int j) const { return _cost_matrix.pos(i,j); };
+    // return costs of edge
+    inline double getEdge(int i, int j) const { return _cost_matrix.pos(i, j); };
 
-	// get next neighbor of node, starting at k
-	// returns -1 for no neighbor found
-	short getNeighbor(int i, int k) const;
+    // get next neighbor of node, starting at k
+    // returns -1 for no neighbor found
+    short getNeighbor(int i, int k) const;
 
-	// sets edge weight by using the cost-parsing function
-	void setEdgeWeight(int i, int j, double value, costs_parsing_fct_type);
+    // sets edge weight by using the cost-parsing function
+    void setEdgeWeight(int i, int j, double value, costs_parsing_fct_type);
 
-	// returns complete name of vertex divided by |
-	std::string getVertexName(int i) const;
+    // returns complete name of vertex divided by |
+    std::string getVertexName(int i) const;
 
-	// set first name to value
-	void setVertexName(int i, std::string name);
+    // set first name to value
+    void setVertexName(int i, std::string name);
 
-	// return complete vertex info of node
-	vertex_info_type getVertexInfo(int i) const;
+    // return complete vertex info of node
+    vertex_info_type getVertexInfo(int i) const;
 
-	// set complete vertex info of a node
-	void setVertexInfo(int i, vertex_info_type info);
+    // set complete vertex info of a node
+    void setVertexInfo(int i, vertex_info_type info);
 
-	// convert the names of all nodes to a string, each node gets a numbering
-	std::string vertexNamesToString() const;
+    // convert the names of all nodes to a string, each node gets a numbering
+    std::string vertexNamesToString() const;
 
-	// returns index list of a node
-	index_list_type getVertexIndices(int i) const;
+    // returns index list of a node
+    index_list_type getVertexIndices(int i) const;
 
-	// returns name list of a node
-	vertex_name_type getVertexNames(int i) const;
+    // returns name list of a node
+    vertex_name_type getVertexNames(int i) const;
 
-	// returns graph size
-	int getSize() const;
+    // returns graph size
+    int getSize() const;
 
-	// return index of vertex with this name
-	int getIndex(std::string key) const;
+    // return index of vertex with this name
+    int getIndex(std::string key) const;
 
-	// checks if vertex name is already defined
-	bool inGraph(std::string name) const;
+    // checks if vertex name is already defined
+    bool inGraph(std::string name) const;
 
-	// returns true if any of the names in vector is in the graph defined
-	bool inGraph(vertex_name_type names) const;
+    // returns true if any of the names in vector is in the graph defined
+    bool inGraph(vertex_name_type names) const;
 
-	// calculates degree of vertex
-	int getDegree(int i) const;
+    // calculates degree of vertex
+    int getDegree(int i) const;
 
-	// returns number of set edges
-	int getEdgeNumber() const;
+    // returns number of set edges
+    int getEdgeNumber() const;
 
-	// returns threshold
-	double getThreshold() const;
-	
-	// returns true of i is member of clique, false if not
-	bool inClique(int i) const;
+    // returns threshold
+    double getThreshold() const;
 
-	// returns vector of clique members, empty if i is not in a clique
-	byte_vector_type getClique(int i) const;
+    // returns true of i is member of clique, false if not
+    bool inClique(int i) const;
 
-	/* ####  edit functions  #### */
-	// deletes vertex from graph
-	void deleteVertex(int index);
+    // returns vector of clique members, empty if i is not in a clique
+    byte_vector_type getClique(int i) const;
 
-	// deletes vertex from graph
-	void deleteVertices(byte_vector_type set);
+    /* ####  edit functions  #### */
+    // deletes vertex from graph
+    void deleteVertex(int index);
 
-	// merges to vertices and gives them the given weight vector as weights to the other vertices
-	void mergeVertices(int index1, int index2, double_array_type costs);
+    // deletes vertex from graph
+    void deleteVertices(byte_vector_type set);
 
-	// deletes clique if vertex 'index' is element of clique
-	bool deleteClique(int index);
+    // merges to vertices and gives them the given weight vector as weights to the other vertices
+    void mergeVertices(int index1, int index2, double_array_type costs);
 
-	// calculate connected components and save them in a matrix
-	vertex_matrix_type getConnectedVertices();
+    // deletes clique if vertex 'index' is element of clique
+    bool deleteClique(int index);
 
-	// divide the graph into components, each again a costs graph
-	graph_list_type getConnectedComponents();
+    // calculate connected components and save them in a matrix
+    vertex_matrix_type getConnectedVertices();
 
-	// dependend on the given connected components, saved in the vertex matrix
-	// the graph will be divided into costs graph again
-	graph_list_type getConnectedComponents(vertex_matrix_type vertex_matrix);
+    // divide the graph into components, each again a costs graph
+    graph_list_type getConnectedComponents();
 
-	/* ####  IO-functions  #### */
-	// creates string from costs matrix
-	std::string toString(bool simple) const;
+    // dependend on the given connected components, saved in the vertex matrix
+    // the graph will be divided into costs graph again
+    graph_list_type getConnectedComponents(vertex_matrix_type vertex_matrix);
 
-	// do IO operation with given function
-	void costsIOOperation(char* fname, matrix_file_fct_type fct);
-	void costsIOOperation(std::string fname, matrix_file_fct_type fct);
+    /* ####  IO-functions  #### */
+    // creates string from costs matrix
+    std::string toString(bool simple) const;
 
-	/* ####  overloaded operators  #### */
-	operator std::string();
-	friend std::ostream& operator<<(std::ostream& output, const CostsGraph& g);
-	CostsGraph& operator=(const CostsGraph& right);
+    // do IO operation with given function
+    void costsIOOperation(char *fname, matrix_file_fct_type fct);
+
+    void costsIOOperation(std::string fname, matrix_file_fct_type fct);
+
+    /* ####  overloaded operators  #### */
+    operator std::string();
+
+    friend std::ostream &operator<<(std::ostream &output, const CostsGraph &g);
+
+    CostsGraph &operator=(const CostsGraph &right);
 
 private:
-	/* ####  member variables  #### */
+    /* ####  member variables  #### */
 
-	// names of vertices
-	vertices_names_type _info_list;
+    // names of vertices
+    vertices_names_type _info_list;
 
-	// internal costs triangle matrix for the actual graph
-	triangle_matrix_type _cost_matrix;
-	
-	// threshold if we parse in similarity data
-	double _threshold;
+    // internal costs triangle matrix for the actual graph
+    triangle_matrix_type _cost_matrix;
 
-	// size of graph
-	int _size;
+    // threshold if we parse in similarity data
+    double _threshold;
+
+    // size of graph
+    int _size;
 
 
-	/* ####  help functions  #### */
+    /* ####  help functions  #### */
 
-	//inits adjacency matrices and help arrays
-	void initMatrices();
-	void initMatrices(char* fname, double_file_fct_type fct, costs_parsing_fct_type cost_fct);
-	void initMatrices(char* fname, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct);
+    //inits adjacency matrices and help arrays
+    void initMatrices();
 
-	// translate index to internal index
-	inline int getIntern(int i) const;
-	
-	// conversion functions
-	template <typename T>
-	inline std::string valueToString(T x) const;
+    void initMatrices(char *fname, double_file_fct_type fct, costs_parsing_fct_type cost_fct);
 
-	// prints costs matrix to screen
-	std::string matrixToString(bool simple) const;
+    void initMatrices(char *fname, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct);
+
+    // translate index to internal index
+    inline int getIntern(int i) const;
+
+    // conversion functions
+    template<typename T>
+    inline std::string valueToString(T x) const;
+
+    // prints costs matrix to screen
+    std::string matrixToString(bool simple) const;
 };
 
 #endif
