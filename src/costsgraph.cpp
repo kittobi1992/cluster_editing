@@ -6,8 +6,6 @@
 
 // constructor with graph size and threshold
 CostsGraph::CostsGraph(int size, double th) : _size(size), _threshold(th),
-                                              forbidden(std::numeric_limits<double>::max() * -1),
-                                              permanent(std::numeric_limits<double>::max()),
                                               _cost_matrix(size, forbidden) {
     // init with blank vertex names
     _info_list = vertices_names_type(_size);
@@ -21,8 +19,8 @@ CostsGraph::CostsGraph(int size, double th) : _size(size), _threshold(th),
 
 
 // constructor with size, threshold and list of names
-CostsGraph::CostsGraph(int size, std::string *edge_list, double th) : _size(size), _threshold(th), forbidden(
-        std::numeric_limits<double>::max() * -1), permanent(std::numeric_limits<double>::max()), _cost_matrix() {
+CostsGraph::CostsGraph(int size, std::string *edge_list, double th) : _size(size), _threshold(th),
+                                                                      _cost_matrix(size, forbidden) {
     // init first vertex name with name from string array
     _info_list = vertices_names_type(_size);
     for (int i = 0; i < _size; i++) {
@@ -35,8 +33,7 @@ CostsGraph::CostsGraph(int size, std::string *edge_list, double th) : _size(size
 
 
 // constructor with size, threshold and list of names
-CostsGraph::CostsGraph(int size, vertex_name_type edge_list, double th) : _size(size), _threshold(th), forbidden(
-        std::numeric_limits<double>::max() * -1), permanent(std::numeric_limits<double>::max()),
+CostsGraph::CostsGraph(int size, vertex_name_type edge_list, double th) : _size(size), _threshold(th),
                                                                           _cost_matrix(size, forbidden) {
     // init first vertex name with name from string vector
     _info_list = vertices_names_type(_size);
@@ -50,8 +47,7 @@ CostsGraph::CostsGraph(int size, vertex_name_type edge_list, double th) : _size(
 
 
 // constructor with size, threshold and costs matrix
-CostsGraph::CostsGraph(int size, double_matrix_type costs, double th) : _size(size), _threshold(th), forbidden(
-        std::numeric_limits<double>::max() * -1), permanent(std::numeric_limits<double>::max()),
+CostsGraph::CostsGraph(int size, double_matrix_type costs, double th) : _size(size), _threshold(th),
                                                                         _cost_matrix(size, forbidden) {
 
     // throw error if weight matrix has wrong size
@@ -85,11 +81,6 @@ CostsGraph::CostsGraph(int size, double_matrix_type costs, double th) : _size(si
 // constructor with size, threshold, list of names and cost matrix
 CostsGraph::CostsGraph(int size, double_matrix_type costs, vertex_name_type edge_list, double th) : _size(size),
                                                                                                     _threshold(th),
-                                                                                                    forbidden(
-                                                                                                            std::numeric_limits<double>::max() *
-                                                                                                            -1),
-                                                                                                    permanent(
-                                                                                                            std::numeric_limits<double>::max()),
                                                                                                     _cost_matrix(size,
                                                                                                                  forbidden) {
     // throw error if weight matrix has wrong size
@@ -124,8 +115,7 @@ CostsGraph::CostsGraph(int size, double_matrix_type costs, vertex_name_type edge
 // constructor with size, threshold, weight_matrix and a cost parsing function, with
 // which the weights will be converted to costs
 CostsGraph::CostsGraph(int size, double_matrix_type weight_matrix, costs_parsing_fct_type cost_fct, double th) : _size(
-        size), _threshold(th), forbidden(std::numeric_limits<double>::max() * -1), permanent(
-        std::numeric_limits<double>::max()), _cost_matrix(size, forbidden) {
+        size), _threshold(th), _cost_matrix(size, forbidden) {
     // throw error if weight matrix has wrong size
     if (weight_matrix.size() != _size) {
         throw GraphException("weight matrix has no valid format");
@@ -156,8 +146,6 @@ CostsGraph::CostsGraph(int size, double_matrix_type weight_matrix, costs_parsing
 // which the weights will be converted to costs
 CostsGraph::CostsGraph(int size, double_matrix_type weight_matrix, costs_parsing_fct_type cost_fct,
                        vertex_name_type edge_list, double th) : _size(size), _threshold(th),
-                                                                forbidden(std::numeric_limits<double>::max() * -1),
-                                                                permanent(std::numeric_limits<double>::max()),
                                                                 _cost_matrix(size, forbidden) {
     // throw error if weight matrix has wrong size
     if (weight_matrix.size() != _size) {
@@ -189,8 +177,7 @@ CostsGraph::CostsGraph(int size, double_matrix_type weight_matrix, costs_parsing
 // the file will be parsed with the double file fct and every read weight value will be converted
 // to costs with the costs parsing function using the threshold
 /* CostsGraph::CostsGraph(char *file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th) : _size(
-        0), _threshold(th), forbidden(std::numeric_limits<double>::max() * -1), permanent(
-        std::numeric_limits<double>::max()), _cost_matrix() {
+        0), _threshold(th), _cost_matrix() {
     try {
         initMatrices(file_name, fct, cost_fct);
     } catch (GraphException &e) {
@@ -202,9 +189,9 @@ CostsGraph::CostsGraph(int size, double_matrix_type weight_matrix, costs_parsing
 // constructor with file name, double_file parsing function, cost parsing function and threshold
 // the file will be parsed with the double file fct and every read weight value will be converted
 // to costs with the costs parsing function using the threshold
-CostsGraph::CostsGraph(const std::string &file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct, double th)
-        : _size(0), _threshold(th), forbidden(std::numeric_limits<double>::max() * -1),
-          permanent(std::numeric_limits<double>::max()), _cost_matrix() {
+CostsGraph::CostsGraph(const std::string &file_name, double_file_fct_type fct, costs_parsing_fct_type cost_fct,
+                       double th)
+        : _size(0), _threshold(th), _cost_matrix() {
     try {
         char *str = strdup(file_name.c_str());
         initMatrices(str, fct, cost_fct);
@@ -218,11 +205,6 @@ CostsGraph::CostsGraph(const std::string &file_name, double_file_fct_type fct, c
         0),
                                                                                                                  _threshold(
                                                                                                                          th),
-                                                                                                                 forbidden(
-                                                                                                                         std::numeric_limits<double>::max() *
-                                                                                                                         -1),
-                                                                                                                 permanent(
-                                                                                                                         std::numeric_limits<double>::max()),
                                                                                                                  _cost_matrix() {
     if (th < 0) {
         throw GraphException("no negative threshold allowed");
@@ -236,10 +218,10 @@ CostsGraph::CostsGraph(const std::string &file_name, double_file_fct_type fct, c
 } */
 
 // constructor like above but reads in a matrix file which needs still cost parsing
-CostsGraph::CostsGraph(const std::string &file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th)
+CostsGraph::CostsGraph(const std::string &file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct,
+                       double th)
         : _size(0),
-          _threshold(th), forbidden(std::numeric_limits<double>::max() * -1),
-          permanent(std::numeric_limits<double>::max()), _cost_matrix() {
+          _threshold(th), _cost_matrix() {
     try {
         char *str = strdup(file_name.c_str());
         initMatrices(str, fct, cost_fct);
@@ -252,8 +234,6 @@ CostsGraph::CostsGraph(const std::string &file_name, matrix_file_fct_type2 fct, 
 // constructor with file name and a matrix file function, which just reads the raw matrix as cost graph
 // the threshold is no longer important...all other infos like names will also be read from file
 /* CostsGraph::CostsGraph(char *file_name, matrix_file_fct_type fct) : _size(0), _threshold(1e-20),
-                                                                    forbidden(std::numeric_limits<double>::max() * -1),
-                                                                    permanent(std::numeric_limits<double>::max()),
                                                                     _cost_matrix() {
     fct(file_name, *this);
 } */
@@ -261,16 +241,13 @@ CostsGraph::CostsGraph(const std::string &file_name, matrix_file_fct_type2 fct, 
 
 // constructor with file name and a matrix file function, which just reads the raw matrix as cost graph
 // the threshold is no longer important...all other infos like names will also be read from file
-CostsGraph::CostsGraph(const std::string &file_name, matrix_file_fct_type fct) : _size(0), _threshold(1e-20), forbidden(
-        std::numeric_limits<double>::max() * -1), permanent(std::numeric_limits<double>::max()), _cost_matrix() {
+CostsGraph::CostsGraph(const std::string &file_name, matrix_file_fct_type fct) : _size(0), _threshold(1e-20), _cost_matrix() {
     char *str = strdup(file_name.c_str());
     fct(str, *this);
 }
 
 // cop constructor
 CostsGraph::CostsGraph(CostsGraph const &new_graph) : _size(new_graph._size),
-                                                      forbidden(std::numeric_limits<double>::max() * -1),
-                                                      permanent(std::numeric_limits<double>::max()),
                                                       _cost_matrix(new_graph._cost_matrix) {
     // get additional information
     _info_list = new_graph._info_list;
@@ -282,9 +259,7 @@ CostsGraph::CostsGraph(CostsGraph const &new_graph) : _size(new_graph._size),
 
 
 // initializes the adjacency matrix as triangular matrix
-void CostsGraph::initMatrices() {
-    int size = getSize();
-}
+void CostsGraph::initMatrices() {}
 
 
 // init cost matrix with a double file fct and cost parsing function, which
@@ -430,7 +405,7 @@ void CostsGraph::setVertexName(int i, std::string name) {
     // translate to internal index
     i = getIntern(i);
 
-    _info_list[i].names[0] = name;
+    _info_list[i].names[0] = std::move(name);
 }
 
 
@@ -456,13 +431,13 @@ void CostsGraph::setVertexInfo(int i, CostsGraph::vertex_info_type info) {
     // translate to internal index
     i = getIntern(i);
 
-    _info_list[i] = info;
+    _info_list[i] = std::move(info);
 }
 
 
 // convert the names of all nodes to a string, each node gets a numbering
 std::string CostsGraph::vertexNamesToString() const {
-    std::string output = "";
+    std::string output;
     for (int i = 0; i < _size - 1; i++) {
         output += valueToString<int>(i) + "=" + getVertexName(i) + ", ";
     }
@@ -504,10 +479,10 @@ int CostsGraph::getSize() const {
 
 
 // return index of vertex with this name
-int CostsGraph::getIndex(std::string key) const {
+int CostsGraph::getIndex(const std::string &key) const {
     for (int i = 0; i < _size; i++) {
-        for (int k = 0; k < _info_list[getIntern(i)].names.size(); k++) {
-            if (_info_list[getIntern(i)].names[k] == key) {
+        for (const auto& name : _info_list[getIntern(i)].names) {
+            if (name == key) {
                 return i;
             }
         }
@@ -517,10 +492,10 @@ int CostsGraph::getIndex(std::string key) const {
 }
 
 // checks if vertex name is already defined
-bool CostsGraph::inGraph(std::string key) const {
+bool CostsGraph::inGraph(const std::string &key) const {
     for (int i = 0; i < _size; i++) {
-        for (int k = 0; k < _info_list[getIntern(i)].names.size(); k++) {
-            if (_info_list[getIntern(i)].names[k] == key) {
+        for (const auto& name : _info_list[getIntern(i)].names) {
+            if (name == key) {
                 return true;
             }
         }
@@ -531,9 +506,9 @@ bool CostsGraph::inGraph(std::string key) const {
 
 
 // returns true if any of the names in vector is in the graph defined
-bool CostsGraph::inGraph(vertex_name_type names) const {
-    for (int i = 0; i < names.size(); i++) {
-        if (this->inGraph(names[i])) {
+bool CostsGraph::inGraph(const vertex_name_type &names) const {
+    for (const auto& name : names) {
+        if (this->inGraph(name)) {
             return true;
         }
     }
@@ -577,29 +552,25 @@ double CostsGraph::getThreshold() const {
 
 // returns true of i is member of clique, false if not
 bool CostsGraph::inClique(int i) const {
-    if ((this->getClique(i)).size() == 0) {
-        return false;
-    } else {
-        return true;
-    }
+    return !(this->getClique(i).empty());
 }
 
 
 // returns vector of clique members, empty if i is not in a clique
 CostsGraph::byte_vector_type CostsGraph::getClique(int i) const {
     // create vector of clique members, initiated no members
-    byte_vector_type clique = byte_vector_type(0);
+    byte_vector_type clique;
 
     // fill clique members with neighbors of i and i itself...sorted
     for (int k = 0; k < i; k++) {
         if (getEdge(i, k) > 0) {
-            clique.insert(clique.end(), k);
+            clique.push_back(k);
         }
     }
     clique.insert(clique.end(), i);
     for (int k = i + 1; k < _size; k++) {
         if (getEdge(i, k) > 0) {
-            clique.insert(clique.end(), k);
+            clique.push_back(k);
         }
     }
 
@@ -653,7 +624,7 @@ void CostsGraph::deleteVertices(CostsGraph::byte_vector_type set) {
 }
 
 // merges to vertices and gives them the given weight vector as weights to the other vertices
-void CostsGraph::mergeVertices(int index1, int index2, double_array_type costs) {
+void CostsGraph::mergeVertices(int index1, int index2, const double_array_type &costs) {
     // save internal indices
     int intern_index1 = getIntern(index1);
     int intern_index2 = getIntern(index2);
@@ -694,8 +665,7 @@ void CostsGraph::mergeVertices(int index1, int index2, double_array_type costs) 
 bool CostsGraph::deleteClique(int index) {
     // get clique
     byte_vector_type clique = this->getClique(index);
-    if (clique.size() != 0) {
-
+    if (!clique.empty()) {
         // sort clique
         std::sort(clique.begin(), clique.end());
 
@@ -714,7 +684,7 @@ bool CostsGraph::deleteClique(int index) {
 
 // calculate connected components and save them in a matrix,
 // each row corresponds to the indices of one component
-CostsGraph::vertex_matrix_type CostsGraph::getConnectedVertices() {
+CostsGraph::vertex_matrix_type CostsGraph::getConnectedVertices() const {
     VertexLists vertex_lists = VertexLists(_size, _size);
 
     // init every list with one vertex
@@ -750,23 +720,23 @@ CostsGraph::vertex_matrix_type CostsGraph::getConnectedVertices() {
 
 
 // divide the graph into components, each again a costs graph
-CostsGraph::graph_list_type CostsGraph::getConnectedComponents() {
+CostsGraph::graph_list_type CostsGraph::getConnectedComponents() const {
     // get cliques
     vertex_matrix_type vertex_matrix = getConnectedVertices();
     graph_list_type graph_list = graph_list_type(0);
 
     // check for non-empty lists and create new graph
-    for (int i = 0; i < vertex_matrix.size(); i++) {
-        int sub_graph_size = vertex_matrix[i].size();
+    for (const auto& component : vertex_matrix) {
+        int sub_graph_size = component.size();
 
         // create new graph with the appropriate size
-        CostsGraph *new_graph = new CostsGraph(sub_graph_size, _threshold);
+        auto new_graph = new CostsGraph(sub_graph_size, _threshold);
 
         // fill graph with names/info and values
         for (int k = 0; k < sub_graph_size; k++) {
-            (*new_graph).setVertexInfo(k, this->getVertexInfo(vertex_matrix[i][k]));
+            (*new_graph).setVertexInfo(k, this->getVertexInfo(component[k]));
             for (int m = 0; m < k; m++) {
-                (*new_graph).setEdge(k, m, this->getEdge(vertex_matrix[i][k], vertex_matrix[i][m]));
+                (*new_graph).setEdge(k, m, this->getEdge(component[k], component[m]));
             }
         }
         // save graph in return list
@@ -779,25 +749,25 @@ CostsGraph::graph_list_type CostsGraph::getConnectedComponents() {
 
 // dependend on the given connected components, saved in the vertex matrix
 // the graph will be divided into costs graph again
-CostsGraph::graph_list_type CostsGraph::getConnectedComponents(vertex_matrix_type vertex_matrix) {
-    graph_list_type graph_list = graph_list_type(0);
+CostsGraph::graph_list_type CostsGraph::getConnectedComponents(const vertex_matrix_type &vertex_matrix) const {
+    graph_list_type graph_list;
 
     // check for non-empty lists and create new graph
-    for (int i = 0; i < vertex_matrix.size(); i++) {
-        int sub_graph_size = vertex_matrix[i].size();
+    for (const auto& component : vertex_matrix) {
+        int sub_graph_size = component.size();
 
         // create new graph with the appropriate size
-        CostsGraph *new_graph = new CostsGraph(sub_graph_size, _threshold);
+        auto new_graph = new CostsGraph(sub_graph_size, _threshold);
 
         // fill graph with names/info and values
         for (int k = 0; k < sub_graph_size; k++) {
-            (*new_graph).setVertexInfo(k, this->getVertexInfo(vertex_matrix[i][k]));
+            (*new_graph).setVertexInfo(k, this->getVertexInfo(component[k]));
             for (int m = 0; m < k; m++) {
-                (*new_graph).setEdge(k, m, this->getEdge(vertex_matrix[i][k], vertex_matrix[i][m]));
+                (*new_graph).setEdge(k, m, this->getEdge(component[k], component[m]));
             }
         }
         // save graph in return list
-        graph_list.insert(graph_list.end(), new_graph);
+        graph_list.push_back(new_graph);
     }
 
     return graph_list;
@@ -818,7 +788,7 @@ void CostsGraph::costsIOOperation(char *fname, matrix_file_fct_type fct) {
 
 
 // do IO operation with given function
-void CostsGraph::costsIOOperation(std::string fname, matrix_file_fct_type fct) {
+void CostsGraph::costsIOOperation(const std::string &fname, matrix_file_fct_type fct) {
     char *str = strdup(fname.c_str());
     fct(str, *this);
 }
@@ -829,14 +799,13 @@ void CostsGraph::costsIOOperation(std::string fname, matrix_file_fct_type fct) {
 
 // costsGraph to string - cast 
 CostsGraph::operator std::string() {
-    return (toString(0)).c_str();
+    return toString(false);
 }
 
 
 // costsGraph to stream
 std::ostream &operator<<(std::ostream &output, const CostsGraph &g) {
-    output << (g.toString(0)).c_str();
-    return output;
+    return output << g.toString(false);
 }
 
 

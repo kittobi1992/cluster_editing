@@ -22,7 +22,7 @@
    (see paper APBC or RECOMB of weighted cluster editing).
 
   The current icp and icf costs are saved in a triangle matrix for
-  every edge. The matrix is initalized by a constructor or by the init
+  every edge. The matrix is initialized by a constructor or by the init
   function.
 
   Whenever an edge is set to forbidden or permanent function
@@ -51,7 +51,7 @@ public:
     /* ####  Constructors  #### */
 
     // empty constructor
-    EdgeReduction() : _graph(NULL), _parameter(0.0) {};
+    EdgeReduction() : _graph(nullptr), _parameter(0.0) {};
 
     // initate object with a graph
     EdgeReduction(CostsGraph *graph, double parameter);
@@ -64,7 +64,7 @@ public:
 
 
     /* ####  Destructor  #### */
-    ~EdgeReduction();
+    ~EdgeReduction() = default;
 
 
     /* ####  main function reduce  #### */
@@ -79,7 +79,7 @@ public:
     void setEdgeToValue(int i, int j, double old_value, double parameter, double parameter_before);
 
     // merge two vertices and all other structures like min insert & delete matrix
-    void mergeVertices(int i, int j, double parameter, double_array_type new_costs);
+    void mergeVertices(int i, int j, double parameter, const double_array_type &new_costs);
 
     // return edge to reduce
     bool getReduceableEdges(CostsGraph::edge_list_type &permanent_edges, CostsGraph::edge_list_type &forbidden_edges,
@@ -103,7 +103,7 @@ public:
     triangle_matrix_type getMinDeleteMatrix() const;
 
     // assign operator
-    EdgeReduction &operator=(const EdgeReduction &er);
+    EdgeReduction &operator=(const EdgeReduction &er) = default;
 
     /* #### heuristic functions #### */
 
@@ -124,6 +124,11 @@ private:
         int i;
         int j;
         double value;
+
+        // compare function for sorting edges...used by heuristic
+        friend inline bool compare(const edge_type &t1, const edge_type &t2) {
+            return (t1.value > t2.value);
+        }
     };
 
     /* ####  additional member variables  #### */
@@ -163,9 +168,9 @@ private:
 
     inline double minInDelEdge(double a, double b);
 
-    inline double setMinDeleteCosts(unsigned short i, unsigned short j, double value);
+    inline void setMinDeleteCosts(unsigned short i, unsigned short j, double value);
 
-    inline double setMinInsertCosts(unsigned short i, unsigned short j, double value);
+    inline void setMinInsertCosts(unsigned short i, unsigned short j, double value);
 
     // copies edge from one list to another considering the update in the reference matrix
     //void copyEdgeAndUpdateReference(int i, int j, char type, int from, int to);
@@ -179,7 +184,7 @@ private:
     inline void updateEdgeCase2(int i, int j, int a, int b, double new_costs1, double new_costs2, double &up_insert,
                                 double &up_delete);
 
-    inline void updateCostsMatrices(int i, int j, double_array_type new_costs);
+    inline void updateCostsMatrices(int i, int j, const double_array_type &new_costs);
 
     // check for all edges whether we need to insert or delete them
     inline CostsGraph::edge_list_type
@@ -189,11 +194,6 @@ private:
 
     // fill lower bound matrix
     triangle_matrix_type createLowerBoundMatrix();
-
-    // compare function for sorting edges...used by heuristic
-    static inline bool compare(edge_type t1, edge_type t2) {
-        return (t1.value > t2.value);
-    }
 
 };
 

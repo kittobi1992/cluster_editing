@@ -32,10 +32,6 @@ inline EdgeReduction::EdgeReduction(CostsGraph *graph, double parameter, triangl
 }
 
 
-/* ###################### Destructor ###################### */
-EdgeReduction::~EdgeReduction() {
-}
-
 /* ###################### private/help functions ########## */
 
 /* ---------------------- constructor help functions ------ */
@@ -143,13 +139,13 @@ double EdgeReduction::getMinInsertCosts(unsigned short i, unsigned short j) cons
 
 
 // since the matrices are triangular this function helps to set the min deletion costs
-inline double EdgeReduction::setMinDeleteCosts(unsigned short i, unsigned short j, double value) {
+inline void EdgeReduction::setMinDeleteCosts(unsigned short i, unsigned short j, double value) {
     _min_delete_costs.pos(i, j) = value;
 }
 
 
 // since the matrices are triangular this function helps to set the min insertion costs
-inline double EdgeReduction::setMinInsertCosts(unsigned short i, unsigned short j, double value) {
+inline void EdgeReduction::setMinInsertCosts(unsigned short i, unsigned short j, double value) {
     _min_insert_costs.pos(i, j) = value;
 }
 
@@ -344,7 +340,7 @@ EdgeReduction::updateEdgeCase2(int i, int j, int a, int b, double new_costs1, do
 // For all i: the edge(i,b) will be calculated completly new = O(n*n)
 // For all i,k (not a,b): edge(i,k) will be updated in 2 steps with the new values to a and b = O(n^2 * 2)
 // note that size is still the original size
-inline void EdgeReduction::updateCostsMatrices(int a, int b, double_array_type new_costs) {
+inline void EdgeReduction::updateCostsMatrices(int a, int b, const double_array_type &new_costs) {
 
     // get graph size (should be the old size, before (a,b) is really merged
     int size = _graph->getSize();
@@ -447,8 +443,7 @@ inline void EdgeReduction::updateCostsMatrices(int a, int b, double_array_type n
 // the min insert and delete costs matrices, the conflict tripel and
 // might decrease the parameter, since the merge operation can trigger
 // new immediate changes
-void EdgeReduction::mergeVertices(int i, int j, double parameter, double_array_type new_costs) {
-    double parameter_before = _parameter;
+void EdgeReduction::mergeVertices(int i, int j, double parameter, const double_array_type &new_costs) {
     _parameter = parameter;
 
     // update min insert and delete costs
@@ -475,7 +470,7 @@ void EdgeReduction::init(CostsGraph *graph, double parameter, bool merge) {
 
 // check for edges to delete and return them
 inline CostsGraph::edge_list_type EdgeReduction::getEdgesToDelete(bool strong, triangle_matrix_type &lower_bound_edge) {
-    CostsGraph::edge_list_type edge_list = CostsGraph::edge_list_type(0);
+    CostsGraph::edge_list_type edge_list;
     int size = _graph->getSize();
 
     // iterate over all edges
@@ -488,15 +483,15 @@ inline CostsGraph::edge_list_type EdgeReduction::getEdgesToDelete(bool strong, t
             if (edge != forbidden && _min_insert_costs.pos(h, k) > _parameter + 0.001) {
                 //std::cout << "(" << h << "," << k << ") simple mi=" << _min_insert_costs.pos(h,k) << std::endl;
                 CostsGraph::pair_type pair = {h, k};
-                edge_list.insert(edge_list.end(), pair);
+                edge_list.push_back(pair);
 
                 // if not and you use strong reduce, include lower bound in the calculation
             } else if (strong && edge != forbidden &&
                        (_min_insert_costs.pos(h, k) + lower_bound_edge.dirpos(h, k)) > _parameter + 0.001) {
                 //std::cout << "(" << h << "," << k << ") compl mi=" << _min_insert_costs.pos(h,k) << " lb=" << lower_bound_edge.dirpos(h,k) << std::endl;
                 CostsGraph::pair_type pair = {h, k};
-                edge_list.insert(edge_list.end(), pair);
-            };
+                edge_list.push_back(pair);
+            }
         }
     }
     return edge_list;
@@ -506,10 +501,10 @@ inline CostsGraph::edge_list_type EdgeReduction::getEdgesToDelete(bool strong, t
 // check for edges to insert and return them
 inline CostsGraph::edge_list_type
 EdgeReduction::getEdgesToInsert(double min_cut_threshold, triangle_matrix_type &lower_bound_edge) {
-    CostsGraph::edge_list_type edge_list = CostsGraph::edge_list_type(0);
+    CostsGraph::edge_list_type edge_list;
 
     int size = _graph->getSize();
-    std::vector<Array<int> > fragile_edges = std::vector<Array<int> >(0);
+    std::vector<Array<int>> fragile_edges;
 
     // iterate over all edges
     for (int h = 0; h < size; h++) {
@@ -521,19 +516,19 @@ EdgeReduction::getEdgesToInsert(double min_cut_threshold, triangle_matrix_type &
                 // simply check if icf is greater than parameter
                 if (_min_delete_costs.pos(h, k) > _parameter + 0.001) {
                     CostsGraph::pair_type pair = {h, k};
-                    edge_list.insert(edge_list.end(), pair);
+                    edge_list.push_back(pair);
 
                     // include lower bound in calculation if strong reduce is used
                 } else if (min_cut_threshold > 0.0 && edge != forbidden &&
                            _min_delete_costs.pos(h, k) + lower_bound_edge.dirpos(h, k) > _parameter + 0.001) {
                     CostsGraph::pair_type pair = {h, k};
-                    edge_list.insert(edge_list.end(), pair);
+                    edge_list.push_back(pair);
                     // check for fragile edges, meaning close beyond parameter
                 }/* else if ((_min_delete_costs.pos(h,k)/_parameter) > (1.0 - min_cut_threshold)) {
 		               Array<int> edge = Array<int>(2);
 		               edge[0] = h;
 		               edge[1] = k;
-		               fragile_edges.insert(fragile_edges.end(), edge);
+		               fragile_edges.push_back(edge);
 		          }*/
             }
         }
@@ -544,7 +539,7 @@ EdgeReduction::getEdgesToInsert(double min_cut_threshold, triangle_matrix_type &
         for (int h = 0; h < fragile_edges.size(); h++) {
              if (MinCut::getMinSTCut(fragile_edges[h][0], fragile_edges[h][1], *_graph) > _parameter) {
                  CostsGraph::pair_type pair = {fragile_edges[h][0], fragile_edges[h][1]};
-                 edge_list.insert(edge_list.end(), pair);
+                 edge_list.push_back(pair);
              }
         }
     }*/
@@ -566,25 +561,29 @@ EdgeReduction::triangle_matrix_type EdgeReduction::createLowerBoundMatrix() {
     // iterate over all conflict triples
     // sum up all conflict triples to achieve a first lower bound
     // beside this delete all conflict triples with edge ij from ij
-    for (int i = 0; i < triple_list.size(); i++) {
-        sum_bound += triple_list[i][0];
-        for (int k = 0; k < static_cast<int>(triple_list[i][1]); k++) {
-            lower_bound_edge.pos(static_cast<int>(triple_list[i][1]), k) -= triple_list[i][0];
+    for (const auto& triple : triple_list) {
+        auto value = triple[0];
+        auto x = static_cast<int>(triple[1]);
+        auto y = static_cast<int>(triple[2]);
+        auto z = static_cast<int>(triple[3]);
+        sum_bound += value;
+        for (int k = 0; k < x; k++) {
+            lower_bound_edge.pos(x, k) -= value;
         }
-        for (int k = static_cast<int>(triple_list[i][1]) + 1; k < _graph->getSize(); k++) {
-            lower_bound_edge.pos(static_cast<int>(triple_list[i][1]), k) -= triple_list[i][0];
+        for (int k = x + 1; k < _graph->getSize(); k++) {
+            lower_bound_edge.pos(x, k) -= value;
         }
-        for (int k = 0; k < static_cast<int>(triple_list[i][2]); k++) {
-            lower_bound_edge.pos(static_cast<int>(triple_list[i][2]), k) -= triple_list[i][0];
+        for (int k = 0; k < y; k++) {
+            lower_bound_edge.pos(y, k) -= value;
         }
-        for (int k = static_cast<int>(triple_list[i][2]) + 1; k < _graph->getSize(); k++) {
-            lower_bound_edge.pos(static_cast<int>(triple_list[i][2]), k) -= triple_list[i][0];
+        for (int k = y + 1; k < _graph->getSize(); k++) {
+            lower_bound_edge.pos(y, k) -= value;
         }
-        for (int k = 0; k < static_cast<int>(triple_list[i][3]); k++) {
-            lower_bound_edge.pos(static_cast<int>(triple_list[i][3]), k) -= triple_list[i][0];
+        for (int k = 0; k < z; k++) {
+            lower_bound_edge.pos(z, k) -= value;
         }
-        for (int k = static_cast<int>(triple_list[i][3]) + 1; k < _graph->getSize(); k++) {
-            lower_bound_edge.pos(static_cast<int>(triple_list[i][3]), k) -= triple_list[i][0];
+        for (int k = z + 1; k < _graph->getSize(); k++) {
+            lower_bound_edge.pos(z, k) -= value;
         }
     }
 
@@ -613,15 +612,15 @@ bool EdgeReduction::getReduceableEdges(CostsGraph::edge_list_type &permanent_edg
 
     // call above functions to get edges to delete and insert
     permanent_edges = getEdgesToInsert(fuzzy_threshold, lower_bound_edge);
-    forbidden_edges = getEdgesToDelete(((fuzzy_threshold > 0) ? true : false), lower_bound_edge);
+    forbidden_edges = getEdgesToDelete((fuzzy_threshold > 0), lower_bound_edge);
 
-    return (permanent_edges.size() + forbidden_edges.size() > 0) ? true : false;
+    return (permanent_edges.size() + forbidden_edges.size() > 0);
 }
 
 
 // create deep copy of object
 inline EdgeReduction *EdgeReduction::clone() const {
-    EdgeReduction *newObjPtr = new EdgeReduction(*this);
+    auto newObjPtr = new EdgeReduction(*this);
     return newObjPtr;
 }
 
@@ -633,8 +632,8 @@ EdgeReduction::divideInstance(CostsGraph::vertex_matrix_type vertex_matrix, Cost
     int cc_nr = vertex_matrix.size();
 
     // build costs matrices
-    Array<triangle_matrix_type> m_i_l = Array<triangle_matrix_type>(cc_nr);
-    Array<triangle_matrix_type> m_d_l = Array<triangle_matrix_type>(cc_nr);
+    Array<triangle_matrix_type> m_i_l(cc_nr);
+    Array<triangle_matrix_type> m_d_l(cc_nr);
 
     for (int i = 0; i < cc_nr; i++) {
         m_i_l[i] = triangle_matrix_type(vertex_matrix[i].size(), 0);
@@ -680,18 +679,6 @@ EdgeReduction::triangle_matrix_type EdgeReduction::getMinDeleteMatrix() const {
 }
 
 
-// assignment operator
-EdgeReduction &EdgeReduction::operator=(const EdgeReduction &er) {
-    _graph = er._graph;
-    _min_insert_costs = er._min_insert_costs;
-    _min_delete_costs = er._min_delete_costs;
-
-    forbidden = er.forbidden;
-    permanent = er.permanent;
-
-    _parameter = er._parameter;
-}
-
 /* ################### Heuristic functions ############################### */
 
 // return nr_edges with greates icp
@@ -699,7 +686,7 @@ CostsGraph::edge_list_type EdgeReduction::getTopEdgesToDelete(int nr_edges) {
     triangle_matrix_type lower_bound_edge = createLowerBoundMatrix();
 
     int size = _graph->getSize();
-    std::vector<edge_type> icp_list = std::vector<edge_type>(0);
+    std::vector<edge_type> icp_list;
 
     // iterate over all edges
     for (int h = 0; h < size; h++) {
@@ -708,15 +695,15 @@ CostsGraph::edge_list_type EdgeReduction::getTopEdgesToDelete(int nr_edges) {
             // include lower bound in the calculation and add icp
             if (edge != forbidden) {
                 edge_type new_edge = {h, k, _min_insert_costs.pos(h, k) + lower_bound_edge.dirpos(h, k)};
-                icp_list.insert(icp_list.end(), new_edge);
-            };
+                icp_list.push_back(new_edge);
+            }
         }
     }
 
-    sort(icp_list.begin(), icp_list.end(), &compare);
+    sort(icp_list.begin(), icp_list.end());
 
     // create final return list
-    CostsGraph::edge_list_type edge_list = CostsGraph::edge_list_type(0);
+    CostsGraph::edge_list_type edge_list;
 
     // get nr_edges top edges
     if (nr_edges > icp_list.size()) {
@@ -724,7 +711,7 @@ CostsGraph::edge_list_type EdgeReduction::getTopEdgesToDelete(int nr_edges) {
     }
     for (int h = 0; h < nr_edges; h++) {
         CostsGraph::pair_type pair = {icp_list[h].i, icp_list[h].j};
-        edge_list.insert(edge_list.end(), pair);
+        edge_list.push_back(pair);
     }
 
     return edge_list;
@@ -736,7 +723,7 @@ CostsGraph::edge_list_type EdgeReduction::getTopEdgesToInsert(int nr_edges) {
     triangle_matrix_type lower_bound_edge = createLowerBoundMatrix();
 
     int size = _graph->getSize();
-    std::vector<edge_type> icf_list = std::vector<edge_type>(0);
+    std::vector<edge_type> icf_list;
 
     // iterate over all edges
     for (int h = 0; h < size; h++) {
@@ -744,14 +731,14 @@ CostsGraph::edge_list_type EdgeReduction::getTopEdgesToInsert(int nr_edges) {
             double edge = _graph->getEdge(h, k);
             if (edge != forbidden) {
                 edge_type new_edge = {h, k, _min_delete_costs.pos(h, k) + lower_bound_edge.dirpos(h, k)};
-                icf_list.insert(icf_list.end(), new_edge);
+                icf_list.push_back(new_edge);
             }
         }
     }
 
-    sort(icf_list.begin(), icf_list.end(), &compare);
+    sort(icf_list.begin(), icf_list.end());
 
-    CostsGraph::edge_list_type edge_list = CostsGraph::edge_list_type(0);
+    CostsGraph::edge_list_type edge_list;
 
     // get nr_edges top edges
     if (nr_edges > icf_list.size()) {
@@ -759,7 +746,7 @@ CostsGraph::edge_list_type EdgeReduction::getTopEdgesToInsert(int nr_edges) {
     }
     for (int h = 0; h < nr_edges; h++) {
         CostsGraph::pair_type pair = {icf_list[h].i, icf_list[h].j};
-        edge_list.insert(edge_list.end(), pair);
+        edge_list.push_back(pair);
     }
 
     return edge_list;

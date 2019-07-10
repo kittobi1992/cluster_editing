@@ -104,8 +104,8 @@ public:
     typedef void (*matrix_file_fct_type2)(char *fname, CostsGraph &G, costs_parsing_fct_type fct, double threshold);
 
     // constants for different adjacency status
-    const double permanent;
-    const double forbidden;
+    const double permanent = std::numeric_limits<double>::max();
+    const double forbidden = std::numeric_limits<double>::max() * -1;
 
     /* ####  Constructors  #### */
     // th = threshold, every value smaller then th will be set to set, else to not_set
@@ -183,13 +183,13 @@ public:
     int getSize() const;
 
     // return index of vertex with this name
-    int getIndex(std::string key) const;
+    int getIndex(const std::string &key) const;
 
     // checks if vertex name is already defined
-    bool inGraph(std::string name) const;
+    bool inGraph(const std::string &name) const;
 
     // returns true if any of the names in vector is in the graph defined
-    bool inGraph(vertex_name_type names) const;
+    bool inGraph(const vertex_name_type &names) const;
 
     // calculates degree of vertex
     int getDegree(int i) const;
@@ -214,20 +214,20 @@ public:
     void deleteVertices(byte_vector_type set);
 
     // merges to vertices and gives them the given weight vector as weights to the other vertices
-    void mergeVertices(int index1, int index2, double_array_type costs);
+    void mergeVertices(int index1, int index2, const double_array_type &costs);
 
     // deletes clique if vertex 'index' is element of clique
     bool deleteClique(int index);
 
     // calculate connected components and save them in a matrix
-    vertex_matrix_type getConnectedVertices();
+    vertex_matrix_type getConnectedVertices() const;
 
     // divide the graph into components, each again a costs graph
-    graph_list_type getConnectedComponents();
+    graph_list_type getConnectedComponents() const;
 
     // dependend on the given connected components, saved in the vertex matrix
     // the graph will be divided into costs graph again
-    graph_list_type getConnectedComponents(vertex_matrix_type vertex_matrix);
+    graph_list_type getConnectedComponents(const vertex_matrix_type &vertex_matrix) const;
 
     /* ####  IO-functions  #### */
     // creates string from costs matrix
@@ -236,7 +236,7 @@ public:
     // do IO operation with given function
     void costsIOOperation(char *fname, matrix_file_fct_type fct);
 
-    void costsIOOperation(std::string fname, matrix_file_fct_type fct);
+    void costsIOOperation(const std::string &fname, matrix_file_fct_type fct);
 
     /* ####  overloaded operators  #### */
     explicit operator std::string();
