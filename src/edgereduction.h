@@ -126,7 +126,7 @@ private:
         double value;
 
         // compare function for sorting edges...used by heuristic
-        friend inline bool compare(const edge_type &t1, const edge_type &t2) {
+        friend inline bool operator<(const edge_type &t1, const edge_type &t2) {
             return (t1.value > t2.value);
         }
     };
