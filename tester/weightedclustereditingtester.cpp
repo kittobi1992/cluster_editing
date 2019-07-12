@@ -27,9 +27,9 @@ using std::abs;
 void solveForConnectedComponent(CostsGraph &G, short pi_type, bool merging, bool just_max, bool split, double &costs);
 
 void createRandomGraph1(CostsGraph &CG, double mue_ex, double sigma_ex, double mue_in, double sigma_in, bool save_cr,
-                        bool unweigthed, int Graph_size, double &k, string cr_fname);
+                        bool unweigthed, int Graph_size, double &k, const string &cr_fname);
 
-void createRandomGraph2(CostsGraph &CG, bool save_cr, bool unweigthed, string cr_fname, int Graph_size);
+void createRandomGraph2(CostsGraph &CG, bool save_cr, bool unweigthed, const string &cr_fname, int Graph_size);
 
 double ranf();
 
@@ -47,9 +47,9 @@ void fillParameters(int argc, char **argv, int &mue_ex, int &sigma_ex, int &mue_
 
 int main(int argc, char **argv) {
     // initialize parameters with standard settings
-    string cm_fname = "";
-    string cr_fname = "";
-    string output_path = "";
+    string cm_fname;
+    string cr_fname;
+    string output_path;
     bool merging = true;
     bool just_max = true;
     bool split = true;
@@ -63,13 +63,13 @@ int main(int argc, char **argv) {
     int Graph_size = 0;
     int k2 = -1;
     // Number of the negative existig edges (falsch-negativ)
-    int sum = 0;
+    // int sum = 0;
     int runs = 1;
     // fill parameters with values from shell
     fillParameters(argc, argv, mue_ex, sigma_ex, mue_in, sigma_in, Graph_size, unweigthed, test, RandomGraph, k2, runs,
                    output_path);
     double k = 0.0;
-    srand(time(NULL));
+    srand(time(nullptr));
     for (int i = 0; i < runs; i++) {
         try {
             CostsGraph CG;// = CostsGraph("current.cm",MatrixParser::initFromMatrixFile);
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
                               RandomGraph, k2);
             if (!test) {
                 std::cout << "try to write " << cm_fname << std::endl;
-                CG.costsIOOperation(cm_fname.c_str(), MatrixParser::toMatrixFile);
+                CG.costsIOOperation(cm_fname, MatrixParser::toMatrixFile);
                 std::cout << "wrote.." << std::endl;
             } else {
                 // test ...pidr with upper bound
@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
                 std::cout << " Lower Bound for Problem Instance: " << par << std::endl;
                 std::cout << " Upper Bound for Problem Instance: " << upper_bound << std::endl;
                 delete (PI);
-                PI = NULL;
+
                 if (upper_bound2 != upper_bound) {
                     std::cout << "ERROR: " << "up1=" << upper_bound << " up2=" << upper_bound2 << std::endl;
                     CG.costsIOOperation("error.cm", MatrixParser::toMatrixFile);
@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
                 }
                 cout << "-----------------------------------" << endl;
             }
-        } catch (GraphException e) {
+        } catch (GraphException &e) {
             cout << "Graph Exception: " << e.getMessage() << endl;
         }
     }
@@ -153,7 +153,7 @@ void solveForConnectedComponent(CostsGraph &G, short pi_type, bool merging, bool
     double par = PI->getLowerBound();
     double upper_bound = PI->getUpperBound();
     delete (PI);
-    PI = NULL;
+    PI = nullptr;
 
     double par_steps = (upper_bound - par) / 2;
 
@@ -169,34 +169,33 @@ void solveForConnectedComponent(CostsGraph &G, short pi_type, bool merging, bool
             SearchTreeWeighted ST(*PI, 0);
             ST.search(just_max, split);
             SearchTreeWeighted::solutions_type solutions = ST.getSolutions();
-            if (solutions.size() > 0) {
-                double min = 100000E100;
-                for (int i = 0; i < solutions.size(); i++) {
-                    double costs = solutions[i].start_parameter - solutions[i].parameter;
-                    min = (costs < min) ? costs : min;
+            if (!solutions.empty()) {
+                double min = std::numeric_limits<double>::max();
+                for (const auto &solution : solutions) {
+                    min = std::min(min, solution.start_parameter - solution.parameter);
                 }
                 costs += min;
                 done = 1;
             }
             delete (PI);
-            PI = NULL;
+            PI = nullptr;
         }
-        catch (ProblemInstanceException e) {
+        catch (ProblemInstanceException &e) {
             //cout << "Problem Instance Exception: " << e.getMessage() << endl;
             delete (PI);
-            PI = NULL;
+            PI = nullptr;
         }
-        catch (GraphException e) {
+        catch (GraphException &e) {
             cout << "Graph Exception: " << e.getMessage() << endl;
             delete (PI);
-            PI = NULL;
+            PI = nullptr;
         }
     }
 }
 
 
 void createRandomGraph1(CostsGraph &CG, double mue_ex, double sigma_ex, double mue_in, double sigma_in, bool save_cr,
-                        bool unweigthed, int Graph_size, double &k, string cr_fname) {
+                        bool unweigthed, int Graph_size, double &k, const string &cr_fname) {
     ofstream cr_file;
     //Number of nodes
     int node;
@@ -204,14 +203,14 @@ void createRandomGraph1(CostsGraph &CG, double mue_ex, double sigma_ex, double m
     int cluster;
     int i = 0;
     int help;
-    double h;
+    double h = 0;
     int index1;
     int index2;
     //size of the clusters
     int size;
-    bool test;
-    double x;
-    double y;
+    // bool test;
+    // double x;
+    // double y;
     /* generate a random number for # nodes: */
     if (Graph_size == 0) {
         node = rand() % 100 + 10;
@@ -221,13 +220,13 @@ void createRandomGraph1(CostsGraph &CG, double mue_ex, double sigma_ex, double m
     cout << "Anzahl der Konten: " << node << endl;
     CostsGraph::double_matrix_type Graph;
     //vector <vector <double> > G = vector <vector <double> > (node, vector < double > (node,0.0));
-    vector<vector<int> > ClusterList;
+    vector<vector<int>> ClusterList;
     /* initialize random seed: */
     help = node;
     // find the clusters
-    for (i; i < node; i++) {
+    for (; i < node; i++) {
         size = rand() % help + 1;
-        ClusterList.push_back(vector<int>(size, 0));
+        ClusterList.emplace_back(size, 0);
         for (int j = 0; j < size; j++) {
             ClusterList[i][j] = help - j - 1;
         }
@@ -240,7 +239,7 @@ void createRandomGraph1(CostsGraph &CG, double mue_ex, double sigma_ex, double m
         if (help < 10) {
             i++;
             size = help;
-            ClusterList.push_back(vector<int>(size, 0));
+            ClusterList.emplace_back(size, 0);
             for (int j = 0; j < size; j++) {
                 ClusterList[i][j] = help - j - 1;
             }
@@ -321,8 +320,8 @@ void createRandomGraph1(CostsGraph &CG, double mue_ex, double sigma_ex, double m
         }
     }
     CostsGraph::vertex_name_type EdgeNameList;
-    for (int i = 0; i < Graph.size(); i++) {
-        EdgeNameList.push_back(toString(i));
+    for (int j = 0; j < Graph.size(); j++) {
+        EdgeNameList.push_back(toString(j));
     }
     CG = CostsGraph(Graph.size(), Graph, EdgeNameList);
 
@@ -332,7 +331,7 @@ void createRandomGraph1(CostsGraph &CG, double mue_ex, double sigma_ex, double m
 }
 
 
-void createRandomGraph2(CostsGraph &CG, bool save_cr, bool unweigthed, string cr_fname, int Graph_size) {
+void createRandomGraph2(CostsGraph &CG, bool save_cr, bool unweigthed, const string &cr_fname, int Graph_size) {
     ofstream cr_file;
     //Number of nodes
     int node;
@@ -345,9 +344,9 @@ void createRandomGraph2(CostsGraph &CG, bool save_cr, bool unweigthed, string cr
     int index2;
     //size of the clusters
     int size;
-    bool test;
-    double x;
-    double y;
+    //bool test;
+    //double x;
+    //double y;
     /* generate a random number for # nodes: */
     if (Graph_size == 0) {
         node = rand() % 100 + 10;
@@ -363,9 +362,9 @@ void createRandomGraph2(CostsGraph &CG, bool save_cr, bool unweigthed, string cr
     /* initialize random seed: */
     help = node;
     // find the clusters
-    for (i; i < node; i++) {
+    for (; i < node; i++) {
         size = rand() % help + 1;
-        ClusterList.push_back(vector<int>(size, 0));
+        ClusterList.emplace_back(size, 0);
         for (int j = 0; j < size; j++) {
             ClusterList[i][j] = help - j - 1;
         }
@@ -378,7 +377,7 @@ void createRandomGraph2(CostsGraph &CG, bool save_cr, bool unweigthed, string cr
         if (help < 5) {
             i++;
             size = help;
-            ClusterList.push_back(vector<int>(size, 0));
+            ClusterList.emplace_back(size, 0);
             for (int j = 0; j < size; j++) {
                 ClusterList[i][j] = help - j - 1;
             }
@@ -451,8 +450,8 @@ void createRandomGraph2(CostsGraph &CG, bool save_cr, bool unweigthed, string cr
         }
     }
     CostsGraph::vertex_name_type EdgeNameList;
-    for (int i = 0; i < Graph.size(); i++) {
-        EdgeNameList.push_back(toString(i));
+    for (int j = 0; j < Graph.size(); j++) {
+        EdgeNameList.push_back(toString(j));
     }
     CG = CostsGraph(Graph.size(), Graph, EdgeNameList);
 
@@ -499,7 +498,7 @@ double generateGaussianDistributedNumber(double m, double s) {
 
 void
 createTesterGraph(CostsGraph &CG, int mue_ex, int sigma_ex, int mue_in, int sigma_in, bool save_cr, bool unweigthed,
-                  string cr_fname, double &k, int graph_size, short RandomGraph, int &k2) {
+                  const string &cr_fname, double &k, int graph_size, short RandomGraph, int &k2) {
     // k2 number of the edges to change
     k = 0.0; // costs of the changed edges
     int size;
@@ -554,7 +553,6 @@ string toString(int x) {
 void fillParameters(int argc, char **argv, int &mue_ex, int &sigma_ex, int &mue_in, int &sigma_in, int &Graph_size,
                     bool &unweighted, bool &test, short &RandomGraph, int &k2, int &runs, string &output_path) {
     int g = 1;
-    int files = 0;
     while (argc > g) {
         if (argv[g][0] == '-') {
             string flag(argv[g]);

@@ -7,89 +7,38 @@ GraphSet::GraphSet() {
 }
 
 // init graph set with graph, which will be divided in its components
-GraphSet::GraphSet(CostsGraph graph) {
+GraphSet::GraphSet(const CostsGraph &graph) {
     _graph_list = graph.getConnectedComponents();
     _size = _graph_list.size();
 }
 
 
 // inits a graph from file, function can be choosen to seperate graph in connected components
-GraphSet::GraphSet(char *fname, double th, costs_parsing_fct_type fct, graph_set_parser_fct_type parser_fct)
-        : _size(0) {
-    _graph_list = graph_list_type(0);
-
-    parser_fct(fname, *this, th, fct);
-}
-
-// inits a graph from file, function can be choosen to seperate graph in connected components
-GraphSet::GraphSet(std::string fname, double th, costs_parsing_fct_type fct, graph_set_parser_fct_type parser_fct)
-        : _size(0) {
-    _graph_list = graph_list_type(0);
-
+GraphSet::GraphSet(const std::string &fname, double th, costs_parsing_fct_type fct, graph_set_parser_fct_type parser_fct)
+        : _size(0), _graph_list(0) {
     char *str = strdup(fname.c_str());
     parser_fct(str, *this, th, fct);
 }
 
 
 // reads in a weight graph and using the appropriate costs parser to create costs graph(s) out of it
-GraphSet::GraphSet(char *file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th) : _size(0) {
-    CostsGraph G = CostsGraph(file_name, fct, cost_fct, th);
-    _graph_list = G.getConnectedComponents();
-    _size = _graph_list.size();
-}
-
-
-// reads in a weight graph and using the appropriate costs parser to create costs graph(s) out of it
-GraphSet::GraphSet(std::string file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th)
+GraphSet::GraphSet(const std::string &file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th)
         : _size(0) {
     CostsGraph G = CostsGraph(file_name, fct, cost_fct, th);
     _graph_list = G.getConnectedComponents();
     _size = _graph_list.size();
 }
 
-// inits graph with a set of graphs from a directory
-GraphSet::GraphSet(char *dir_name, matrix_file_fct_type fct) : _size(0) {
-    _graph_list = graph_list_type(0);
-
-    DIR *dir;
-    struct dirent *dirzeiger;
-
-    // open directory
-    if ((dir = opendir(dir_name)) != NULL) {
-        // save directory pointer
-        dirzeiger = readdir(dir);
-
-        // iterate through directory
-        while ((dirzeiger = readdir(dir))) {
-            // get file name
-            std::string fname = std::string(dir_name) + (*dirzeiger).d_name;
-            int point_pos = fname.find_last_of('.');
-
-            // check whether its a cm file
-            if (fname.substr(point_pos + 1, point_pos + 3) == "cm") {
-                CostsGraph *new_graph = new CostsGraph(fname, fct);
-                _graph_list.insert(_graph_list.end(), new_graph);
-                _size++;
-            }
-        }
-    }
-
-    closedir(dir);
-
-}
-
 
 // inits graph with a set of graphs from a directory
-GraphSet::GraphSet(std::string dir_name, matrix_file_fct_type fct) : _size(0) {
-    _graph_list = graph_list_type(0);
-
+GraphSet::GraphSet(const std::string &dir_name, matrix_file_fct_type fct) : _size(0), _graph_list(0) {
     char *str = strdup(dir_name.c_str());
 
     DIR *dir;
     struct dirent *dirzeiger;
 
     // open directory
-    if ((dir = opendir(str)) != NULL) {
+    if ((dir = opendir(str)) != nullptr) {
 
         // save directory pointer
         dirzeiger = readdir(dir);
@@ -104,8 +53,7 @@ GraphSet::GraphSet(std::string dir_name, matrix_file_fct_type fct) : _size(0) {
 
             // check whether its a cm file
             if (fname.substr(point_pos + 1, point_pos + 3) == "cm") {
-                CostsGraph *new_graph = new CostsGraph(fname, fct);
-                _graph_list.insert(_graph_list.end(), new_graph);
+                _graph_list.push_back(new CostsGraph(fname, fct));
                 _size++;
             }
         }
@@ -163,8 +111,7 @@ void GraphSet::deleteGraph(int i) {
 
 // add graph by making a deep copy of it and set pointer to it
 void GraphSet::addGraph(CostsGraph &graph) {
-    CostsGraph *new_graph = new CostsGraph(graph);
-    _graph_list.insert(_graph_list.end(), new_graph);
+    _graph_list.push_back(new CostsGraph(graph));
     _size++;
 }
 

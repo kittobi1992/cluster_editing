@@ -22,7 +22,7 @@ VertexLists::VertexLists(int size, pos_int_type number_of_lists) : _size(size), 
     for (int i = 0; i < _size; i++) {
         vertex_type v = {nil, nil, nil};
         _vertex_list[i] = v;
-    };
+    }
 
     // create head list
     _heads = head_list_type(_number_of_lists);
@@ -31,7 +31,7 @@ VertexLists::VertexLists(int size, pos_int_type number_of_lists) : _size(size), 
     for (int i = 0; i < _number_of_lists; i++) {
         head_type hv = {nil, 0};
         _heads[i] = hv;
-    };
+    }
 }
 
 
@@ -151,7 +151,7 @@ void VertexLists::deleteFromList(pos_int_type i) {
         } else {
             _heads[old_list].head = nil;
         }
-    };
+    }
 
     // decrease list size
     _heads[old_list].size--;

@@ -20,13 +20,11 @@ public:
 
     /* ####  Constructors  #### */
     // empty constructor
-    inline Array() : _size(0) {
-        _array = NULL;
-    }
+    inline Array() : _size(0), _array(nullptr) {}
 
 
     // initiate array with given size
-    inline Array(int size) : _size(size) {
+    explicit inline Array(int size) : _size(size) {
         // create matrix
         _array = new Type[size];
     }
@@ -56,7 +54,7 @@ public:
     // destructor
     inline ~Array() {
         delete[] _array;
-        _array = NULL;
+        _array = nullptr;
     }
 
 
@@ -72,7 +70,7 @@ public:
         if (_size != right._size) {
             // delete old array
             delete[] _array;
-            _array = NULL;
+            _array = nullptr;
             // create a new array of necessary size
             _size = right._size;
             _array = new Type[_size];

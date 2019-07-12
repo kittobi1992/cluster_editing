@@ -45,25 +45,25 @@ public:
     GraphSet();
 
     // copy constructor
-    GraphSet(GraphSet const &graph_set);
+    GraphSet(const GraphSet &graph_set);
 
     // gets graph and will save every connected component in the graph as a graph
-    GraphSet(CostsGraph graph);
+    explicit GraphSet(const CostsGraph &graph);
 
     // inits a graph from file, function can be choosen to seperate graph in connected components
-    GraphSet(char *fname, double th, costs_parsing_fct_type fct, graph_set_parser_fct_type parser_fct);
+    // GraphSet(char *fname, double th, costs_parsing_fct_type fct, graph_set_parser_fct_type parser_fct);
 
-    GraphSet(std::string fname, double th, costs_parsing_fct_type fct, graph_set_parser_fct_type parser_fct);
+    GraphSet(const std::string &fname, double th, costs_parsing_fct_type fct, graph_set_parser_fct_type parser_fct);
 
     // reads in a weight graph and using the appropriate costs parser to create costs graph(s) out of it
-    GraphSet(char *file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th);
+    // GraphSet(char *file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th);
 
-    GraphSet(std::string file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th);
+    GraphSet(const std::string &file_name, matrix_file_fct_type2 fct, costs_parsing_fct_type cost_fct, double th);
 
     // reads a directory full of graphs in
-    GraphSet(char *dir_name, matrix_file_fct_type fct);
+    // GraphSet(char *dir_name, matrix_file_fct_type fct);
 
-    GraphSet(std::string dir_name, matrix_file_fct_type fct);
+    GraphSet(const std::string &dir_name, matrix_file_fct_type fct);
 
     /* ####  Destructor  #### */
     ~GraphSet();

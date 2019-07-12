@@ -116,7 +116,7 @@ inline void WeightedProblemInstance::mergeVertices(CostsGraph::byte_vector_type 
 }
 
 
-// deletes a created clique by setting all surounding edges to forbidden and merging the clique
+// deletes a created clique by setting all surrounding edges to forbidden and merging the clique
 inline void WeightedProblemInstance::deleteClique(CostsGraph::byte_vector_type &clique) {
     // test whether i is in clique or not
     if (!clique.empty()) {
@@ -179,13 +179,14 @@ inline void WeightedProblemInstance::setEdgesToForbidden(const CostsGraph::edge_
 // greater then the second one !
 inline void WeightedProblemInstance::setEdgesToPermanent(CostsGraph::edge_list_type permanent_list) {
     // set edges to permanent and merge, therefore sort them before!
-    for (int i = 0; i < permanent_list.size(); i++) {
-        if (permanent_list[i].i != permanent_list[i].j &&
-            _graph.getEdge(permanent_list[i].i, permanent_list[i].j) != forbidden) {
+    for (int i = 0; i < permanent_list.size(); ++i) {
+        const auto& edge = permanent_list[i];
+        if (edge.i != edge.j &&
+            _graph.getEdge(edge.i, edge.j) != forbidden) {
 
-            setEdgeToValue(permanent_list[i].i, permanent_list[i].j, permanent);
-            mergeVertices(permanent_list[i].i, permanent_list[i].j);
-            //std::cout << "set(" << permanent_list[i].i << "," << permanent_list[i].j << ") perm -> new para=" << _parameter << std::endl;
+            setEdgeToValue(edge.i, edge.j, permanent);
+            mergeVertices(edge.i, edge.j);
+            //std::cout << "set(" << edge.i << "," << edge.j << ") perm -> new para=" << _parameter << std::endl;
 
             // update vertex indices of other edges
             for (int k = i + 1; k < permanent_list.size(); k++) {
@@ -331,7 +332,9 @@ inline int WeightedProblemInstance::criticalCliqueReduction(int max_edge, bool c
         for (int i = 0; i < _graph.getSize(); i++) {
             for (int k = 0; k < i; k++) {
                 double x = _graph.getEdge(i, k);
-                max = (x != _graph.forbidden && max < std::abs(x)) ? std::abs(x) : max;
+                if (x != _graph.forbidden) {
+                    max = std::max(max, std::abs(x));
+                }
             }
         }
 
@@ -355,12 +358,12 @@ inline int WeightedProblemInstance::criticalCliqueReduction(int max_edge, bool c
 
 
 // use weighted critical clique approximation as suggested in the thesis since
-// it is realitvley easy
+// it is relatively easy
 inline int WeightedProblemInstance::criticalCliqueApproximation() {
     int size = _graph.getSize();
 
     // create vector for permanent edges
-    std::vector<pair_type> permanent_list = std::vector<pair_type>(0);
+    std::vector<pair_type> permanent_list;
 
     // check for every edges...
     for (int i = 0; i < size; i++) {

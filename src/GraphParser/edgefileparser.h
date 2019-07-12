@@ -85,15 +85,12 @@ private:
     template<typename Type>
     static inline Type stringToType(char *s);
 
-    template<typename T>
-    static inline void swap(T &i, T &j);
-
     //inline static double stringToDouble(std::string& s) const;
-    static void get5ColumnContent(std::string line, std::string &gene_name1, std::string &gene_name2, double &score);
+    static void get5ColumnContent(const std::string &line, std::string &gene_name1, std::string &gene_name2, double &score);
 
-    static void get3ColumnContent(std::string line, std::string &gene_name1, std::string &gene_name2, double &score);
+    static void get3ColumnContent(const std::string &line, std::string &gene_name1, std::string &gene_name2, double &score);
 
-    static void get12ColumnContent(std::string line, std::string &gene_name1, std::string &gene_name2, double &score);
+    static void get12ColumnContent(const std::string &line, std::string &gene_name1, std::string &gene_name2, double &score);
 
     static void initFromXColumnFile(char *fname, CostsGraph &G, costs_parsing_fct_type fct, int x);
 
@@ -101,7 +98,7 @@ private:
     static vertex_matrix_type getConnectedVertices(char_matrix_type matrix);
 
     template<typename Type>
-    static void extendMatrix(std::vector<std::vector<Type> > &matrix, Type init_value);
+    static void extendMatrix(std::vector<std::vector<Type>> &matrix, Type init_value);
 
     static void
     initGraphSetFromXColumnFile(char *fname, GraphSet &graph_set, double th, costs_parsing_fct_type fct, int x);

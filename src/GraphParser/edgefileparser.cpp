@@ -54,58 +54,51 @@ inline std::string EdgeFileParser::toString(Type x) {
 
 
 void
-EdgeFileParser::get5ColumnContent(std::string line, std::string &gene_name_1, std::string &gene_name_2, double &score) {
+EdgeFileParser::get5ColumnContent(const std::string &line, std::string &gene_name_1, std::string &gene_name_2, double &score) {
     char *str = strdup(line.c_str());
     gene_name_1 = strtok(str, "\t");
-    std::string gene_pos_1 = strtok(NULL, "\t");
-    gene_name_2 = strtok(NULL, "\t");
-    std::string gene_pos_2 = strtok(NULL, "\t");
+    std::string gene_pos_1 = strtok(nullptr, "\t");
+    gene_name_2 = strtok(nullptr, "\t");
+    std::string gene_pos_2 = strtok(nullptr, "\t");
 
     std::string blast_score;
-    blast_score = strtok(NULL, "\n\t\r");
+    blast_score = strtok(nullptr, "\n\t\r");
 
     score = stringToType<double>(blast_score);
 }
 
 
 void
-EdgeFileParser::get3ColumnContent(std::string line, std::string &gene_name_1, std::string &gene_name_2, double &score) {
+EdgeFileParser::get3ColumnContent(const std::string &line, std::string &gene_name_1, std::string &gene_name_2, double &score) {
     std::cout << "line in fkt: " << line << std::endl;
 
     char *str = strdup(line.c_str());
 
     gene_name_1 = strtok(str, "\t");
 
-    gene_name_2 = strtok(NULL, "\t");
+    gene_name_2 = strtok(nullptr, "\t");
 
     std::string blast_score;
-    blast_score = strtok(NULL, "\n\t\r");
+    blast_score = strtok(nullptr, "\n\t\r");
 
     score = stringToType<double>(blast_score);
 }
 
 
-void EdgeFileParser::get12ColumnContent(std::string line, std::string &gene_name_1, std::string &gene_name_2,
+void EdgeFileParser::get12ColumnContent(const std::string &line, std::string &gene_name_1, std::string &gene_name_2,
                                         double &score) {
     char *str = strdup(line.c_str());
     gene_name_1 = strtok(str, "\t");
-    gene_name_2 = strtok(NULL, "\t");
+    gene_name_2 = strtok(nullptr, "\t");
     // get 8 other columns
     for (int i = 0; i < 8; i++) {
-        std::string blast_score = strtok(NULL, "\t");
+        std::string blast_score = strtok(nullptr, "\t");
     }
 
     std::string blast_score;
-    blast_score = strtok(NULL, "\n\t\r");
+    blast_score = strtok(nullptr, "\n\t\r");
 
     score = stringToType<double>(blast_score);
-}
-
-template<typename T>
-void EdgeFileParser::swap(T &i, T &j) {
-    T help = i;
-    i = j;
-    j = help;
 }
 
 EdgeFileParser::vertex_matrix_type EdgeFileParser::getConnectedVertices(char_matrix_type matrix) {
@@ -137,7 +130,7 @@ EdgeFileParser::vertex_matrix_type EdgeFileParser::getConnectedVertices(char_mat
     for (int i = 0; i < size; i++) {
         int sub_graph_size = vertex_lists.getListSize(i);
         if (sub_graph_size != 0) {
-            output.insert(output.end(), vertex_lists.getList(i));
+            output.push_back(vertex_lists.getList(i));
         }
     }
 
@@ -149,7 +142,7 @@ void EdgeFileParser::extendMatrix(std::vector<std::vector<Type> > &matrix, Type 
     int size = matrix.size();
     // new line in weight matrix will be added
     std::vector<Type> newv = std::vector<Type>(size, init_value);
-    matrix.insert(matrix.end(), newv);
+    matrix.push_back(newv);
 }
 
 
@@ -157,7 +150,7 @@ void
 EdgeFileParser::initGraphSetFromXColumnFile(char *fname, GraphSet &graph_set, double th, costs_parsing_fct_type fct,
                                             int x) {
     // create associated map for vertix names, name + its index in the main graph
-    std::map<std::string, int> vertices = std::map<std::string, int>();
+    std::map<std::string, int> vertices;
     // create reverse as vector to get name by vertex index
     std::vector<std::string> names = std::vector<std::string>();
 
@@ -175,7 +168,7 @@ EdgeFileParser::initGraphSetFromXColumnFile(char *fname, GraphSet &graph_set, do
     // read in file line-wise
     std::string row;
     while (getline(graph_file, row)) {
-        if (strtok(strdup(row.c_str()), "\t") == NULL) {
+        if (strtok(strdup(row.c_str()), "\t") == nullptr) {
             continue;
         }
 
@@ -207,7 +200,7 @@ EdgeFileParser::initGraphSetFromXColumnFile(char *fname, GraphSet &graph_set, do
 
         if (pos_gene_1 != -1 && pos_gene_2 != -1) {
             if (pos_gene_1 < pos_gene_2) {
-                swap<int>(pos_gene_1, pos_gene_2);
+                std::swap(pos_gene_1, pos_gene_2);
             }
 
             if (heuristic[pos_gene_1][pos_gene_2] != ' ') {
@@ -216,7 +209,7 @@ EdgeFileParser::initGraphSetFromXColumnFile(char *fname, GraphSet &graph_set, do
                     heuristic[pos_gene_1][pos_gene_2] = '0';
                     // save problematic pair in problem list
                     if (gene_name_1.compare(gene_name_2) < 0) {
-                        swap<std::string>(gene_name_1, gene_name_2);
+                        std::swap(gene_name_1, gene_name_2);
                         //swap<int>(pos_gene_1, pos_gene_2);
                     }
                     if (problems.find((gene_name_1 + gene_name_2)) == problems.end()) {
@@ -230,20 +223,20 @@ EdgeFileParser::initGraphSetFromXColumnFile(char *fname, GraphSet &graph_set, do
         } else if (pos_gene_1 != -1 && pos_gene_2 == -1) {
             extendMatrix<char>(heuristic, ' ');
             vertices[gene_name_2] = heuristic.size();
-            names.insert(names.end(), gene_name_2);
+            names.push_back(gene_name_2);
             heuristic[heuristic.size() - 1][pos_gene_1] = (costs > 0) ? '+' : '-';
         } else if (pos_gene_1 == -1 && pos_gene_2 != -1) {
             extendMatrix<char>(heuristic, ' ');
             vertices[gene_name_1] = heuristic.size();
-            names.insert(names.end(), gene_name_1);
+            names.push_back(gene_name_1);
             heuristic[heuristic.size() - 1][pos_gene_2] = (costs > 0) ? '+' : '-';
         } else {
             extendMatrix<char>(heuristic, ' ');
             extendMatrix<char>(heuristic, ' ');
             vertices[gene_name_1] = heuristic.size() - 1;
-            names.insert(names.end(), gene_name_1);
+            names.push_back(gene_name_1);
             vertices[gene_name_2] = heuristic.size();
-            names.insert(names.end(), gene_name_2);
+            names.push_back(gene_name_2);
             heuristic[heuristic.size() - 1][heuristic.size() - 2] = (costs > 0) ? '+' : '-';
         }
     }
@@ -259,7 +252,7 @@ EdgeFileParser::initGraphSetFromXColumnFile(char *fname, GraphSet &graph_set, do
     }
 
     while (getline(graph_file2, row)) {
-        if (strtok(strdup(row.c_str()), "\t") == NULL) {
+        if (strtok(strdup(row.c_str()), "\t") == nullptr) {
             continue;
         }
 
@@ -284,7 +277,7 @@ EdgeFileParser::initGraphSetFromXColumnFile(char *fname, GraphSet &graph_set, do
 
         bool did_swap = false;
         if (gene_name_1.compare(gene_name_2) < 0) {
-            swap<std::string>(gene_name_1, gene_name_2);
+            std::swap(gene_name_1, gene_name_2);
             did_swap = true;
         }
 
@@ -352,7 +345,7 @@ EdgeFileParser::initGraphSetFromXColumnFile(char *fname, GraphSet &graph_set, do
     }
 
     while (getline(graph_file3, row)) {
-        if (strtok(strdup(row.c_str()), "\t") == NULL) {
+        if (strtok(strdup(row.c_str()), "\t") == nullptr) {
             continue;
         }
 
@@ -453,7 +446,7 @@ void EdgeFileParser::initFromXColumnFile(char *fname, CostsGraph &G, costs_parsi
     }
 
     // create associated map for vertix names
-    std::map<std::string, int> *vertices = new std::map<std::string, int>();
+    std::map<std::string, int> vertices;
 
     CostsGraph::vertex_name_type names = CostsGraph::vertex_name_type(0);
 
@@ -461,7 +454,7 @@ void EdgeFileParser::initFromXColumnFile(char *fname, CostsGraph &G, costs_parsi
     std::string row;
     while (getline(graph_file, row)) {
 
-        if (strtok(strdup(row.c_str()), "\t") == NULL) {
+        if (strtok(strdup(row.c_str()), "\t") == nullptr) {
             continue;
         }
 
@@ -488,8 +481,8 @@ void EdgeFileParser::initFromXColumnFile(char *fname, CostsGraph &G, costs_parsi
         if (gene_name_1 == gene_name_2) continue;
 
         // get positions from vertix map and reduce by 1
-        int pos_gene_1 = (*vertices)[gene_name_1] - 1;
-        int pos_gene_2 = (*vertices)[gene_name_2] - 1;
+        int pos_gene_1 = vertices[gene_name_1] - 1;
+        int pos_gene_2 = vertices[gene_name_2] - 1;
 
         // check if vertices is already defined
         if (pos_gene_1 != -1 && pos_gene_2 != -1) {
@@ -522,10 +515,10 @@ void EdgeFileParser::initFromXColumnFile(char *fname, CostsGraph &G, costs_parsi
             // if vertex 1 is not defined add vertex
             extendMatrix<double>(costs_matrix, forbidden);
             extendMatrix<double>(costs_matrix2, forbidden);
-            names.insert(names.end(), gene_name_1);
+            names.push_back(gene_name_1);
 
             // save position in associated map
-            (*vertices)[gene_name_1] = G.getSize();
+            vertices[gene_name_1] = G.getSize();
 
             // set edge weight from file
             costs_matrix[costs_matrix.size() - 1][pos_gene_2] = forbidden;
@@ -536,10 +529,10 @@ void EdgeFileParser::initFromXColumnFile(char *fname, CostsGraph &G, costs_parsi
             // if vertex 2 is not defined add vertex
             extendMatrix<double>(costs_matrix, forbidden);
             extendMatrix<double>(costs_matrix2, forbidden);
-            names.insert(names.end(), gene_name_2);
+            names.push_back(gene_name_2);
 
             // save position in associated map
-            (*vertices)[gene_name_2] = G.getSize();
+            vertices[gene_name_2] = G.getSize();
 
             // set edge weight from file
             costs_matrix[costs_matrix.size() - 1][pos_gene_1] = costs;
@@ -553,12 +546,12 @@ void EdgeFileParser::initFromXColumnFile(char *fname, CostsGraph &G, costs_parsi
             extendMatrix<double>(costs_matrix, forbidden);
             extendMatrix<double>(costs_matrix2, forbidden);
 
-            names.insert(names.end(), gene_name_1);
-            names.insert(names.end(), gene_name_2);
+            names.push_back(gene_name_1);
+            names.push_back(gene_name_2);
 
             // save positions in associated map
-            (*vertices)[gene_name_1] = G.getSize() - 1;
-            (*vertices)[gene_name_2] = G.getSize();
+            vertices[gene_name_1] = G.getSize() - 1;
+            vertices[gene_name_2] = G.getSize();
 
             // set edge weight from file
             costs_matrix[costs_matrix.size() - 1][costs_matrix.size() - 2] = costs;
@@ -581,8 +574,6 @@ void EdgeFileParser::initFromXColumnFile(char *fname, CostsGraph &G, costs_parsi
 
     // close input file and delete vertix map
     graph_file.close();
-    delete (vertices);
-
 }
 
 

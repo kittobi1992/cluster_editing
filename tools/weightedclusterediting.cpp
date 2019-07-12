@@ -17,10 +17,10 @@
 #include <doubleparser.h>
 #include <graphset.h>
 
-void fillParameters(int argc, char **argv, std::string &fname, char *&output_fname,
+void fillParameters(int argc, char **argv, std::string &fname, std::string &output_fname,
                     GraphSet::costs_parsing_fct_type &parsing_fct, GraphSet::graph_set_parser_fct_type &read_graph_fct,
                     double &threshold, double &parameter, int &parameter_steps, short &pi_type, int &max_component,
-                    bool &merging, short &mode, bool &just_max, bool &split, bool &loginfo, char *&log_fname);
+                    bool &merging, short &mode, bool &just_max, bool &split, bool &loginfo, std::string &log_fname);
 
 double solveForConnectedComponent(CostsGraph G, int nr, double &min_parameter, long &solutions_nr, double parameter,
                                   int parameter_steps, std::ofstream &log_file, short pi_type, bool merging,
@@ -37,9 +37,9 @@ void writeCalculatedSolutions(int nr, SearchTreeWeighted::solutions_type solutio
 
 int main(int argc, char **argv) {
     // initialize parameters with standard settings
-    std::string fname = "";
-    char *output_fname = "";
-    char *log_fname = "";
+    std::string fname;
+    std::string output_fname;
+    std::string log_fname;
     GraphSet::costs_parsing_fct_type parsing_fct = parsing_fct = DoubleParser::valueToCosts;
     GraphSet::graph_set_parser_fct_type read_graph_fct = EdgeFileParser::initGraphSetFrom5ColumnFile;
     GraphSet::matrix_file_fct_type matrix_file_fct = MatrixParser::initFromMatrixFile;
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
     fillParameters(argc, argv, fname, output_fname, parsing_fct, read_graph_fct, threshold, parameter, parameter_steps,
                    pi_type, max_component, merging, mode, just_max, split, loginfo, log_fname);
 
-    if (strcmp("", log_fname) != 0) { //checking if log_fname is empty to decide logging or not
+    if (!log_fname.empty()) { //checking if log_fname is empty to decide logging or not
         loginfo = true;
     }/*else{
 		log_fname="delete_me.temp";
@@ -123,7 +123,6 @@ int main(int argc, char **argv) {
 
             if (G.getSize() <= max_component) {
 
-                double x = min_parameter;
                 double costs = 0;
                 //double this_time =0;
                 double this_time = solveForConnectedComponent(G, i, min_parameter, solutions_nr, parameter,
@@ -294,7 +293,7 @@ double solveForConnectedComponent(CostsGraph G, int nr, double &min_parameter, l
                                   bool just_max, bool split, double &costs, std::ofstream &output_file, bool &loginfo) {
     int done = 0;
     double par = parameter;
-    double sum = 0;
+    // double sum = 0;
     double par_steps = 1;
 
     double used_time = 0;
@@ -347,7 +346,7 @@ double solveForConnectedComponent(CostsGraph G, int nr, double &min_parameter, l
 
     par_steps = (upper_bound - par) / 23 + 0.01;
 
-    while (done == 0) {
+    while (!done) {
         try {
             //if (parameter != 0 && min_parameter + par > parameter) throw ProblemInstanceException(">");
 
@@ -423,10 +422,10 @@ Type convertStringTo(const std::string &s) {
     return x;
 }
 
-void fillParameters(int argc, char **argv, std::string &fname, char *&output_fname,
+void fillParameters(int argc, char **argv, std::string &fname, std::string &output_fname,
                     GraphSet::costs_parsing_fct_type &parsing_fct, GraphSet::graph_set_parser_fct_type &read_graph_fct,
                     double &threshold, double &parameter, int &parameter_steps, short &pi_type, int &max_component,
-                    bool &merging, short &mode, bool &just_max, bool &split, bool &loginfo, char *&log_fname) {
+                    bool &merging, short &mode, bool &just_max, bool &split, bool &loginfo, std::string &log_fname) {
     int g = 1;
     int files = 0;
     while (argc > g) {

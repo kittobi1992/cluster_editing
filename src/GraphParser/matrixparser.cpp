@@ -191,11 +191,11 @@ void MatrixParser::initFromMatrixFile(char *fname, CostsGraph &G) {
         // get values
         char *element = strtok(str, "\t");
         for (int k = i - 1; k >= 0; k--) {
-            if (element == NULL) {
+            if (element == nullptr) {
                 throw GraphException("matrix file is not matching to graph");
             }
             G.setEdge(i, k, stringToType<double>(element));
-            element = strtok(NULL, "\t");
+            element = strtok(nullptr, "\t");
         }
     }
     matrix_file.close();
@@ -212,34 +212,36 @@ void MatrixParser::initFromWeightMatrixFile(char *fname, CostsGraph &G, costs_pa
     std::string row;
 
     // create help vector for first line
-    std::vector<double> help = std::vector<double>(0);
+    std::vector<double> help;
 
     // get first line from file
     getline(matrix_file, row);
     if (row.empty()) {
         throw GraphException("empty matrix file");
     }
-    char *str = strdup(row.c_str());
 
     // get values
-    char *element = strtok(str, "\t\n");
-    while (element != NULL) {
-        help.insert(help.end(), stringToType<double>(element));
-        element = strtok(NULL, "\t\n");
+    {
+        char *str = strdup(row.c_str());
+        char *element = strtok(str, "\t\n");
+        while (element != nullptr) {
+            help.push_back(stringToType<double>(element));
+            element = strtok(nullptr, "\t\n");
+        }
     }
 
     // save size
     int size = help.size();
 
     // create object for names
-    CostsGraph::vertex_name_type names = CostsGraph::vertex_name_type(size);
+    CostsGraph::vertex_name_type names(size);
     // create names
     for (int i = 0; i < size; i++) {
         names[i] = toString<int>(i);
     }
 
     // create matrix
-    std::vector<std::vector<double> > weights = std::vector<std::vector<double> >(size);
+    std::vector<std::vector<double>> weights(size);
     weights[0] = help;
 
 
@@ -257,18 +259,17 @@ void MatrixParser::initFromWeightMatrixFile(char *fname, CostsGraph &G, costs_pa
         // get values
         char *element = strtok(str, "\t");
         for (int k = 0; k < size; k++) {
-            if (element == NULL) {
+            if (element == nullptr) {
                 throw GraphException("matrix file is not matching to graph");
             }
             weights[i][k] = stringToType<double>(element);
-            element = strtok(NULL, "\t");
+            element = strtok(nullptr, "\t");
         }
     }
     matrix_file.close();
 
     // create graph
-    CostsGraph G2 = CostsGraph(size, names);
-    G = G2;
+    G = CostsGraph(size, names);
 
     // fill graph using the cost parser
     for (int i = 0; i < size; i++) {

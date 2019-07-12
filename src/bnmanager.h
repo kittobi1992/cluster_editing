@@ -66,10 +66,10 @@ private:
 
         if (a > b) {
             std::swap(a, b);
-        };
+        }
 
         double x = b / a;
-        double y = 0.0;
+        double y;
 
         // these functions are fitted cubic splines to already calculated branching numbers, see thesis for details
         if (x <= 10.0) {

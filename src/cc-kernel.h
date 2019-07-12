@@ -20,27 +20,28 @@ public:
 
     ~CCKernel() = default;
 
-    struct info { // informations about the vertices in the Critical Clique Graph
+    struct info { // information about the vertices in the Critical Clique Graph
         int number; // number of the vertices in the Critical Clique
         vector<int> names; // "names" of the vertices in the Critical Clique
+        info() : number(0), names(0) {}
     };
 
 
     inline static void mergeCriticalCliques(CostsGraph &CG, CostsGraph::edge_list_type &permanent) {
-        vector<vector<bool> > G = createMatrix(CG);
+        vector<vector<bool>> G = createMatrix(CG);
         vector<info> CC = findCriticalClique(G, permanent);
     }
 
     inline static void
     makeCCKernel(CostsGraph &CG, CostsGraph::edge_list_type &permanent, CostsGraph::edge_list_type &forbidden) {
-        vector<vector<bool> > G = createMatrix(CG);
+        vector<vector<bool>> G = createMatrix(CG);
         vector<info> CC = findCriticalClique(G, permanent);
-        vector<vector<bool> > CCG = makeCritcalCliqueGraph(CC, G);
+        vector<vector<bool>> CCG = makeCritcalCliqueGraph(CC, G);
         solveCC(CCG, CC, G, permanent, forbidden);
     }
 
     inline static vector<int>
-    findNeighbours(int u, vector<vector<bool> > &G) { // do NOT contains u (if G is not reflexiv)
+    findNeighbours(int u, const vector<vector<bool>> &G) { // do NOT contains u (if G is not reflexive)
         vector<int> neighbours;
         for (int i = 0; i < G.size(); i++) {
             if ((G[u][i])) {
@@ -50,8 +51,8 @@ public:
         return neighbours;
     }
 
-    inline static vector<int> findNeighbours2(int u, vector<int> &neighbours,
-                                              vector<vector<bool> > &G) { // do not contain u or the neighbours ifselfs
+    inline static vector<int> findNeighbours2(int u, const vector<int> &neighbours,
+                                              const vector<vector<bool> > &G) { // do not contain u or the neighbours ifselfs
         vector<int> neighbours2;
         for (int i = 0; i < neighbours.size(); i++) {
             for (int j = 0; j < G.size(); j++) {
@@ -64,7 +65,7 @@ public:
         return neighbours2;
     }
 
-    inline static vector<int> closedNeighborhood(int u, vector<vector<bool> > &G) { // contains u !!!
+    inline static vector<int> closedNeighborhood(int u, const vector<vector<bool>> &G) { // contains u !!!
         vector<int> neighbours;
         for (int i = 0; i < G.size(); i++) { // make a list of the neighbours of u
             if ((G[u][i]) || u == i) {
@@ -75,11 +76,9 @@ public:
     }
 
     // tests if a vertice j for neighbours2 is already in neigbours 
-    inline static bool testIfInNeighbour(int j, vector<int> &neighbours) {
+    inline static bool testIfInNeighbour(int j, const vector<int> &neighbours) {
         bool help = true;
-        int help2;
-        for (int i = 0; i < neighbours.size(); i++) {
-            help2 = neighbours[i];
+        for (int help2 : neighbours) {
             if (help2 > j) {
                 break;
             }
@@ -90,15 +89,11 @@ public:
         return help;
     }
 
-    inline static bool testifnew(int number_old, CostsGraph::edge_list_type list) {
-        CostsGraph::pair_type pair_org;
-        CostsGraph::pair_type pair_new;
+    inline static bool testifnew(int number_old, const CostsGraph::edge_list_type &list) {
         bool help1 = true;
-        bool help2 = false;
-        for (int k = number_old; k < list.size(); k++) {
-            pair_new = list[k];
+        for (const auto& pair_new : list) {
             for (int l = 0; l < number_old; l++) {
-                pair_org = list[l];
+                auto pair_org = list[l];
                 if (((pair_org.i == pair_new.i) && (pair_org.j == pair_new.j)) ||
                     ((pair_org.i == pair_new.j) && (pair_org.j == pair_new.i))) {
                     help1 = false;
@@ -107,8 +102,7 @@ public:
                     help1 = true;
                 }
             }
-            help2 = help2 || help1;
-            if (help2) {
+            if (help1) {
                 return true;
             }
         }
@@ -120,37 +114,36 @@ public:
                                CostsGraph::edge_list_type &permanent, CostsGraph::edge_list_type &forbidden) {
         vector<int> neighbours;
         vector<int> neighbours2;
-        bool help = true;
-        bool help2 = true;
+        bool keep_going = true;
+        bool help2;
         bool help3 = true;
-        while (help) {
-            help = false;
+        while (keep_going) {
+            keep_going = false;
             int i = 0;
             help2 = true;
-            while (help2 && (CCG.size() > 0)) { // do for each vertice in the Criticcal Clique Graph....
+            while (help2 && (!CCG.empty())) { // do for each vertice in the Criticcal Clique Graph....
                 //while (help2){ // do for each vertice in the Criticcal Clique Graph....
                 neighbours = findNeighbours(i, CCG);
                 neighbours2 = findNeighbours2(i, neighbours, CCG);
-                if (neighbours.size() == 0) {
+                if (neighbours.empty()) {
                     deletion(i, CCG, CC);
                     i--;
-                    help = true;
+                    keep_going = true;
                 } else if (testRule2(neighbours, neighbours2, CC[i].number, CC)) {
                     int old_permanent = permanent.size();
                     int old_forbidden = forbidden.size();
                     makeRule2(i, neighbours, neighbours2, permanent, forbidden, G, CC, CCG);
                     if (testifnew(old_permanent, permanent) || testifnew(old_forbidden, forbidden)) {
-                        help = true;
+                        keep_going = true;
                     }
-
-                } else if (neighbours2.size() > 0) {
+                } else if (!neighbours2.empty()) {
                     for (int j = 0; j < neighbours.size(); j++) {
                         if (testRule3(i, neighbours, CC[i].number, CC[neighbours[j]].number, neighbours[j], CCG, CC,
                                       G)) {
                             makeRule3(i, neighbours[j], neighbours2, permanent, forbidden, G, CC, CCG);
                             int old_forbidden = forbidden.size();
                             if (testifnew(old_forbidden, forbidden)) {
-                                help = true;
+                                keep_going = true;
                             }
                             break;
                         }
@@ -165,125 +158,96 @@ public:
     }
 
     inline static void deletion(int i, vector<vector<bool> > &CCG, vector<info> &CC) {
-        for (int j = 0; j < CCG.size(); j++) {
-            CCG[j].erase(CCG[j].begin() + i);
+        for (auto& c : CCG) {
+            c.erase(c.begin() + i);
         }
         CCG.erase(CCG.begin() + i);
         CC.erase(CC.begin() + i);
     }
 
     inline static bool
-    testRule2(vector<int> neighbours, vector<int> neighbours2, int numberOfVerticesInCC, vector<info> &CC) {
+    testRule2(const vector<int> &neighbours, const vector<int> &neighbours2, int numberOfVerticesInCC, vector<info> &CC) {
         int numberOfNeighbours = 0;
         int numberOf2Neighbours = 0;
 
-        for (int i = 0; i < neighbours.size(); i++) {
-            numberOfNeighbours += CC[neighbours[i]].number;
+        for (int neighbour : neighbours) {
+            numberOfNeighbours += CC[neighbour].number;
         }
-        for (int i = 0; i < neighbours2.size(); i++) {
-            numberOf2Neighbours += CC[neighbours2[i]].number;
+        for (int neighbour : neighbours2) {
+            numberOf2Neighbours += CC[neighbour].number;
         }
-        if (numberOfVerticesInCC >= numberOfNeighbours + numberOf2Neighbours) {
-            return true;
-        } else {
-            return false;
-        }
+        return (numberOfVerticesInCC >= numberOfNeighbours + numberOf2Neighbours);
     }
 
     inline static bool
-    testRule3(int i, vector<int> &neighbours, int numberOfVerticesInCC, int numberOfVerticesInCC2, int j,
-              vector<vector<bool> > &CCG, vector<info> &CC, vector<vector<bool> > &G) {
+    testRule3(int i, const vector<int> &neighbours, int numberOfVerticesInCC, int numberOfVerticesInCC2, int j,
+              const vector<vector<bool> > &CCG, const vector<info> &CC, const vector<vector<bool> > &G) {
         int numberOfNeighbours = 0;
-        for (int k = 0; k < neighbours.size(); k++) {
-            numberOfNeighbours += CC[neighbours[k]].number;
+        for (int neighbour : neighbours) {
+            numberOfNeighbours += CC[neighbour].number;
         }
         if (numberOfVerticesInCC >= numberOfNeighbours) {
             int sum_1 = sum1(i, neighbours, j, CCG, CC, G);
             int sum_2 = sum2(neighbours, j, CC, G);
-            if (numberOfVerticesInCC * numberOfVerticesInCC2 >= sum_1 + sum_2) {
-                return true;
-            } else {
-                return false;
-            }
+            return (numberOfVerticesInCC * numberOfVerticesInCC2 >= sum_1 + sum_2);
         } else {
             return false;
         }
     }
 
-    inline static int sum1(int i, vector<int> &neighbours, int j, vector<vector<bool> > &CCG, vector<info> &CC,
-                           vector<vector<bool> > &G) { // i= k and j= k'
-        int help = 0;
-        vector<int> help1;
-        vector<int> help2;
-        vector<int> neighbours2 = findNeighbours2(i, neighbours, CCG);
-        for (int k = 0; k < neighbours2.size(); k++) {
-            help1 = CC[j].names;
-            help2 = CC[neighbours2[k]].names;
-            for (int l = 0; l < help1.size(); l++) {
-                for (int m = 0; m < help2.size(); m++) {
-                    if ((G[help1[l]][help2[m]]) && (help1[l] != help2[m])) {
-                        help++;
+    inline static int sum1(int i, const vector<int> &neighbours, int j, const vector<vector<bool>> &CCG, const vector<info> &CC,
+                           const vector<vector<bool>> &G) { // i= k and j= k'
+        int sum = 0;
+        for (int neighbour2 : findNeighbours2(i, neighbours, CCG)) {
+            for (int name_l : CC[j].names) {
+                for (int name_m : CC[neighbour2].names) {
+                    if ((G[name_l][name_m]) && (name_l != name_m)) {
+                        sum++;
                     }
                 }
             }
         }
-        return help;
+        return sum;
     }
 
-    inline static int sum2(vector<int> &neighbours, int j, vector<info> &CC, vector<vector<bool> > &G) {
-        int help = 0;
-        vector<int> help1;
-        vector<int> help2;
-        for (int k = 0; k < neighbours.size(); k++) {
-            if (j != neighbours[k]) {
-                help1 = CC[j].names;
-                help2 = CC[neighbours[k]].names;
-                for (int l = 0; l < help1.size(); l++) {
-                    for (int m = 0; m < help2.size(); m++) {
-                        if ((!G[help1[l]][help2[m]]) && (help1[l] != help2[m])) {
-                            help++;
+    inline static int sum2(const vector<int> &neighbours, int j, const vector<info> &CC, const vector<vector<bool>> &G) {
+        int sum = 0;
+        for (const auto& n_k : neighbours) {
+            if (j != n_k) {
+                for (int name_l : CC[j].names) {
+                    for (int name_m : CC[n_k].names) {
+                        if ((!G[name_l][name_m]) && (name_l != name_m)) {
+                            sum++;
                         }
                     }
                 }
             }
         }
-        return help;
+        return sum;
     }
 
     inline static void
-    makeRule2(int &k, vector<int> &neighbours, vector<int> &neighbours2, CostsGraph::edge_list_type &permanent,
-              CostsGraph::edge_list_type &forbidden, vector<vector<bool> > &G, vector<info> &CC,
+    makeRule2(int &k, const vector<int> &neighbours, const vector<int> &neighbours2, CostsGraph::edge_list_type &permanent,
+              CostsGraph::edge_list_type &forbidden, const vector<vector<bool> > &G, vector<info> &CC,
               vector<vector<bool> > &CCG) {
-        CostsGraph::pair_type pairs;
-        int help;
-        vector<int> help1;
-        vector<int> help2;
-        help1 = CC[k].names;
-        help = help1[0];
         // set all edges between k and its neighbours permanent and delete the neighbours
-        for (int i = 0; i < neighbours.size(); i++) {
-            help2 = CC[neighbours[i]].names;
-            pairs.i = help;
-            pairs.j = help2[0];
+        for (int n_i : neighbours) {
+            CostsGraph::pair_type pairs(CC[k].names[0], CC[n_i].names[0]);
             if (pairs.i != pairs.j) {
                 permanent.push_back(pairs);
             }
         }
 
-        for (int i = 0; i < neighbours.size(); i++) {
-            for (int j = 0; j < neighbours2.size(); j++) {
-                help1 = CC[neighbours[i]].names;
-                help2 = CC[neighbours2[j]].names;
-                for (int k = 0; k < help1.size(); k++) {
-                    for (int l = 0; l < help2.size(); l++) {
-                        pairs.i = help1[k];
-                        pairs.j = help2[l];
-                        forbidden.push_back(pairs);
+        for (int n_i : neighbours) {
+            for (int n_j : neighbours2) {
+                for (int pi : CC[n_i].names) {
+                    for (int pj : CC[n_j].names) {
+                        forbidden.push_back({pi, pj});
                     }
                 }
             }
         }
-        // delete of the vertice k itself and its neighbours
+        // delete of the vertex k itself and its neighbours
         deletion(k, CCG, CC);
         k--;
         for (int i = neighbours.size() - 1; i >= 0; i--) {
@@ -297,22 +261,15 @@ public:
     }
 
     inline static void makeRule3(int &k1, int &j, vector<int> &neighbours2, CostsGraph::edge_list_type &permanent,
-                                 CostsGraph::edge_list_type &forbidden, vector<vector<bool> > &G, vector<info> &CC,
+                                 CostsGraph::edge_list_type &forbidden, const vector<vector<bool>> &G, vector<info> &CC,
                                  vector<vector<bool> > &CCG) {
-        CostsGraph::pair_type pairs;
-        vector<int> help1;
-        vector<int> help2;
         vector<int> neighbours;
         bool h = true;
         int i = 0;
         while (h) {
-            help1 = CC[j].names;
-            help2 = CC[neighbours2[i]].names;
-            for (int k = 0; k < help1.size(); k++) {
-                for (int l = 0; l < help2.size(); l++) {
-                    pairs.i = help1[k];
-                    pairs.j = help2[l];
-                    forbidden.push_back(pairs);
+            for (int pi : CC[j].names) {
+                for (int pj : CC[neighbours2[i]].names) {
+                    forbidden.push_back({pi, pj});
                 }
             }
             mergeInCCG(k1, neighbours2[i], j, CCG, CC, permanent);
@@ -325,9 +282,8 @@ public:
         }
     }
 
-    inline static void mergeInCCG(int &k1, int &i, int &j, vector<vector<bool> > &CCG, vector<info> &CC,
+    inline static void mergeInCCG(int &k1, int &i, int &j, vector<vector<bool>> &CCG, vector<info> &CC,
                                   CostsGraph::edge_list_type &permanent) {
-        CostsGraph::pair_type pairs;
         vector<int> neighbours_a;
         vector<int> neighbours_b;
         bool h = true;
@@ -340,12 +296,10 @@ public:
             neighbours_b = closedNeighborhood(neighbours_a[k], CCG);
             if ((neighbours_a == neighbours_b) &&
                 (i != neighbours_a[k])) { // wenn die Nachbarschaft gleich ist, soll gemergt werden
-                pairs.i = CC[i].names[0];
-                pairs.j = CC[neighbours_a[k]].names[0];
-                permanent.push_back(pairs);
-                // es wird der Knoten gelöscht der mit k' benachbar ist, nicht k'
-                for (int l = 0; l < CCG.size(); l++) {
-                    CCG[l].erase(CCG[l].begin() + neighbours_a[k]);
+                permanent.push_back({CC[i].names[0], CC[neighbours_a[k]].names[0]});
+                // es wird der Knoten gelöscht der mit k' benachbart ist, nicht k'
+                for (auto& ccg : CCG) {
+                    ccg.erase(ccg.begin() + neighbours_a[k]);
                 }
                 CCG.erase(CCG.begin() + neighbours_a[k]);
                 CC[i].names.insert(CC[i].names.end(), CC[neighbours_a[k]].names.begin(),
@@ -368,14 +322,13 @@ public:
                 h = false;
             }
         }
-        k = 0;
+        // k = 0;
         neighbours_a = closedNeighborhood(j, CCG);
-        while (h) {
+        // unreachable
+        /* while (h) {
             neighbours_b = closedNeighborhood(neighbours_a[k], CCG);
             if ((neighbours_a == neighbours_b) && (j != neighbours_a[k])) {
-                pairs.i = CC[j].names[0];
-                pairs.j = CC[neighbours_a[k]].names[0];
-                permanent.push_back(pairs);
+                permanent.push_back({CC[j].names[0], CC[neighbours_a[k]].names[0]});
                 for (int l = 0; l < CCG.size(); l++) {
                     CCG[l].erase(CCG[l].begin() + neighbours_a[k]);
                 }
@@ -396,24 +349,21 @@ public:
             if (k >= neighbours_a.size()) {
                 h = false;
             }
-        }
+        } */
     }
 
-    inline static vector<vector<bool> > createMatrix(CostsGraph &CG) {
+    inline static vector<vector<bool> > createMatrix(const CostsGraph &CG) {
         // create Matrix
         long size = CG.getSize();
-        vector<vector<bool> > G = vector<vector<bool> >(size, vector<bool>(size, false));
-        double help;
+        vector<vector<bool> > G = vector<vector<bool>>(size, vector<bool>(size, false));
         // fill Matrix with data from CostsGraph
-        G[0][0] = true;
         for (int i = 0; i < size; i++) {
+            G[i][i] = true;
             for (int k = 0; k < i; k++) {
-                help = CG.getEdge(i, k);
-                if (help > 0) {
+                if (CG.getEdge(i, k) > 0) {
                     G[i][k] = true;
                     G[k][i] = true;
                 }
-                G[i][i] = true;
             }
         }
         return G;
@@ -421,30 +371,23 @@ public:
 
     inline static vector<info> findCriticalClique(vector<vector<bool> > &G, CostsGraph::edge_list_type &permanent) {
         // to set all edges in a Critical Clique on permanent
-        CostsGraph::pair_type pairs;
         vector<bool> vertices = vector<bool>(G.size(), true); // false if the vertice is already in a Critical Clique
         vector<int> neighbours_a;
         vector<int> neighbours_b;
-        vector<int> help;
-        int help2;
-        bool help3 = true;
+        bool keep_going = true;
         vector<info> CriticalCliquen;
-        info CC;
         int u = 0;
 
-        while (help3) { // how long there are Vertices, which are in no Critical Clique, do.....
-            if (!vertices[u]) { // junmp to the next vertice, if this vertice is already in an Critical Clique
+        while (keep_going) { // how long there are Vertices, which are in no Critical Clique, do.....
+            if (!vertices[u]) { // jump to the next vertex, if this vertex is already in an Critical Clique
                 u++;
                 continue;
             }
             vertices[u] = false;
             neighbours_a = closedNeighborhood(u, G);// make a list of the neighbours of u
-            CC.names.clear();
-            help = CC.names;
-            help.push_back(u);
-            help2 = 1;
-            CC.names = help; // u is the first member of the new Critical Clique
-            CC.number = help2;
+            info CC;
+            CC.names = vector<int>({u}); // u is the first member of the new Critical Clique
+            CC.number = 1;
             for (int i = 1; i < G.size(); i++) { // run through all left vertices....
                 if (!vertices[i]) { // junmp to the next vertice, if this vertice is already in an Critical Clique
                     continue;
@@ -452,25 +395,19 @@ public:
                 neighbours_b = closedNeighborhood(i, G); // ...and make a list of its neigbours
                 if (neighbours_a ==
                     neighbours_b) { // if the neigbourlists are the same, add this vertice to the Critical Clique
-                    help = CC.names;
-                    help.push_back(i);
-                    help2 = CC.number + 1;
-                    CC.names = help;
-                    CC.number = help2;
+                    CC.names.push_back(i);
+                    CC.number++;
                     //add a edge between the first member of the Critical Clique and the new member of it
-                    pairs.i = u;
-                    pairs.j = i;
-                    permanent.push_back(pairs);
+                    permanent.push_back({u, i});
                 }
             }
-            help = CC.names;
-            for (int i = 0; i < help.size(); i++) { // "removes" the vertices which are in a Critical Clique now
-                vertices[help[i]] = false;
+            for (const auto& name : CC.names) { // "removes" the vertices which are in a Critical Clique now
+                vertices[name] = false;
             }
             for (int i = vertices.size() - 1; i >= 0; i--) { // tests if verices is "empty"
-                help3 = false;
+                keep_going = false;
                 if (vertices[i]) {
-                    help3 = true;
+                    keep_going = true;
                     break;
                 }
             }
@@ -480,29 +417,24 @@ public:
         return CriticalCliquen;
     }
 
-    inline static vector<vector<bool> > makeCritcalCliqueGraph(vector<info> &CCVerticeList, vector<vector<bool> > &G) {
-        vector<vector<bool> > CCG = vector<vector<bool> >(CCVerticeList.size(), vector<bool>(CCVerticeList.size(),
-                                                                                             false)); // Critical Clique Graph
-        vector<int> CC1;
-        vector<int> CC2;
-        bool help;
-        for (int i = 0; i < CCVerticeList.size(); i++) {
-            CC1 = CCVerticeList[i].names;
-            for (int j = i + 1; j < CCVerticeList.size(); j++) {
-                CC2 = CCVerticeList[j].names;
-                help = true;
-                for (int k = 0; k < CC1.size(); k++) {
-                    for (int l = 0; l < CC2.size(); l++) {
-                        if (!G[CC1[k]][CC2[l]]) {
-                            help = false;
+    inline static vector<vector<bool>> makeCritcalCliqueGraph(vector<info> &CCVertexList, vector<vector<bool>> &G) {
+        auto n = CCVertexList.size();
+        vector<vector<bool>> CCG(n, vector<bool>(n, false)); // Critical Clique Graph
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                bool b = true;
+                for (int cc1 : CCVertexList[i].names) {
+                    for (int cc2 : CCVertexList[j].names) {
+                        if (!G[cc1][cc2]) {
+                            b = false;
                             break;
                         }
                     }
-                    if (!help) {
+                    if (!b) {
                         break;
                     }
                 }
-                if (help) {
+                if (b) {
                     CCG[i][j] = true;
                     CCG[j][i] = true;
                 }

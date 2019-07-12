@@ -33,13 +33,13 @@ public:
     ~AlmostClique() = default;
 
     // compare function to compare two double arrays by its second entry
-    static inline bool compare(Array<double> t1, Array<double> t2) {
+    static inline bool compare(const Array<double> &t1, const Array<double> &t2) {
         return (t1[1] > t2[1]);
     }
 
 
     // compare function to compare two integer arrays by its second entry
-    static inline bool compare2(Array<int> t1, Array<int> t2) {
+    static inline bool compare2(const Array<int> &t1, const Array<int> &t2) {
         return (t1[1] > t2[1]);
     }
 
@@ -48,7 +48,7 @@ public:
     // this is the main function an implements the greedy search to highly connected components
     static inline bool
     get(const CostsGraph &graph, std::vector<CostsGraph::byte_vector_type> &cliques, double parameter,
-        double parameter_dependent) {
+        bool parameter_dependent) {
         // if we use it as a parameter dependend rule then first get a set of independent conflict triples
         std::vector<Array<double> > triple_list;
         if (parameter_dependent) {
@@ -104,7 +104,7 @@ public:
         while (max_degree_vertex != -1) {
 
             // iterate over diferent acceptable not connectebilities
-            // z=x means we accept that a node is not connected to at most x vertics in the already obtained vertex set
+            // z=x means we accept that a node is not connected to at most x vertices in the already obtained vertex set
             for (int z = 1; z >= 0; z--) {
 
                 // set start vertex as initial clique set
@@ -128,9 +128,9 @@ public:
                         } else {
                             // check connectivity for vertex i
                             int not_connected = 0;
-                            for (int k = 0; k < clique.size(); k++) {
-                                if (graph.getEdge(i, clique[k]) <= 0) {
-                                    if (graph.getEdge(i, clique[k]) == graph.forbidden) {
+                            for (auto k : clique) {
+                                if (graph.getEdge(i, k) <= 0) {
+                                    if (graph.getEdge(i, k) == graph.forbidden) {
                                         not_connected += size;
                                     } else {
                                         not_connected++;
@@ -145,22 +145,22 @@ public:
 
                                 // calculate weight to other clique members
                                 neighbor[1] = 0;
-                                for (int k = 0; k < clique.size(); k++) {
-                                    neighbor[1] += graph.getEdge(i, clique[k]);
+                                for (auto k : clique) {
+                                    neighbor[1] += graph.getEdge(i, k);
                                 }
-                                clique_neighbors.insert(clique_neighbors.end(), neighbor);
+                                clique_neighbors.push_back(neighbor);
                             }
                         }
                     }
 
                     // if potential new set members are found....
-                    if (clique_neighbors.size() > 0) {
+                    if (!clique_neighbors.empty()) {
 
                         // order neighbor vector by weight of connectivity
                         sort(clique_neighbors.begin(), clique_neighbors.end(), &compare);
 
                         // add vertex to set clique and sort clique
-                        clique.insert(clique.end(), static_cast<int>(clique_neighbors[0][0]));
+                        clique.push_back(static_cast<int>(clique_neighbors[0][0]));
                         sort(clique.begin(), clique.end());
 
                         // save the extension
@@ -172,7 +172,7 @@ public:
                         // if the next vertex in the ordered list was less than 0.9 connected to the set, then test almostCliqueRule
                         if ((clique_neighbors.size() == 1 || clique_neighbors[0][1] * 0.5 > clique_neighbors[1][1]) &&
                             almostCliqueRule(clique, graph, parameter, parameter_dependent, triple_list)) {
-                            cliques.insert(cliques.end(), clique);
+                            cliques.push_back(clique);
                             z = -1;
                             extended = false;
                         }
@@ -195,11 +195,7 @@ public:
         }
 
         // if we found cliques then return true, otherwise false
-        if (cliques.size() > 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return !cliques.empty();
     }
 
 
@@ -237,7 +233,7 @@ public:
                      edges_to_insert += graph.getEdge(clique[i], clique[k]) * -1;
                  } else {
                      // save present edges to find cheapest edge later on
-                     edges.insert(edges.end(), graph.getEdge(clique[i], clique[k]));
+                     edges.push_back(graph.getEdge(clique[i], clique[k]));
                      // increase degree
                      vertex_degree[i]++;
                      vertex_degree[k]++;
@@ -275,16 +271,16 @@ public:
 
                 // sum of conflict triples outside the clique
                 double bound_after_sep = 0.0;
-                for (int i = 0; i < triple_list.size(); i++) {
+                for (const auto& triple : triple_list) {
                     bool match = false;
-                    for (int k = 0; k < clique.size(); k++) {
-                        if (triple_list[i][1] == clique[k] || triple_list[i][2] == clique[k] ||
-                            triple_list[i][3] == clique[k]) {
+                    for (auto k : clique) {
+                        if (triple[1] == k || triple[2] == k ||
+                            triple[3] == k) {
                             match = true;
                         }
                     }
                     if (!match) {
-                        bound_after_sep += triple_list[i][0];
+                        bound_after_sep += triple[0];
                     }
                 }
 
@@ -294,7 +290,7 @@ public:
                 }
             }
 
-            // now make final almost clique check (greater than to avoid errors due to wrong roundings)
+            // now make final almost clique check (greater than to avoid errors due to wrong rounding)
             if (min_separation > environment_weight + edges_to_insert) {
                 return true;
             }

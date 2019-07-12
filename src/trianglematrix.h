@@ -118,8 +118,8 @@ public:
     // access function which gets position directly, condition i > k
     inline Type &dirpos(int i, int k) const {
         // return internal true index of i,k
-        i = getInternalIndex(i);;
-        k = getInternalIndex(k);;
+        i = getInternalIndex(i);
+        k = getInternalIndex(k);
 
         // calculate index in array and return it
         return _matrix[_offset_array[i] + k];

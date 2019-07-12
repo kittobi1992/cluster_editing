@@ -661,7 +661,7 @@ void CostsGraph::mergeVertices(int index1, int index2, const double_array_type &
 
 
 // deletes clique if vertex 'index' is element of clique, returns true if
-// deletion was succesful
+// deletion was successful
 bool CostsGraph::deleteClique(int index) {
     // get clique
     byte_vector_type clique = this->getClique(index);
@@ -705,13 +705,13 @@ CostsGraph::vertex_matrix_type CostsGraph::getConnectedVertices() const {
         }
     }
 
-    vertex_matrix_type output = vertex_matrix_type(0);
+    vertex_matrix_type output(0);
 
     // check for non-empty lists and create new graph
     for (int i = 0; i < _size; i++) {
         int sub_graph_size = vertex_lists.getListSize(i);
         if (sub_graph_size != 0) {
-            output.insert(output.end(), vertex_lists.getList(i));
+            output.push_back(vertex_lists.getList(i));
         }
     }
 

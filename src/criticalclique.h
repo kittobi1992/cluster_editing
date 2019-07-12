@@ -102,8 +102,7 @@ public:
                         // if equal we get always a problem with two exclusive permanent edges
                         if (G.pos(u, v) > maxmin) {
                             //std::cout << "set to perm...edge is " << G.pos(u,v) << "  maxmin value = " << maxmin << std::endl;
-                            CostsGraph::pair_type help = {v, u};
-                            list.push_back(help);
+                            list.push_back({v, u});
                             if (list.size() > G.size() / 10 && list.size() > 10) {
                                 return list;
                             }
@@ -145,20 +144,19 @@ private:
     // more precise we save not only x and y, but x rounded up and down and analog y
     inline static void
     addTupel(double x, double y, vector<Napsack::Tupel> &B, long long &X, long long &Y, long double forbidden) {
-        long long x_up = (long long) ceil(x);
-        long long x_down = (long long) floor(x);
-        long long y_up = (long long) ceil(y);
-        long long y_down = (long long) floor(y);
-        Napsack::Tupel value = {x_up, x_down, y_up, y_down};
-        B.push_back(value);
+        auto x_up = static_cast<long long>(ceil(x));
+        auto x_down = static_cast<long long>(floor(x));
+        auto y_up = static_cast<long long>(ceil(y));
+        auto y_down = static_cast<long long>(floor(y));
+        B.push_back({x_up, x_down, y_up, y_down});
         // increase matrix borders if value is not forbidden
-        X += (x < forbidden / 10) ? 0 : (long long) ceil(fabs(x));
-        Y += (y < forbidden / 10) ? 0 : (long long) ceil(fabs(y));
+        X += (x < forbidden / 10) ? 0 : static_cast<long long>(ceil(fabs(x)));
+        Y += (y < forbidden / 10) ? 0 : static_cast<long long>(ceil(fabs(y)));
     }
 
 
     // function to compute a list of (x,y) tuples for edge uv
-    // beyond this delta_u and deleta_v as written in the thesis is calculated
+    // beyond this delta_u and delta_v as written in the thesis is calculated
     // in addition the approximation of the critical clique rule is also calculated
     inline static vector<Napsack::Tupel>
     computeValues(int u, int v, TriangleMatrix<long double> &G, long long &X, long long &Y, long double &delta_u,
@@ -173,7 +171,7 @@ private:
         Y = 0LL;
 
         // create empty vector of tuples
-        vector<Napsack::Tupel> B = vector<Napsack::Tupel>(0);
+        vector<Napsack::Tupel> B;
         rel_differenz = 0;
 
         // swap to guarantee that v > u

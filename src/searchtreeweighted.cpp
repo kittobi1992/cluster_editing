@@ -74,7 +74,7 @@ SearchTreeWeighted::splitSearch(WeightedProblemInstance &new_root, const CostsGr
     WeightedProblemInstance::pi_list_type pi_list = new_root.divideInstance(vertex_matrix);
 
     // create solutions container to solutions in subtrees
-    solutions_type solutions_container = solutions_type(vertex_matrix.size());
+    solutions_type solutions_container(vertex_matrix.size());
 
     // save initial parameter
     double parameter = (pi_list[0])->getParameter();
@@ -143,7 +143,7 @@ SearchTreeWeighted::splitSearch(WeightedProblemInstance &new_root, const CostsGr
 
     // if not just maximum solution is requested or no solution so far...just add solution
     if (!_just_max || _solutions.empty()) {
-        _solutions.insert(_solutions.end(), solutions_container[0]);
+        _solutions.push_back(solutions_container[0]);
 
         // otherwise test if solution is better then existing one, and delete the rejected solution
     } else if (_solutions[0].parameter < solutions_container[0].parameter) {
@@ -188,11 +188,11 @@ void SearchTreeWeighted::recSearch(WeightedProblemInstance &node, int depth) {
                                                     node.getParameter(), node.getStartParameter()};
 
                 // add solution
-                _solutions.insert(_solutions.end(), solution);
+                _solutions.push_back(solution);
 
                 // otherwise just add solution if it is better then the one before & reject the old solution
             } else if (_solutions[0].parameter < node.getParameter()) {
-                // creatre solution
+                // create solution
                 component_solution_type solution = {GraphSet(node.getGraph()), node.getChangedEdges(),
                                                     node.getParameter(), node.getStartParameter()};
 

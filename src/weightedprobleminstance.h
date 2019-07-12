@@ -156,7 +156,7 @@ private:
     /* ####  additional member variables  #### */
     EdgeReduction _edge_reduction;
 
-    // reducable parameter for problem instance
+    // reduceable parameter for problem instance
     double _parameter;
 
     // original parameter
