@@ -2,6 +2,12 @@
 
 #include <iostream>
 
+
+template <typename T>
+void unused(T&&) {
+  // Used to avoid warnings of unused variables
+}
+
 // Info, Warning and Error Output Macros
 #define GREEN "\033[1;92m"
 #define CYAN "\033[1;96m"
