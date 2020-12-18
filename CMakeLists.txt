@@ -89,7 +89,7 @@ include(gmock)
 enable_testing()
 
 add_subdirectory(cluster_editing/application)
-# add_subdirectory(tests)
+add_subdirectory(tests)
 
 # This adds the source files. It's important that this happens after the compile targets have been added
 add_subdirectory(cluster_editing)

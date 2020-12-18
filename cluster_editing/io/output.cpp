@@ -4,8 +4,6 @@
 
 #include "cluster_editing/utils/timer.h"
 
-
-
 namespace cluster_editing::io {
   void printContext(const Context& context) {
     if (context.general.verbose_output) {
