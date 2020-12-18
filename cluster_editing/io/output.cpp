@@ -4,6 +4,7 @@
 #include <vector>
 #include <numeric>
 
+#include "cluster_editing/metrics.h"
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/utils/math.h"
 
@@ -95,7 +96,7 @@ namespace internal {
       LOG << "Graph:" << context.general.graph_filename;
       LOG << "Name:" << name << "-"
           << "#Nodes:" << graph.numNodes() << "-"
-          << "#Edges:" << graph.numEdges() << "-"
+          << "#Edges:" << graph.numEdges() / 2 << "-"
           << "Total Weight:" << graph.totalWeight();
 
       std::vector<NodeID> node_degrees(graph.numNodes());
@@ -201,10 +202,12 @@ namespace internal {
   void printObjectives(const Graph& graph,
                        const std::chrono::duration<double>& elapsed_seconds) {
     unused(graph);
+    const size_t edge_insertions = metrics::edge_insertions(graph);
+    const size_t edge_deletions = metrics::edge_deletions(graph);
     LOG << "Objectives:";
-    LOG << " Edge Insertions     (minimize) = #total_insertions";
-    LOG << " Edge Deletions      (minimize) = #total_deletions";
-    LOG << " Total Modifications (minimize) = #total_insertions> + <#total_deletions";
+    LOG << " Edge Insertions     (minimize) =" << edge_insertions;
+    LOG << " Edge Deletions      (minimize) =" << edge_deletions;
+    LOG << " Total Modifications (minimize) =" << (edge_insertions + edge_deletions);
     LOG << " Cluster Editing Time           =" << elapsed_seconds.count() << "s";
   }
 
