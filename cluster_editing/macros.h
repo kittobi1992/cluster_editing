@@ -172,3 +172,10 @@ void unused(T&&) {
 #define ASSERT_(N) ASSERT_ ## N
 #define ASSERT_EVAL(N) ASSERT_(N)
 #define ASSERT(...) EXPAND(ASSERT_EVAL(EXPAND(NARG(__VA_ARGS__)))(__VA_ARGS__))
+
+// Force inline
+#if defined(__GNUC__) || defined(__clang__)
+#define ATTRIBUTE_ALWAYS_INLINE __attribute__ ((always_inline)) inline
+#else
+#define ATTRIBUTE_ALWAYS_INLINE
+#endif
