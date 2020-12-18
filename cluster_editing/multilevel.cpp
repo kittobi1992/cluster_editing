@@ -3,6 +3,7 @@
 #include "cluster_editing/macros.h"
 #include "cluster_editing/coarsening/do_nothing_coarsener.h"
 #include "cluster_editing/refinement/do_nothing_refiner.h"
+#include "cluster_editing/utils/timer.h"
 
 namespace cluster_editing {
 namespace multilevel {
@@ -31,11 +32,15 @@ void solve(Graph& graph, const Context& context) {
   std::unique_ptr<ICoarsener> coarsener = instantiateCoarsener(graph, context);
   std::unique_ptr<IRefiner> refiner = instantiateRefiner(context);
 
+  cluster_editing::utils::Timer::instance().start_timer("coarsening", "Coarsening");
   coarsener->coarsen();
+  cluster_editing::utils::Timer::instance().stop_timer("coarsening");
 
   // Do some other stuff before we start uncoarsening
 
+  cluster_editing::utils::Timer::instance().start_timer("uncoarsening", "Unoarsening");
   coarsener->uncoarsen(refiner);
+  cluster_editing::utils::Timer::instance().stop_timer("uncoarsening");
 }
 
 } // namespace multilevel
