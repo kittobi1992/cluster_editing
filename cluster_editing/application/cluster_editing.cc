@@ -6,6 +6,8 @@
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/io/command_line_options.h"
 #include "cluster_editing/io/output.h"
+#include "cluster_editing/io/graph_io.h"
+
 
 int main(int argc, char* argv[]) {
   cluster_editing::Context context;
@@ -17,7 +19,9 @@ int main(int argc, char* argv[]) {
     LOG << context;
   }
 
-  cluster_editing::Graph graph;
+  cluster_editing::utils::Timer::instance().start_timer("import_graph", "Import Graph");
+  cluster_editing::Graph graph = cluster_editing::io::readGraphFile(context.general.graph_filename);
+  cluster_editing::utils::Timer::instance().stop_timer("import_graph");
   cluster_editing::io::printInputInfo(graph, context);
 
   // Preprocessing

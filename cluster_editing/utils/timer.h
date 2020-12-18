@@ -198,7 +198,10 @@ class Timer {
       _active_timings.pop_back();
 
       // Parent is the last element on the stack
-      std::string parent =_active_timings.back().key();
+      std::string parent = "";
+      if ( !_active_timings.empty() ) {
+        parent = _active_timings.back().key();
+      }
 
       Key timing_key { parent, current_timing.key() };
       if (_timings.find(timing_key) == _timings.end()) {

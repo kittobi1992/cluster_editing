@@ -8,9 +8,10 @@ namespace cluster_editing::ds {
 
 class GraphFactory {
 
+ using AdjacencyList = std::vector<std::vector<NodeID>>;
+
  public:
-  static Graph construct(const std::vector<size_t>& index_array,
-                         const std::vector<NodeID> edges);
+  static Graph construct(const AdjacencyList& adj_list);
 
  private:
   GraphFactory() { }

@@ -10,8 +10,8 @@ class AGraph : public Test {
  public:
   AGraph() :
     graph(GraphFactory::construct(
-      {0, 2, 4, 7, 10, 12, 14},
-      {1, 2, 0, 2, 0, 1, 3, 2, 4, 5, 3, 5, 3, 4})) { }
+      { { 1, 2 }, { 0, 2 }, { 0, 1, 3 },
+        { 2, 4, 5 }, { 3, 5 }, { 3, 4 } })) { }
 
   void verifyNeighbors(const NodeID u,
                        const std::vector<Neighbor>& neighbors) {
