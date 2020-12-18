@@ -9,6 +9,20 @@ set(PROJECT_DESCRIPTION "Cluster Editing")
 
 include_directories(${PROJECT_SOURCE_DIR})
 
+option(DISABLE_ASSERTIONS
+  "Disable KaHyPar's internal assertions." OFF)
+
+option(USE_STANDARD_ASSERTIONS
+  "Use standard C++ asserts instead of custom assertions." OFF)
+
+if(DISABLE_ASSERTIONS)
+  add_compile_definitions(DISABLE_ASSERTIONS)
+endif(DISABLE_ASSERTIONS)
+
+if(USE_STANDARD_ASSERTIONS)
+  add_compile_definitions(USE_STANDARD_ASSERTIONS)
+endif(USE_STANDARD_ASSERTIONS)
+
 #ensure that gmock is built before tests are executed
 add_subdirectory(googletest EXCLUDE_FROM_ALL)
 include_directories(SYSTEM ${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})

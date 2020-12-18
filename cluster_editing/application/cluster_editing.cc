@@ -4,6 +4,7 @@
 #include "cluster_editing/definitions.h"
 #include "cluster_editing/preprocessing.h"
 #include "cluster_editing/multilevel.h"
+#include "cluster_editing/macros.h"
 
 int main(int argc, char* argv[]) {
   cluster_editing::Context context;

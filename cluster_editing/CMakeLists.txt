@@ -3,6 +3,7 @@ add_subdirectory(datastructures)
 add_subdirectory(io)
 add_subdirectory(coarsening)
 add_subdirectory(refinement)
+add_subdirectory(utils)
 
 set(ClusterEditingSources
       preprocessing.cpp
