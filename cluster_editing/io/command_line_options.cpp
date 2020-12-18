@@ -31,13 +31,16 @@ namespace cluster_editing {
                                                           const int num_columns) {
     po::options_description options("Required Options", num_columns);
     options.add_options()
+            ("help", "show help message")
             ("graph,g",
              po::value<std::string>(&context.general.graph_filename)->value_name("<string>")->required(),
              "Graph filename")
             ("config,c",
              po::value<std::string>(&context.general.config_file)->value_name("<string>"),
              "Context Config File (see config directory):\n"
-             " - <path-to-custom-ini-file>");
+             " - <path-to-custom-ini-file>")
+            ("verbose,v", po::value<bool>(&context.general.verbose_output)->value_name("<bool>")->default_value(true),
+             "Verbose main partitioning output");
     return options;
   }
 

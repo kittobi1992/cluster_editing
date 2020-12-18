@@ -10,7 +10,10 @@ int main(int argc, char* argv[]) {
   cluster_editing::Context context;
   cluster_editing::processCommandLineInput(context, argc, argv);
 
-  LOG << context;
+  if ( context.general.verbose_output ) {
+    // Print context description
+    LOG << context;
+  }
 
   cluster_editing::Graph graph;
 
@@ -27,7 +30,10 @@ int main(int argc, char* argv[]) {
   preprocessor.undoPreprocessing();
   cluster_editing::utils::Timer::instance().stop_timer("undo_preprocessing");
 
-  LOG << cluster_editing::utils::Timer::instance(true);
+  if ( context.general.verbose_output ) {
+    // Print timings
+    LOG << cluster_editing::utils::Timer::instance(true);
+  }
 
   return 0;
 }

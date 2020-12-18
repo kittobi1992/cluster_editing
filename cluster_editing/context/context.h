@@ -10,6 +10,7 @@ struct GeneralParameters {
   std::string graph_filename {};
   std::string config_file {};
   std::string output_file {};
+  bool verbose_output = true;
 };
 
 std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);

@@ -9,6 +9,7 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params) {
   str << "  Graph:                         " << params.graph_filename << std::endl;
   str << "  Config File:                   " << params.config_file << std::endl;
   str << "  Output File:                   " << params.output_file << std::endl;
+  str << "  Verbose Output:                " << std::boolalpha << params.verbose_output << std::endl;
   return str;
 }
 
