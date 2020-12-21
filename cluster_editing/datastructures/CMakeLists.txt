@@ -1,5 +1,6 @@
 set(DatastructureSources
       graph_factory.cpp
+      graph.cpp
       )
 
 foreach(modtarget IN LISTS TARGETS_WANTING_ALL_SOURCES)

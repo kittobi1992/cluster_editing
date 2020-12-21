@@ -283,6 +283,21 @@ class Graph {
     return edge(e).weight();
   }
 
+
+  // ####################### Contraction #######################
+
+  /**!
+   * Contracts the graph based on the current clique structure of the graph.
+   * All vertices in the same clique id are merged into a super-vertex with
+   * a weight equal to sum of all vertex weights contained in the clique.
+   * The weight of each mutli-edge in the contracted graph is aggregated within a
+   * single-edge and each vertex also aggregates its selfloop weight.
+   *
+   * @return pair of a contracted graph and a mapping that maps each clique
+   * of the original graph to a node in the coarse graph.
+   */
+  std::pair<Graph, std::vector<NodeID>> contract() const;
+
  private:
   friend class GraphFactory;
 
