@@ -4,6 +4,7 @@
 #include "cluster_editing/preprocessing.h"
 #include "cluster_editing/multilevel.h"
 #include "cluster_editing/utils/timer.h"
+#include "cluster_editing/utils/randomize.h"
 #include "cluster_editing/io/command_line_options.h"
 #include "cluster_editing/io/output.h"
 #include "cluster_editing/io/graph_io.h"
@@ -12,6 +13,7 @@
 int main(int argc, char* argv[]) {
   cluster_editing::Context context;
   cluster_editing::processCommandLineInput(context, argc, argv);
+  cluster_editing::utils::Randomize::instance().setSeed(context.general.seed);
 
   if ( context.general.verbose_output ) {
     cluster_editing::io::printBanner();

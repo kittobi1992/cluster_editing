@@ -10,6 +10,7 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params) {
   str << "  Config File:                   " << params.config_file << std::endl;
   str << "  Output File:                   " << params.output_file << std::endl;
   str << "  Verbose Output:                " << std::boolalpha << params.verbose_output << std::endl;
+  str << "  Seed:                          " << params.seed << std::endl;
   return str;
 }
 

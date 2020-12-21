@@ -40,7 +40,9 @@ namespace cluster_editing {
              "Context Config File (see config directory):\n"
              " - <path-to-custom-ini-file>")
             ("verbose,v", po::value<bool>(&context.general.verbose_output)->value_name("<bool>")->default_value(true),
-             "Verbose main partitioning output");
+             "Verbose main partitioning output")
+            ("seed", po::value<int>(&context.general.seed)->value_name("<int>"),
+             "Random Seed");
     return options;
   }
 

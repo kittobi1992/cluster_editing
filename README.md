@@ -25,7 +25,7 @@ Run Application
 
 To run the application, you can use the following command (from `build` folder):
 
-    ./cluster_editing/application/ClusterEditing -g <path-to-graph> -p <path-to-config>
+    ./cluster_editing/application/ClusterEditing -g <path-to-graph> -p <path-to-config> --seed=<some-random-seed>
 
 There are additional command line arguments (see `--help`) which are passed to the application with a config file (see `config/preset.ini`).
 
