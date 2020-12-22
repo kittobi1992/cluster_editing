@@ -94,6 +94,15 @@ TEST_F(AGraph, VerifyNodeDegrees) {
   ASSERT_EQ(2, graph.degree(5));
 }
 
+TEST_F(AGraph, VerifyWeightedDegrees) {
+  ASSERT_EQ(2, graph.weightedDegree(0));
+  ASSERT_EQ(2, graph.weightedDegree(1));
+  ASSERT_EQ(3, graph.weightedDegree(2));
+  ASSERT_EQ(3, graph.weightedDegree(3));
+  ASSERT_EQ(2, graph.weightedDegree(4));
+  ASSERT_EQ(2, graph.weightedDegree(5));
+}
+
 TEST_F(AGraph, VerifyEdgeSourceAndTarget1) {
   ASSERT_EQ(0, graph.source(0));
   ASSERT_EQ(1, graph.target(0));
@@ -157,12 +166,16 @@ TEST_F(AGraph, CheckSelfloopAndNodeWeightAfterContraction1) {
 
   ASSERT_EQ(0, c_graph.selfloopWeight(0));
   ASSERT_EQ(1, c_graph.nodeWeight(0));
+  ASSERT_EQ(2, c_graph.weightedDegree(0));
   ASSERT_EQ(1, c_graph.selfloopWeight(1));
   ASSERT_EQ(2, c_graph.nodeWeight(1));
+  ASSERT_EQ(3, c_graph.weightedDegree(1));
   ASSERT_EQ(1, c_graph.selfloopWeight(2));
   ASSERT_EQ(2, c_graph.nodeWeight(2));
+  ASSERT_EQ(3, c_graph.weightedDegree(2));
   ASSERT_EQ(0, c_graph.selfloopWeight(3));
   ASSERT_EQ(1, c_graph.nodeWeight(3));
+  ASSERT_EQ(2, c_graph.weightedDegree(3));
 }
 
 TEST_F(AGraph, CheckIncidentEdgesAfterContraction1a) {
@@ -224,8 +237,10 @@ TEST_F(AGraph, CheckSelfloopAndNodeWeightAfterContraction2) {
 
   ASSERT_EQ(3, c_graph.selfloopWeight(0));
   ASSERT_EQ(3, c_graph.nodeWeight(0));
+  ASSERT_EQ(1, c_graph.weightedDegree(0));
   ASSERT_EQ(3, c_graph.selfloopWeight(1));
   ASSERT_EQ(3, c_graph.nodeWeight(1));
+  ASSERT_EQ(1, c_graph.weightedDegree(1));
 }
 
 TEST_F(AGraph, CheckIncidentEdgesAfterContraction2a) {
@@ -279,16 +294,22 @@ TEST_F(AGraph, CheckSelfloopAndNodeWeightAfterContraction3) {
 
   ASSERT_EQ(1, c_graph.selfloopWeight(0));
   ASSERT_EQ(2, c_graph.nodeWeight(0));
+  ASSERT_EQ(2, c_graph.weightedDegree(0));
   ASSERT_EQ(1, c_graph.selfloopWeight(1));
   ASSERT_EQ(2, c_graph.nodeWeight(1));
+  ASSERT_EQ(3, c_graph.weightedDegree(1));
   ASSERT_EQ(0, c_graph.selfloopWeight(2));
   ASSERT_EQ(1, c_graph.nodeWeight(2));
+  ASSERT_EQ(2, c_graph.weightedDegree(2));
   ASSERT_EQ(1, c_graph.selfloopWeight(3));
   ASSERT_EQ(2, c_graph.nodeWeight(3));
+  ASSERT_EQ(3, c_graph.weightedDegree(3));
   ASSERT_EQ(0, c_graph.selfloopWeight(4));
   ASSERT_EQ(1, c_graph.nodeWeight(4));
+  ASSERT_EQ(2, c_graph.weightedDegree(4));
   ASSERT_EQ(1, c_graph.selfloopWeight(5));
   ASSERT_EQ(2, c_graph.nodeWeight(5));
+  ASSERT_EQ(2, c_graph.weightedDegree(5));
 }
 
 TEST_F(AGraph, CheckIncidentEdgesAfterContraction3a) {
@@ -412,12 +433,16 @@ TEST_F(AGraph, CheckSelfloopAndNodeWeightAfterTwoContractions) {
 
   ASSERT_EQ(1, c_graph.selfloopWeight(0));
   ASSERT_EQ(2, c_graph.nodeWeight(0));
+  ASSERT_EQ(2, c_graph.weightedDegree(0));
   ASSERT_EQ(2, c_graph.selfloopWeight(1));
   ASSERT_EQ(3, c_graph.nodeWeight(1));
+  ASSERT_EQ(3, c_graph.weightedDegree(1));
   ASSERT_EQ(2, c_graph.selfloopWeight(2));
   ASSERT_EQ(3, c_graph.nodeWeight(2));
+  ASSERT_EQ(3, c_graph.weightedDegree(2));
   ASSERT_EQ(1, c_graph.selfloopWeight(3));
   ASSERT_EQ(2, c_graph.nodeWeight(3));
+  ASSERT_EQ(2, c_graph.weightedDegree(3));
 }
 
 TEST_F(AGraph, CheckIncidentEdgesAfterTwoContractionsA) {

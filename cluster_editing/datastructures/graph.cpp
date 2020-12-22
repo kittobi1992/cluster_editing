@@ -57,15 +57,18 @@ namespace cluster_editing::ds {
       c_graph.node(c).setWeight(contracted_weight);
       c_graph.node(c).setSelfloopWeight(selfloop_weight);
 
+      EdgeWeight weighted_degree = 0;
       for ( const auto& entry : aggregated_edge_weight ) {
         const NodeID v = entry.key;
         const EdgeWeight weight = entry.value;
+        weighted_degree += weight;
         ASSERT(c != v, "Selfloop contained in aggregated weights");
         c_graph._edges.emplace_back();
         c_graph._edges.back().setSource(c);
         c_graph._edges.back().setTarget(v);
         c_graph._edges.back().setWeight(weight);
       }
+      c_graph.node(c).setWeightedDegree(weighted_degree);
     }
     c_graph.node(num_nodes).setFirstEntry(c_graph._edges.size());
     c_graph._num_edges = static_cast<EdgeID>(c_graph._edges.size());

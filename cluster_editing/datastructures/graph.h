@@ -22,6 +22,7 @@ class Graph {
       _begin(0),
       _weight(1),
       _selfloop_weight(0),
+      _weighted_degree(0),
       _clique(INVALID_CLIQUE) { }
 
     size_t firstEntry() const {
@@ -48,6 +49,14 @@ class Graph {
       _selfloop_weight = selfloop_weight;
     }
 
+    EdgeWeight weightedDegree() const {
+      return _weighted_degree;
+    }
+
+    void setWeightedDegree(const EdgeWeight weighted_degree) {
+      _weighted_degree = weighted_degree;
+    }
+
     CliqueID clique() const {
       return _clique;
     }
@@ -60,6 +69,7 @@ class Graph {
     size_t _begin;
     NodeWeight _weight;
     NodeWeight _selfloop_weight;
+    EdgeWeight _weighted_degree;
     CliqueID _clique;
   };
 
@@ -259,6 +269,10 @@ class Graph {
 
   size_t degree(const NodeID u) const {
     return node(u + 1).firstEntry() - node(u).firstEntry();
+  }
+
+  EdgeWeight weightedDegree(const NodeID u) const {
+    return node(u).weightedDegree();
   }
 
   CliqueID clique(const NodeID u) const {

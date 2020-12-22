@@ -16,6 +16,8 @@ namespace cluster_editing::ds {
     for ( NodeID source = 0; source < graph._num_nodes; ++source ) {
       graph._nodes[source].setFirstEntry(current_idx);
       graph._nodes[source].setClique(source);
+      graph._nodes[source].setWeightedDegree(
+        static_cast<EdgeWeight>(adj_list[source].size()));
       for ( const NodeID& target : adj_list[source] ) {
         graph._edges.emplace_back();
         graph._edges.back().setSource(source);
