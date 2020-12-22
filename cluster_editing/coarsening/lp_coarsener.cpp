@@ -73,6 +73,7 @@ void LabelPropagationCoarsener::coarsenImpl() {
     const EdgeWeight edge_insertions = metrics::edge_insertions(currentGraph());
     const EdgeWeight edge_deletions = metrics::edge_deletions(currentGraph());
     LOG << "Initial Solution:";
+    LOG << "Number of Hierarchies:" << _hierarchies.size();
     LOG << "Edge Insertions:" << edge_insertions << "-"
         << "Edge Deletions:" << edge_deletions << "-"
         << "Edge Modifications:" << (edge_deletions + edge_insertions);
