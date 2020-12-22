@@ -4,9 +4,9 @@
 #include <vector>
 #include <numeric>
 
-#include "cluster_editing/metrics.h"
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/utils/math.h"
+#include "cluster_editing/metrics.h"
 
 namespace cluster_editing::io {
 

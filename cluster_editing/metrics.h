@@ -4,7 +4,7 @@
 
 namespace cluster_editing::metrics {
 
-size_t edge_insertions(const Graph& graph) {
+inline size_t edge_insertions(const Graph& graph) {
   size_t insertions = 0;
   std::vector<NodeID> cluster_sizes(graph.numNodes(), 0);
   std::vector<NodeID> internal_edges(graph.numNodes(), 0);
@@ -27,7 +27,7 @@ size_t edge_insertions(const Graph& graph) {
   return insertions;
 }
 
-size_t edge_deletions(const Graph& graph) {
+inline size_t edge_deletions(const Graph& graph) {
   size_t deletions = 0;
   for ( const NodeID& u : graph.nodes() ) {
     for ( const Neighbor& n : graph.neighbors(u) ) {

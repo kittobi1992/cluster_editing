@@ -56,7 +56,9 @@ namespace cluster_editing {
                        context.coarsening.algorithm = cluster_editing::coarseningAlgorithmFromString(ctype);
                      }),
              "Coarsening Algorithm:\n"
-             " - do_nothing");
+             " - do_nothing")
+            ("c-maximum-lp-iterations", po::value<int>(&context.coarsening.maximum_lp_iterations)->value_name("<int>"),
+             "Maximum iterations made by the label propagation coarsener per pass");;
     return options;
   }
 

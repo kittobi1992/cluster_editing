@@ -17,6 +17,7 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params) {
 std::ostream & operator<< (std::ostream& str, const CoarseningParameters& params) {
   str << "Coarsening Parameters:" << std::endl;
   str << "  Algorithm:                     " << params.algorithm << std::endl;
+  str << "  Maximum LP Iterations:         " << params.maximum_lp_iterations << std::endl;
   return str;
 }
 

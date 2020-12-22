@@ -74,6 +74,11 @@ namespace cluster_editing::ds {
     c_graph._num_edges = static_cast<EdgeID>(c_graph._edges.size());
     utils::Timer::instance().stop_timer("contract_edges");
 
+    if ( c_graph._num_edges == 0 ) {
+      // Add dummy edge
+      c_graph._edges.emplace_back();
+    }
+
     return std::make_pair(c_graph, clique_to_coarse_node);
   }
 

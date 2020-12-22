@@ -7,6 +7,7 @@ namespace cluster_editing {
 
 enum class CoarseningAlgorithm {
   do_nothing,
+  lp_coarsener,
   UNDEFINED
 };
 

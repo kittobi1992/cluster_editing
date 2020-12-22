@@ -2,6 +2,7 @@
 
 #include "cluster_editing/macros.h"
 #include "cluster_editing/coarsening/do_nothing_coarsener.h"
+#include "cluster_editing/coarsening/lp_coarsener.h"
 #include "cluster_editing/refinement/do_nothing_refiner.h"
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/io/output.h"
@@ -12,6 +13,7 @@ namespace multilevel {
 std::unique_ptr<ICoarsener> instantiateCoarsener(Graph& graph, const Context& context) {
   switch(context.coarsening.algorithm) {
     case CoarseningAlgorithm::do_nothing: return std::make_unique<DoNothingCoarsener>(graph, context);
+    case CoarseningAlgorithm::lp_coarsener: return std::make_unique<LabelPropagationCoarsener>(graph, context);
     case CoarseningAlgorithm::UNDEFINED:
       ERROR("No valid coarsening algorithm");
       return nullptr;
