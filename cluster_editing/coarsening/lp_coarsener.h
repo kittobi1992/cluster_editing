@@ -29,6 +29,7 @@ class LabelPropagationCoarsener final : public ICoarsener {
     _graph(graph),
     _context(context),
     _clique_weight(graph.numNodes()),
+    _empty_cliques(),
     _rating(graph.numNodes()),
     _hierarchies() { }
 
@@ -53,6 +54,7 @@ class LabelPropagationCoarsener final : public ICoarsener {
   Graph& _graph;
   const Context& _context;
   std::vector<NodeWeight> _clique_weight;
+  std::vector<CliqueID> _empty_cliques;
   ds::SparseMap<CliqueID, EdgeWeight> _rating;
   std::vector<Hierarchy> _hierarchies;
 };
