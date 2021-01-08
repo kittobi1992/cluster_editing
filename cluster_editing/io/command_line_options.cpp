@@ -41,6 +41,8 @@ namespace cluster_editing {
              " - <path-to-custom-ini-file>")
             ("verbose,v", po::value<bool>(&context.general.verbose_output)->value_name("<bool>")->default_value(true),
              "Verbose main partitioning output")
+            ("print-result-line", po::value<bool>(&context.general.print_result_line)->value_name("<bool>")->default_value(true),
+             "Prints RESULT-line containing stats, timings and metrics")
             ("seed", po::value<int>(&context.general.seed)->value_name("<int>"),
              "Random Seed");
     return options;

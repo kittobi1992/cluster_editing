@@ -12,6 +12,7 @@ struct GeneralParameters {
   std::string config_file {};
   std::string output_file {};
   bool verbose_output = true;
+  bool print_result_line = false;
   int seed = 0;
 };
 

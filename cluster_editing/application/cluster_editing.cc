@@ -50,5 +50,10 @@ int main(int argc, char* argv[]) {
   std::chrono::duration<double> elapsed_seconds(end - start);
   cluster_editing::io::printClusterEditingResults(graph, context, elapsed_seconds);
 
+  // Print RESULT line
+  if ( context.general.print_result_line ) {
+    cluster_editing::io::printResultLine(graph, context, elapsed_seconds);
+  }
+
   return 0;
 }
