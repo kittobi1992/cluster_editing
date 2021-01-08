@@ -65,6 +65,10 @@ void LabelPropagationCoarsener::coarsenImpl() {
       if ( debug ) {
         io::printGraphInfo(_hierarchies.back().first, _context, "Contracted Graph");
       }
+
+      if ( _context.coarsening.only_single_level ) {
+        break;
+      }
     } else {
       break;
     }

@@ -18,6 +18,7 @@ std::ostream & operator<< (std::ostream& str, const CoarseningParameters& params
   str << "Coarsening Parameters:" << std::endl;
   str << "  Algorithm:                     " << params.algorithm << std::endl;
   str << "  Maximum LP Iterations:         " << params.maximum_lp_iterations << std::endl;
+  str << "  Only Single-Level:             " << std::boolalpha << params.only_single_level << std::endl;
   return str;
 }
 

@@ -20,6 +20,7 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);
 struct CoarseningParameters {
   CoarseningAlgorithm algorithm = CoarseningAlgorithm::UNDEFINED;
   int maximum_lp_iterations = std::numeric_limits<int>::max();
+  bool only_single_level = false;
 };
 
 std::ostream & operator<< (std::ostream& str, const CoarseningParameters& params);
