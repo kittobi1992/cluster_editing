@@ -143,6 +143,8 @@ Graph merge(Graph graph, int u, int v, int& k) {
   }
   mergedmap[u].insert(end(mergedmap[u]), begin(graph.idmap[v]), end(graph.idmap[v]));
 
+  assert(merged[u][u]==-1);
+
   return {merged, mergedmap};
 }
 
@@ -159,14 +161,15 @@ auto selectBranchingEdge(const Graph& graph) {
   for(int v=0; v<n; ++v) {
     for(int u=0; u<n; ++u) {
       if (graph.edges[u][v] <= 0) continue; // uv must be edge
-      for(int w=0; v<n; ++v) {
+      for(int w=0; w<n; ++w) {
+        if(w==u || w==v) continue;
         if(graph.edges[u][w]<=0) continue; // uw must be edge
         if(graph.edges[v][w]>0) continue; // vw must be non-edge
         return pair(u,v);
       }
     }
   }
-  return pair(1,-1);
+  return pair(-1,-1);
 }
 
 
@@ -210,11 +213,12 @@ Solution solve(Graph graph, int budget, bool highL = false) {
     return solution;
   }
 
-  for(int k=1; k<budget; ++k) {
+  for(int k=0; k<=budget; ++k) {
 
     if(highL) cout << k << endl;
     // compute lower bounds
     auto [u,v] = selectBranchingEdge(graph);
+    assert(u!=v && graph.edges[u][v]>0);
 
     // forbidden
     auto finstance = graph;
@@ -223,6 +227,7 @@ Solution solve(Graph graph, int budget, bool highL = false) {
     finstance.edges[v][u] = -1e9;
     auto forbiddenSolution = solveMaybeUnconnected(finstance, k-delcost);
     forbiddenSolution.k += delcost;
+    assert(!forbiddenSolution.worked || forbiddenSolution.k == k);
     if(forbiddenSolution.worked) 
       return forbiddenSolution;
 
@@ -231,6 +236,7 @@ Solution solve(Graph graph, int budget, bool highL = false) {
     auto minstance = merge(graph, u, v, newk);
     auto mergedSolution = solveMaybeUnconnected(minstance, newk);
     mergedSolution.k += (k-newk);
+    assert(!mergedSolution.worked || mergedSolution.k == k);
     if(mergedSolution.worked)
       return mergedSolution;
   }
