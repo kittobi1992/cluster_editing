@@ -109,6 +109,10 @@ bool isClique(Edges graph) {
 
 // merge
 Graph merge(Graph graph, int u, int v, int& k) {
+
+  if(graph.edges[u][v]<0) // we must insert the edge if it did not exist yet
+    k -= abs(graph.edges[u][v]);
+
   // u is representant
   // all below v has same index
   // all above v has index -1
@@ -213,18 +217,76 @@ Solution solve(Graph graph, int budget, bool highL = false) {
     return solution;
   }
 
+  // compute some lower bounds
+  int n = size(graph.edges);
+  vector<vector<int>> icf(n, vector<int>(n, 0));
+  vector<vector<int>> icp(n, vector<int>(n, 0));
+  for(int u=0; u<n; ++u) {
+    for(int v=0; v<n; ++v) {
+      if (u==v) continue;
+      icf[u][v] += max(0, graph.edges[u][v]);
+      icp[u][v] += max(0, -graph.edges[u][v]);
+
+      for(int w=0; w<n; ++w) {
+        if (w==u || w==v) continue;
+        if(graph.edges[u][w]>0 && graph.edges[v][w]>0) // icf
+          icf[u][v] += min(graph.edges[u][w], graph.edges[v][w]);
+
+        if((graph.edges[u][w]>0) != (graph.edges[v][w]>0)) // icp
+          icp[u][v] += min(abs(graph.edges[u][w]), abs(graph.edges[v][w]));
+      }
+
+      if(min(icf[u][v], icp[u][v]) > budget) 
+        return {};
+    }
+  }
+
+  for(int u=0; u<n; ++u) {
+    for(int v=u+1; v<n; ++v) {
+      if(icf[u][v]>budget) { // we must merge
+        int newk = budget;
+        auto minstance = merge(graph, u, v, newk);
+        auto mergedSolution = solveMaybeUnconnected(minstance, newk);
+        mergedSolution.k += (budget-newk);
+        return mergedSolution;
+      }
+      if(icp[u][v]>budget && graph.edges[u][v]>-1e7) { // must be forbidden
+        auto finstance = graph;
+        int delcost = max(0,finstance.edges[u][v]);
+        finstance.edges[u][v] = -1e8;
+        finstance.edges[v][u] = -1e8;
+        auto forbiddenSolution = solveMaybeUnconnected(finstance, budget-delcost);
+        forbiddenSolution.k += delcost;
+        return forbiddenSolution;
+      }
+    }
+  }
+
+  auto [u,v] = selectBranchingEdge(graph);
+  int bestReduction = min(icp[u][v], icf[u][v]);
+  for(int i=0; i<n; ++i) {
+    for(int j=i+1; j<n; ++j) {
+      if(graph.edges[i][j]>0 && min(icf[i][j], icp[i][j]) > bestReduction) {
+        bestReduction =  min(icf[i][j], icp[i][j]);
+        u = i;
+        v = j;
+      }
+    }
+  }
+
   for(int k=0; k<=budget; ++k) {
 
-    if(highL) cout << k << endl;
+    if(highL) 
+      cout << k << endl;
     // compute lower bounds
-    auto [u,v] = selectBranchingEdge(graph);
+    //auto [u,v] = selectBranchingEdge(graph);
     assert(u!=v && graph.edges[u][v]>0);
 
     // forbidden
     auto finstance = graph;
     int delcost = finstance.edges[u][v];
-    finstance.edges[u][v] = -1e9;
-    finstance.edges[v][u] = -1e9;
+    finstance.edges[u][v] = -1e8;
+    finstance.edges[v][u] = -1e8;
     auto forbiddenSolution = solveMaybeUnconnected(finstance, k-delcost);
     forbiddenSolution.k += delcost;
     assert(!forbiddenSolution.worked || forbiddenSolution.k == k);
@@ -245,6 +307,7 @@ Solution solve(Graph graph, int budget, bool highL = false) {
 }
 
 Solution solveMaybeUnconnected(Graph graph, int k, bool highL) {
+  if(k<0) return {};
   Solution solution;
   solution.worked = true;
   solution.k = 0;
@@ -265,7 +328,24 @@ Solution solveMaybeUnconnected(Graph graph, int k, bool highL) {
 
 
 int main(int argc, char* argv[]) {
+
+  /*
+  we can solve
+  - 001 (k=3)
+  - 065 (k=128) longest with 16s
+  - 077 (k=78)
+  - 137 (k=16)
+  - 153 (k=6)
+  - 155 (k=63)
+  - 173 (k=100)
+  */
+  string file = "../../../instances/exact/exact137.gr";
+  if(argc>1)
+    file = argv[1];
+  freopen(file.c_str(), "r", stdin);
+  cout << "reading file " << file << endl;
   auto edges = readGraph();
+  cout << "n = " << size(edges) << endl;
 
   Graph graph(edges.size());
   graph.edges = edges;
