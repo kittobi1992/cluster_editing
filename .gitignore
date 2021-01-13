@@ -33,4 +33,7 @@
 
 build/
 debug/
+release/
 .vscode/
+.cache/
+compile_commands.json

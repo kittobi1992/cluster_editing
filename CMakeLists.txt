@@ -7,6 +7,8 @@ set(PROJECT_CONTACT "tobias.heuer@kit.edu")
 set(PROJECT_URL "https://github.com/kittobi1992/cluster_editing")
 set(PROJECT_DESCRIPTION "Cluster Editing")
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include_directories(${PROJECT_SOURCE_DIR})
 
 option(DISABLE_ASSERTIONS

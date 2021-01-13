@@ -8,4 +8,18 @@ if(ENABLE_PROFILE MATCHES ON)
   target_link_libraries(ClusterEditing ${PROFILE_FLAGS})
 endif()
 
-set(TARGETS_WANTING_ALL_SOURCES ${TARGETS_WANTING_ALL_SOURCES} ClusterEditing PARENT_SCOPE)
+
+add_executable(DrawGraph draw_graph.cc)
+target_link_libraries(DrawGraph ${Boost_LIBRARIES})
+
+set_property(TARGET DrawGraph PROPERTY CXX_STANDARD 17)
+set_property(TARGET DrawGraph PROPERTY CXX_STANDARD_REQUIRED ON)
+
+set(TARGETS_WANTING_ALL_SOURCES ${TARGETS_WANTING_ALL_SOURCES} ClusterEditing DrawGraph PARENT_SCOPE)
+
+
+add_executable(exact exact.cc)
+target_link_libraries(exact ${Boost_LIBRARIES})
+
+set_property(TARGET exact PROPERTY CXX_STANDARD 17)
+set_property(TARGET exact PROPERTY CXX_STANDARD_REQUIRED ON)

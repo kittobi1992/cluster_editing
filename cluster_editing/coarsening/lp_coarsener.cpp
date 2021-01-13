@@ -13,6 +13,7 @@ void LabelPropagationCoarsener::coarsenImpl() {
     Graph& current_graph = currentGraph();
     std::vector<NodeID> nodes;
     _clique_weight.assign(current_graph.numNodes(), 0);
+    _empty_cliques.clear();
     for ( const NodeID& u : current_graph.nodes() ) {
       nodes.push_back(u);
       _clique_weight[current_graph.clique(u)] += current_graph.nodeWeight(u);
@@ -63,6 +64,10 @@ void LabelPropagationCoarsener::coarsenImpl() {
 
       if ( debug ) {
         io::printGraphInfo(_hierarchies.back().first, _context, "Contracted Graph");
+      }
+
+      if ( _context.coarsening.only_single_level ) {
+        break;
       }
     } else {
       break;
@@ -145,8 +150,18 @@ void LabelPropagationCoarsener::moveVertex(Graph& graph, const NodeID u, const C
   const CliqueID from = graph.clique(u);
   ASSERT(from != to);
   _clique_weight[from] -= graph.nodeWeight(u);
+  const bool from_becomes_empty = _clique_weight[from] == 0;
+  const bool to_becomes_non_empty = _clique_weight[to] == 0;
   _clique_weight[to] += graph.nodeWeight(u);
   graph.setClique(u, to);
+
+  if ( from_becomes_empty ) {
+    _empty_cliques.push_back(from);
+  }
+  if ( to_becomes_non_empty ) {
+    ASSERT(_empty_cliques.back() == to);
+    _empty_cliques.pop_back();
+  }
 }
 
 LabelPropagationCoarsener::Rating LabelPropagationCoarsener::computeBestClique(Graph& graph, const NodeID u) {
@@ -179,6 +194,13 @@ LabelPropagationCoarsener::Rating LabelPropagationCoarsener::computeBestClique(G
         best_rating.delta = rating - current_rating;
       }
     }
+  }
+
+  // Check if it is beneficial to isolate the vertex again
+  if ( !_empty_cliques.empty() && u_weighted_degree < best_rating.rating ) {
+    best_rating.clique = _empty_cliques.back();
+    best_rating.rating = u_weighted_degree;
+    best_rating.delta = u_weighted_degree - current_rating;
   }
 
   return best_rating;

@@ -41,6 +41,8 @@ namespace cluster_editing {
              " - <path-to-custom-ini-file>")
             ("verbose,v", po::value<bool>(&context.general.verbose_output)->value_name("<bool>")->default_value(true),
              "Verbose main partitioning output")
+            ("print-result-line", po::value<bool>(&context.general.print_result_line)->value_name("<bool>")->default_value(true),
+             "Prints RESULT-line containing stats, timings and metrics")
             ("seed", po::value<int>(&context.general.seed)->value_name("<int>"),
              "Random Seed");
     return options;
@@ -58,7 +60,9 @@ namespace cluster_editing {
              "Coarsening Algorithm:\n"
              " - do_nothing")
             ("c-maximum-lp-iterations", po::value<int>(&context.coarsening.maximum_lp_iterations)->value_name("<int>"),
-             "Maximum iterations made by the label propagation coarsener per pass");;
+             "Maximum iterations made by the label propagation coarsener per pass")
+            ("c-only-single-level", po::value<bool>(&context.coarsening.only_single_level)->value_name("<bool>")->default_value(true),
+             "If true, than graph is recursively clustered.");
     return options;
   }
 

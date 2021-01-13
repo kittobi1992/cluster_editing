@@ -225,6 +225,28 @@ namespace internal {
     }
   }
 
+  void printResultLine(const Graph& graph,
+                       const Context& context,
+                       const std::chrono::duration<double>& elapsed_seconds) {
+    std::cout << "RESULT"
+              << " graph=" << context.general.graph_filename.substr(
+                  context.general.graph_filename.find_last_of('/') + 1)
+              << " numNodes=" << graph.numNodes()
+              << " numEdges=" << graph.numEdges()
+              << " seed=" << context.general.seed
+              << " totalTime=" << elapsed_seconds.count();
+
+    // Serialize Timings
+    utils::Timer::instance().serialize(std::cout);
+
+    // Metrics
+    const size_t edge_insertions = metrics::edge_insertions(graph);
+    const size_t edge_deletions = metrics::edge_deletions(graph);
+    std::cout << " insertions=" << edge_insertions
+              << " deletions=" << edge_deletions
+              << " modifications=" << (edge_insertions + edge_deletions) << std::endl;
+  }
+
   void printStripe() {
     LOG << "--------------------------------------------------------------------------------";
   }
