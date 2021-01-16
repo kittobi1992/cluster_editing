@@ -34,7 +34,7 @@ def write_cm(graph, path):
     n, m, adj = graph
     lines = []
 
-    lines.append(str(5))
+    lines.append(str(n))
     for i in range(n):
         lines.append(str(i))
 
@@ -49,6 +49,10 @@ def write_cm(graph, path):
 
     write_lines(lines, path)
 
+def convert(in_path, cm_path):
+    graph = read_pace(in_path)
+    write_cm(graph, cm_path)
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -58,10 +62,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     in_path = args.in_path
     cm_path = args.cm_path
-    print(f"Reading graph from '{in_path}' ..")
 
-    graph = read_pace(in_path)
-    print(f"Read graph. Writing graph to '{cm_path}' ..")
-    write_cm(graph, cm_path)
-    print("Done.")
+    print(f"Reading graph from '{in_path}'")
+    convert(in_path, cm_path)
+    print(f"Done. Wrote to '{cm_path}'")
 
