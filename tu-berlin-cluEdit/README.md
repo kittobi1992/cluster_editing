@@ -18,7 +18,7 @@ I'm not sure what the last three arguments are doing, but this seems to work.
 Use the python script `pace2cm.py` to convert PACE format input graphs to the
 `.cm` format.
 
-    $ ./pace2cm.py --help
+    > ./pace2cm.py --help
     usage: pace2cm.py [-h] in_path cm_path
 
     positional arguments:

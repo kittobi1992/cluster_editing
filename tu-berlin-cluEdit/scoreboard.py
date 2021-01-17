@@ -13,10 +13,15 @@ import wrapper
 def calc_scores(directory, timeout, verbose=True):
     scores = []
     for graph in glob.glob(path.join(directory, "*.gr")):
-        k = wrapper.run(graph, timeout=timeout)
+        stdout = wrapper.run(graph, timeout=timeout)
+        opt = wrapper.opt(stdout)
+        upper = wrapper.upperbound(stdout)
+        lower = wrapper.lowerbound(stdout)
         entry = {
             "graph": path.basename(graph),
-            "solution": k,
+            "opt": opt,
+            "upper": upper,
+            "lower": lower,
             "timeout": timeout
         }
         scores.append(entry)
@@ -29,9 +34,9 @@ def calc_scores(directory, timeout, verbose=True):
 
 def write_to_csv(scores, path):
     lines = []
-    lines.append("graph,solution,timeout")
+    lines.append("graph,opt,upper,lower,timeout")
     for entry in scores:
-        lines.append(f"{entry['graph']},{entry['solution']},{entry['timeout']}")
+        lines.append(f"{entry['graph']},{entry['opt']},{entry['upper']},{entry['lower']},{entry['timeout']}")
 
     lines = [l + "\n" for l in lines]
     with open(path, "w") as handle:
