@@ -120,11 +120,6 @@ Solution solve(Instance graph, int budget, bool highL = false) {
 
       if(min(icf[u][v], icp[u][v]) > budget - graph.spendCost) 
         return {};
-    }
-  }
-
-  for(int u=0; u<n; ++u) {
-    for(int v=u+1; v<n; ++v) {
 
       // we must merge
       if(icf[u][v]>budget)
@@ -208,7 +203,7 @@ int main(int argc, char* argv[]) {
   /*
   we can solve
   - 001 (k=3)
-  - 065 (k=128) longest with 16s
+  - 065 (k=128) longest with 1s
   - 077 (k=78)
   - 137 (k=16)
   - 153 (k=6)
