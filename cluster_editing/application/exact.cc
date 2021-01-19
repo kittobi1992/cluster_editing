@@ -1,27 +1,15 @@
+
 #include <algorithm>
 #include <iostream>
 #include <numeric>
+#include <sstream>
+#include <cassert>
 
-#include <boost/program_options.hpp>
-#include <boost/program_options/variables_map.hpp>
+#include <cluster_editing/exact/instance.h>
+#include <cluster_editing/exact/reductions.h>
 
 
 using namespace std;
-
-struct DSF {
-    vector<int> parent;
-    DSF(int n) : parent(n) {
-        iota(begin(parent),end(parent),0);
-    }
-    int find(int v) {
-        if(parent[v] == v) return v;
-        return parent[v] = find(parent[v]);
-    }
-    void join(int u, int v) {
-        parent[find(u)] = find(v);
-    }
-};
-
 
 // read graph into matrix
 vector<vector<int>> readGraph() {
@@ -53,51 +41,11 @@ vector<vector<int>> readGraph() {
     res[v][u] = 1;
   }
 
-
   return res;
 }
 
-using Edges = vector<vector<int>>;
-using IDMap = vector<vector<int>>;
-struct Graph {
-  Edges edges;
-  IDMap idmap;
-
-  Graph(const Edges& _edges, const IDMap& _idmap) : edges(_edges), idmap(_idmap) {};
-
-  Graph(int n) : edges(n, vector<int>(n,-1)), idmap(n) {
-    for(int i=0; i<n; ++i) idmap[i] = {i};
-  }
-};
-
-// CC
-vector<int> connectedComponents(Edges graph) {
-
-  int n = size(graph);
-  vector comp(n,-1);
-  int numComps = 0;
-  for(int i=0; i<n; ++i) {
-    if(comp[i]!=-1) continue;
-    // bfs
-    vector q{i};
-    comp[i] = numComps;
-    while(!empty(q)) {
-      auto v = q.back(); q.pop_back();
-      for(int u=0; u<n; ++u) {
-        if(comp[u]!=-1 || graph[v][u]<=0) continue;
-        comp[u] = numComps;
-        q.push_back(u);
-      }
-    }
-
-    numComps++;
-  }
-  
-  return comp;
-}
-
 // isClique
-bool isClique(Edges graph) {
+bool isClique(const Edges& graph) {
   int n = size(graph);
   for (int u = 0; u < n; ++u)
     for (int v = u+1; v < n; ++v)
@@ -107,59 +55,15 @@ bool isClique(Edges graph) {
   return true;
 }
 
-// merge
-Graph merge(Graph graph, int u, int v, int& k) {
-
-  if(graph.edges[u][v]<0) // we must insert the edge if it did not exist yet
-    k -= abs(graph.edges[u][v]);
-
-  // u is representant
-  // all below v has same index
-  // all above v has index -1
-  int n = size(graph.edges);
-  if(u>v) swap(u,v); // u<v
-  Edges merged(n-1, vector<int>(n-1, -1));
-  auto newid = [n,v](int node) { return node - (node>v); };
-
-  for(int i=0; i<n; ++i) {
-    for(int j=0; j<n; ++j) {
-      if(i==u || i==v) continue;
-      if(j==u || j==v) continue;
-      merged[newid(i)][newid(j)] = graph.edges[i][j];
-    }
-  }
-
-  for(int w=0; w<n; ++w) {
-      if(w==u || w==v) continue;
-      // merge (u,w) and (v,w) into (u',w)
-      auto uw = graph.edges[u][w];
-      auto vw = graph.edges[v][w];
-      merged[newid(w)][u] = uw + vw;
-      merged[u][newid(w)] = uw + vw;
-      if((uw<0 && vw>0) || (uw>0 && vw<0))
-        k -= min(abs(uw), abs(vw));
-  }
-
-  IDMap mergedmap(n-1);
-  for(int i=0; i<n; ++i) {
-    if(i==v) continue;
-    mergedmap[newid(i)] = graph.idmap[i];
-  }
-  mergedmap[u].insert(end(mergedmap[u]), begin(graph.idmap[v]), end(graph.idmap[v]));
-
-  assert(merged[u][u]==-1);
-
-  return {merged, mergedmap};
-}
 
 // BB recursive function
 struct Solution {
   bool worked = false;
-  int k = 1e9;
+  int cost = 1e9;
   vector<vector<int>> cliques;
 };
 
-auto selectBranchingEdge(const Graph& graph) {
+auto selectBranchingEdge(const Instance& graph) {
   // find conflict triple
   int n = size(graph.edges);
   for(int v=0; v<n; ++v) {
@@ -177,38 +81,16 @@ auto selectBranchingEdge(const Graph& graph) {
 }
 
 
-vector<Graph> constructComps(const Graph& graph) {
-  int n = graph.edges.size();
-  auto compNum = connectedComponents(graph.edges);
-  auto numComps = *max_element(begin(compNum), end(compNum)) + 1;
-  vector<vector<int>> nodesPerComp(numComps);
-  vector<Graph> comps;
-  for(int i=0; i<n; ++i) 
-    nodesPerComp[compNum[i]].push_back(i);
-  for(int c=0; c<numComps; ++c) {
-    Graph component(nodesPerComp[c].size());
-    for (int u = 0; u < nodesPerComp[c].size(); ++u) {
-      component.idmap[u] = graph.idmap[nodesPerComp[c][u]];
-      for (int v = 0; v < nodesPerComp[c].size(); ++v)
-        component.edges[u][v] = graph.edges[nodesPerComp[c][u]][nodesPerComp[c][v]];
-    }
-
-    comps.push_back(component);
-  }
-
-  return comps;
-}
-
-Solution solveMaybeUnconnected(Graph graph, int k, bool highL = false); // FWD
+Solution solveMaybeUnconnected(Instance graph, int budget, bool highL = false); // FWD
 
 
-Solution solve(Graph graph, int budget, bool highL = false) {
-  if (budget < 0)
+Solution solve(Instance graph, int budget, bool highL = false) {
+  if (budget < graph.spendCost)
     return {};
 
   if(isClique(graph.edges)) {
     Solution solution;
-    solution.k = 0;
+    solution.cost = graph.spendCost;
     solution.worked = true;
     vector<int> expandedNodeSet;
     for(int v=0; v<size(graph.edges); ++v)
@@ -236,32 +118,30 @@ Solution solve(Graph graph, int budget, bool highL = false) {
           icp[u][v] += min(abs(graph.edges[u][w]), abs(graph.edges[v][w]));
       }
 
-      if(min(icf[u][v], icp[u][v]) > budget) 
+      if(min(icf[u][v], icp[u][v]) > budget - graph.spendCost) 
         return {};
     }
   }
 
   for(int u=0; u<n; ++u) {
     for(int v=u+1; v<n; ++v) {
-      if(icf[u][v]>budget) { // we must merge
-        int newk = budget;
-        auto minstance = merge(graph, u, v, newk);
-        auto mergedSolution = solveMaybeUnconnected(minstance, newk);
-        mergedSolution.k += (budget-newk);
-        return mergedSolution;
-      }
-      if(icp[u][v]>budget && graph.edges[u][v]>-1e7) { // must be forbidden
+
+      // we must merge
+      if(icf[u][v]>budget)
+        return solveMaybeUnconnected(merge(graph,u,v), budget);
+
+      // must be forbidden
+      if(icp[u][v]+graph.spendCost>budget && graph.edges[u][v]>-1e7) { // TODO magic number?
         auto finstance = graph;
-        int delcost = max(0,finstance.edges[u][v]);
+        finstance.spendCost += max(0,finstance.edges[u][v]); // cost for deletion
         finstance.edges[u][v] = -1e8;
         finstance.edges[v][u] = -1e8;
-        auto forbiddenSolution = solveMaybeUnconnected(finstance, budget-delcost);
-        forbiddenSolution.k += delcost;
-        return forbiddenSolution;
+        return solveMaybeUnconnected(finstance, budget);
       }
     }
   }
 
+  // here we choose the edge to branch on
   auto [u,v] = selectBranchingEdge(graph);
   int bestReduction = min(icp[u][v], icf[u][v]);
   for(int i=0; i<n; ++i) {
@@ -273,55 +153,51 @@ Solution solve(Graph graph, int budget, bool highL = false) {
       }
     }
   }
+  assert(u!=v && graph.edges[u][v]>0);
 
-  for(int k=0; k<=budget; ++k) {
+
+  auto minstance = merge(graph,u,v); // merged instance
+  auto finstance = graph; // forbidden instance
+  finstance.spendCost += max(0,graph.edges[u][v]); // cost for deletion
+  finstance.edges[u][v] = -1e8;
+  finstance.edges[v][u] = -1e8;
+
+  for(int k=graph.spendCost; k<=budget; ++k) {
 
     if(highL) 
-      cout << k << endl;
-    // compute lower bounds
-    //auto [u,v] = selectBranchingEdge(graph);
-    assert(u!=v && graph.edges[u][v]>0);
+      cout << k << endl; // debug stuff
 
-    // forbidden
-    auto finstance = graph;
-    int delcost = finstance.edges[u][v];
-    finstance.edges[u][v] = -1e8;
-    finstance.edges[v][u] = -1e8;
-    auto forbiddenSolution = solveMaybeUnconnected(finstance, k-delcost);
-    forbiddenSolution.k += delcost;
-    assert(!forbiddenSolution.worked || forbiddenSolution.k == k);
-    if(forbiddenSolution.worked) 
-      return forbiddenSolution;
-
-    // merge
-    int newk = k;
-    auto minstance = merge(graph, u, v, newk);
-    auto mergedSolution = solveMaybeUnconnected(minstance, newk);
-    mergedSolution.k += (k-newk);
-    assert(!mergedSolution.worked || mergedSolution.k == k);
+    // try merging
+    auto mergedSolution = solveMaybeUnconnected(minstance, k);
+    assert(!mergedSolution.worked || mergedSolution.cost == k);
     if(mergedSolution.worked)
       return mergedSolution;
+
+    // try permanent deletion
+    auto forbiddenSolution = solveMaybeUnconnected(finstance, k);
+    assert(!forbiddenSolution.worked || forbiddenSolution.cost == k);
+    if(forbiddenSolution.worked) 
+      return forbiddenSolution;
   }
 
   return {};
 }
 
-Solution solveMaybeUnconnected(Graph graph, int k, bool highL) {
-  if(k<0) return {};
+Solution solveMaybeUnconnected(Instance graph, int budget, bool highL) {
+  if(budget<graph.spendCost) return {}; // that should probably never happen
   Solution solution;
   solution.worked = true;
-  solution.k = 0;
-  for(auto comp : constructComps(graph)) {
-    auto subsolution = solve(comp, k - solution.k, highL);
-    if(!subsolution.worked || solution.k + subsolution.k > k) {
+  solution.cost = graph.spendCost;
+  for(auto comp : constructConnectedComponents(graph)) {
+    auto subsolution = solve(comp, budget - solution.cost, highL);
+    if(!subsolution.worked || solution.cost + subsolution.cost > budget) {
       solution.worked = false;
       break;
     };
-    solution.k += subsolution.k;
+    solution.cost += subsolution.cost;
     // add cliques of component to solution for complete graph
-    for(auto clique : subsolution.cliques) {
+    for(auto clique : subsolution.cliques) 
       solution.cliques.push_back(clique);
-    } 
   }
   return solution;
 }
@@ -347,11 +223,11 @@ int main(int argc, char* argv[]) {
   auto edges = readGraph();
   cout << "n = " << size(edges) << endl;
 
-  Graph graph(edges.size());
+  Instance graph(edges.size());
   graph.edges = edges;
 
   auto solution = solveMaybeUnconnected(graph, 1e9, true);
   cout << solution.worked << endl;
-  cout << "k=" << solution.k << endl;
+  cout << "k=" << solution.cost << endl;
   return 0;
 }

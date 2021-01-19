@@ -5,6 +5,8 @@ add_subdirectory(coarsening)
 add_subdirectory(refinement)
 add_subdirectory(utils)
 
+add_subdirectory(exact)
+
 set(ClusterEditingSources
       preprocessing.cpp
       multilevel.cpp
