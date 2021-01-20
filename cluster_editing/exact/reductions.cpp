@@ -103,3 +103,55 @@ Instance merge(const Instance& inst, int u, int v) {
   result.spendCost = inst.spendCost + mergeCost;
   return result;
 }
+
+std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>> computeICFandICP(const Edges& edges) {
+  int n = size(edges);
+  vector<vector<int>> icf(n, vector<int>(n, 0));
+  vector<vector<int>> icp(n, vector<int>(n, 0));
+  for(int u=0; u<n; ++u) {
+    for(int v=0; v<n; ++v) {
+      if (u==v) continue;
+      icf[u][v] += max(0, edges[u][v]);
+      icp[u][v] += max(0, -edges[u][v]);
+
+      for(int w=0; w<n; ++w) {
+        if (w==u || w==v) continue;
+        if(edges[u][w]>0 && edges[v][w]>0) // icf
+          icf[u][v] += min(edges[u][w], edges[v][w]);
+
+        if((edges[u][w]>0) != (edges[v][w]>0)) // icp
+          icp[u][v] += min(abs(edges[u][w]), abs(edges[v][w]));
+      }
+    }
+  }
+
+  return {icf,icp};
+}
+
+std::optional<Instance> icxReductions(const Instance& inst, int budget) {
+  auto [icf, icp] = computeICFandICP(inst.edges);
+  int n = size(inst.edges);
+
+  for(int u=0; u<n; ++u) {
+    for(int v=u+1; v<n; ++v) {  
+
+      // unsolvable instance
+      if(min(icf[u][v], icp[u][v]) > budget - inst.spendCost) 
+        return Instance{};
+
+      // we must merge
+      if(icf[u][v]>budget-inst.spendCost)
+        return merge(inst,u,v);
+
+      // must be forbidden
+      if(icp[u][v]>budget-inst.spendCost && inst.edges[u][v]>-1e7) { // TODO magic number?
+        auto finstance = inst;
+        finstance.spendCost += max(0,finstance.edges[u][v]); // cost for deletion
+        finstance.edges[u][v] = -1e8;
+        finstance.edges[v][u] = -1e8;
+        return finstance;
+      }
+    }
+  }
+  return {};
+}

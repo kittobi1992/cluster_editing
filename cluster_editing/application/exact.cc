@@ -88,57 +88,38 @@ Solution solve(Instance graph, int budget, bool highL = false) {
   if (budget < graph.spendCost)
     return {};
 
-  if(isClique(graph.edges)) {
-    Solution solution;
-    solution.cost = graph.spendCost;
-    solution.worked = true;
-    vector<int> expandedNodeSet;
-    for(int v=0; v<size(graph.edges); ++v)
-      expandedNodeSet.insert(end(expandedNodeSet), begin(graph.idmap[v]), end(graph.idmap[v]));
-    solution.cliques.push_back(expandedNodeSet);
-    return solution;
-  }
+  // apply reductions
+  bool changed = false;
+  for(bool repeat=true; repeat; changed |= repeat) {
 
-  // compute some lower bounds
-  int n = size(graph.edges);
-  vector<vector<int>> icf(n, vector<int>(n, 0));
-  vector<vector<int>> icp(n, vector<int>(n, 0));
-  for(int u=0; u<n; ++u) {
-    for(int v=0; v<n; ++v) {
-      if (u==v) continue;
-      icf[u][v] += max(0, graph.edges[u][v]);
-      icp[u][v] += max(0, -graph.edges[u][v]);
-
-      for(int w=0; w<n; ++w) {
-        if (w==u || w==v) continue;
-        if(graph.edges[u][w]>0 && graph.edges[v][w]>0) // icf
-          icf[u][v] += min(graph.edges[u][w], graph.edges[v][w]);
-
-        if((graph.edges[u][w]>0) != (graph.edges[v][w]>0)) // icp
-          icp[u][v] += min(abs(graph.edges[u][w]), abs(graph.edges[v][w]));
-      }
-
-      if(min(icf[u][v], icp[u][v]) > budget - graph.spendCost) 
-        return {};
-
-      // we must merge
-      if(icf[u][v]>budget)
-        return solveMaybeUnconnected(merge(graph,u,v), budget);
-
-      // must be forbidden
-      if(icp[u][v]+graph.spendCost>budget && graph.edges[u][v]>-1e7) { // TODO magic number?
-        auto finstance = graph;
-        finstance.spendCost += max(0,finstance.edges[u][v]); // cost for deletion
-        finstance.edges[u][v] = -1e8;
-        finstance.edges[v][u] = -1e8;
-        return solveMaybeUnconnected(finstance, budget);
-      }
+    if(isClique(graph.edges)) {
+      Solution solution;
+      solution.cost = graph.spendCost;
+      solution.worked = true;
+      vector<int> expandedNodeSet;
+      for(int v=0; v<size(graph.edges); ++v)
+        expandedNodeSet.insert(end(expandedNodeSet), begin(graph.idmap[v]), end(graph.idmap[v]));
+      solution.cliques.push_back(expandedNodeSet);
+      return solution;
     }
+
+    repeat = false;
+    auto r1 = icxReductions(graph, budget);
+    if(r1) repeat = true, graph = *r1;
+    // more reductions
   }
+
+  if(changed)
+    return solveMaybeUnconnected(graph, budget);
+  //if(auto r = icxReductions(graph, budget); r)
+    //return solveMaybeUnconnected(*r, budget);
+
 
   // here we choose the edge to branch on
   auto [u,v] = selectBranchingEdge(graph);
+  auto [icf,icp] = computeICFandICP(graph.edges);
   int bestReduction = min(icp[u][v], icf[u][v]);
+  int n = size(graph.edges);
   for(int i=0; i<n; ++i) {
     for(int j=i+1; j<n; ++j) {
       if(graph.edges[i][j]>0 && min(icf[i][j], icp[i][j]) > bestReduction) {
