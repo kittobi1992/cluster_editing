@@ -80,19 +80,49 @@ auto selectBranchingEdge(const Instance& graph) {
   return pair(-1,-1);
 }
 
+struct RunStatistics {
+  int branchingNodes = 0;
+  int numReducingNodes = 0;
+  int sumReductions = 0;
+  int numDisconnects = 0;
+  int numPrunes = 0; // unsolvable leaf
+
+};
+ostream& operator<<(ostream& os, const RunStatistics& rhs) {
+  os << "branching nodes: " << rhs.branchingNodes << endl;
+  os << "reductions:      " << rhs.numReducingNodes << endl;
+  os << "disconnects:     " << rhs.numDisconnects << endl;
+  os << "prunes:          " << rhs.numPrunes << endl;
+  os << "iters/reduction: " << rhs.sumReductions * 1.0 / rhs.numReducingNodes << endl;
+  return os;
+}
+
+RunStatistics stats;
 
 Solution solveMaybeUnconnected(Instance graph, int budget, bool highL = false); // FWD
 
 
 Solution solve(Instance graph, int budget, bool highL = false) {
-  if (budget < graph.spendCost)
-    return {};
 
   // apply reductions
+  int num_reduces = 0;
   bool changed = false;
   for(bool repeat=true; repeat; changed |= repeat) {
 
+    if (budget < graph.spendCost) {
+      if(changed) {
+        stats.sumReductions += num_reduces;
+        stats.numReducingNodes++;
+      }
+      stats.numPrunes++;
+      return {};
+    }
+
     if(isClique(graph.edges)) {
+      if(changed) {
+        stats.sumReductions += num_reduces;
+        stats.numReducingNodes++;
+      }
       Solution solution;
       solution.cost = graph.spendCost;
       solution.worked = true;
@@ -107,14 +137,19 @@ Solution solve(Instance graph, int budget, bool highL = false) {
     auto r1 = icxReductions(graph, budget);
     if(r1) repeat = true, graph = *r1;
     // more reductions
+    num_reduces++;
   }
 
-  if(changed)
+  if(changed) {
+    stats.sumReductions += num_reduces;
+    stats.numReducingNodes++;
     return solveMaybeUnconnected(graph, budget);
+  }
   //if(auto r = icxReductions(graph, budget); r)
     //return solveMaybeUnconnected(*r, budget);
 
 
+  stats.branchingNodes++;
   // here we choose the edge to branch on
   auto [u,v] = selectBranchingEdge(graph);
   auto [icf,icp] = computeICFandICP(graph.edges);
@@ -140,8 +175,11 @@ Solution solve(Instance graph, int budget, bool highL = false) {
 
   for(int k=graph.spendCost; k<=budget; ++k) {
 
-    if(highL) 
-      cout << k << endl; // debug stuff
+    if(highL) {
+      cout << stats << endl;
+      stats = RunStatistics{};
+      cout << "===== " << k << "===== " << endl; // debug stuff
+    }
 
     // try merging
     auto mergedSolution = solveMaybeUnconnected(minstance, k);
@@ -164,7 +202,9 @@ Solution solveMaybeUnconnected(Instance graph, int budget, bool highL) {
   Solution solution;
   solution.worked = true;
   solution.cost = graph.spendCost;
-  for(auto comp : constructConnectedComponents(graph)) {
+  auto comps = constructConnectedComponents(graph);
+  if(size(comps)>1) stats.numDisconnects++;
+  for(auto comp : comps) {
     auto subsolution = solve(comp, budget - solution.cost, highL);
     if(!subsolution.worked || solution.cost + subsolution.cost > budget) {
       solution.worked = false;
@@ -205,5 +245,6 @@ int main(int argc, char* argv[]) {
   auto solution = solveMaybeUnconnected(graph, 1e9, true);
   cout << solution.worked << endl;
   cout << "k=" << solution.cost << endl;
+  cout << stats << endl;
   return 0;
 }
