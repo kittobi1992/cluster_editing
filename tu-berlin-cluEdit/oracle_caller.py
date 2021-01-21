@@ -94,9 +94,7 @@ def cost(adj, parti, clustering):
     for cl in clustering:
         for a in cl:
             for b in cl:
-                if a >= b:
-                    continue
-                if not adjacent(a, b):
+                if a<b and not adjacent(a, b):
                     cost += 1
     return cost
 
@@ -110,7 +108,8 @@ def dostuff(path):
     parti = partitions(new_adj)
     clstrs = clusters(parti, 1)
     print(clstrs)
-    print(cost(adj, parti, clstrs))
+    clustering = clusters(parti, 0)
+    print(cost(adj, parti, clustering))
 
 if __name__ == "__main__":
     import sys

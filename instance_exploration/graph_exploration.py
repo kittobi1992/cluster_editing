@@ -1,11 +1,13 @@
 #!/bin/python3
+import argparse
+import os
+from glob import glob
+from os import path
+
 import igraph
 import numpy as np
 
-import argparse
-from glob import glob
-from os import path
-import os
+import maximal_cliques
 
 
 def parse_graph(path):
@@ -39,14 +41,16 @@ def graph_specs(graph: igraph.Graph):
 #    ω = max([len(c) for c in max_cliques])
     return clustering, deg_dist_var, deg_dist_sd, avg_deg, max_deg#, num_max_cliques, ω
 
+def get_frequencies(values):
+    frequency = [0]*(max(values)+1)
+    for deg in values:
+        frequency[deg] += 1
+    value = list(range(len(frequency)))
+    return [(f,v) for (f,v) in zip(frequency, value) if f>0]
 
 def deg_dist(graph: igraph.Graph):
     degs = graph.degree()
-    frequency = [0]*(max(degs)+1)
-    for deg in degs:
-        frequency[deg] += 1
-    degree = list(range(len(frequency)))
-    return frequency, degree
+    return get_frequencies(degs)
 
 
 def write_csv(path, lines):
@@ -88,6 +92,22 @@ def build_fancy_csv_files(graph_dir, csv_dir):
     write_csv(path.join(csv_dir, "degrees.csv"), deg_csv)
     print("Done.")
 
+
+
+def clique_info(graph):
+    cliques = maximal_cliques.maximal_cliques(graph)
+
+
+def build_clique_csv_files(graph_dir, csv_dir):
+    clique_csv = []
+    clique_csv.append(f"graph,n,m,size,frequency")
+
+    if not path.exists(csv_dir):
+        os.mkdir(csv_dir)
+
+    for filename in glob(path.join(graph_dir, "*.gr")):
+        graph = parse_graph(filename)
+        info = clique_info(graph)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("graph_dir")
