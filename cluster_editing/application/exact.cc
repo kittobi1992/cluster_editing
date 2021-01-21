@@ -80,65 +80,81 @@ auto selectBranchingEdge(const Instance& graph) {
   return pair(-1,-1);
 }
 
+struct RunStatistics {
+  int branchingNodes = 0;
+  int numReducingNodes = 0;
+  int sumReductions = 0;
+  int numDisconnects = 0;
+  int numPrunes = 0; // unsolvable leaf
+
+};
+ostream& operator<<(ostream& os, const RunStatistics& rhs) {
+  os << "branching nodes: " << rhs.branchingNodes << endl;
+  os << "reductions:      " << rhs.numReducingNodes << endl;
+  os << "disconnects:     " << rhs.numDisconnects << endl;
+  os << "prunes:          " << rhs.numPrunes << endl;
+  os << "iters/reduction: " << rhs.sumReductions * 1.0 / rhs.numReducingNodes << endl;
+  return os;
+}
+
+RunStatistics stats;
 
 Solution solveMaybeUnconnected(Instance graph, int budget, bool highL = false); // FWD
 
 
 Solution solve(Instance graph, int budget, bool highL = false) {
-  if (budget < graph.spendCost)
-    return {};
 
-  if(isClique(graph.edges)) {
-    Solution solution;
-    solution.cost = graph.spendCost;
-    solution.worked = true;
-    vector<int> expandedNodeSet;
-    for(int v=0; v<size(graph.edges); ++v)
-      expandedNodeSet.insert(end(expandedNodeSet), begin(graph.idmap[v]), end(graph.idmap[v]));
-    solution.cliques.push_back(expandedNodeSet);
-    return solution;
-  }
+  // apply reductions
+  int num_reduces = 0;
+  bool changed = false;
+  for(bool repeat=true; repeat; changed |= repeat) {
 
-  // compute some lower bounds
-  int n = size(graph.edges);
-  vector<vector<int>> icf(n, vector<int>(n, 0));
-  vector<vector<int>> icp(n, vector<int>(n, 0));
-  for(int u=0; u<n; ++u) {
-    for(int v=0; v<n; ++v) {
-      if (u==v) continue;
-      icf[u][v] += max(0, graph.edges[u][v]);
-      icp[u][v] += max(0, -graph.edges[u][v]);
-
-      for(int w=0; w<n; ++w) {
-        if (w==u || w==v) continue;
-        if(graph.edges[u][w]>0 && graph.edges[v][w]>0) // icf
-          icf[u][v] += min(graph.edges[u][w], graph.edges[v][w]);
-
-        if((graph.edges[u][w]>0) != (graph.edges[v][w]>0)) // icp
-          icp[u][v] += min(abs(graph.edges[u][w]), abs(graph.edges[v][w]));
+    if (budget < graph.spendCost) {
+      if(changed) {
+        stats.sumReductions += num_reduces;
+        stats.numReducingNodes++;
       }
-
-      if(min(icf[u][v], icp[u][v]) > budget - graph.spendCost) 
-        return {};
-
-      // we must merge
-      if(icf[u][v]>budget)
-        return solveMaybeUnconnected(merge(graph,u,v), budget);
-
-      // must be forbidden
-      if(icp[u][v]+graph.spendCost>budget && graph.edges[u][v]>-1e7) { // TODO magic number?
-        auto finstance = graph;
-        finstance.spendCost += max(0,finstance.edges[u][v]); // cost for deletion
-        finstance.edges[u][v] = -1e8;
-        finstance.edges[v][u] = -1e8;
-        return solveMaybeUnconnected(finstance, budget);
-      }
+      stats.numPrunes++;
+      return {};
     }
+
+    if(isClique(graph.edges)) {
+      if(changed) {
+        stats.sumReductions += num_reduces;
+        stats.numReducingNodes++;
+      }
+      Solution solution;
+      solution.cost = graph.spendCost;
+      solution.worked = true;
+      vector<int> expandedNodeSet;
+      for(int v=0; v<size(graph.edges); ++v)
+        expandedNodeSet.insert(end(expandedNodeSet), begin(graph.idmap[v]), end(graph.idmap[v]));
+      solution.cliques.push_back(expandedNodeSet);
+      return solution;
+    }
+
+    repeat = false;
+    auto r1 = icxReductions(graph, budget);
+    if(r1) repeat = true, graph = *r1;
+    // more reductions
+    num_reduces++;
   }
 
+  if(changed) {
+    stats.sumReductions += num_reduces;
+    stats.numReducingNodes++;
+    return solveMaybeUnconnected(graph, budget);
+  }
+  //if(auto r = icxReductions(graph, budget); r)
+    //return solveMaybeUnconnected(*r, budget);
+
+
+  stats.branchingNodes++;
   // here we choose the edge to branch on
   auto [u,v] = selectBranchingEdge(graph);
+  auto [icf,icp] = computeICFandICP(graph.edges);
   int bestReduction = min(icp[u][v], icf[u][v]);
+  int n = size(graph.edges);
   for(int i=0; i<n; ++i) {
     for(int j=i+1; j<n; ++j) {
       if(graph.edges[i][j]>0 && min(icf[i][j], icp[i][j]) > bestReduction) {
@@ -159,8 +175,11 @@ Solution solve(Instance graph, int budget, bool highL = false) {
 
   for(int k=graph.spendCost; k<=budget; ++k) {
 
-    if(highL) 
-      cout << k << endl; // debug stuff
+    if(highL) {
+      cout << stats << endl;
+      stats = RunStatistics{};
+      cout << "===== " << k << "===== " << endl; // debug stuff
+    }
 
     // try merging
     auto mergedSolution = solveMaybeUnconnected(minstance, k);
@@ -183,7 +202,9 @@ Solution solveMaybeUnconnected(Instance graph, int budget, bool highL) {
   Solution solution;
   solution.worked = true;
   solution.cost = graph.spendCost;
-  for(auto comp : constructConnectedComponents(graph)) {
+  auto comps = constructConnectedComponents(graph);
+  if(size(comps)>1) stats.numDisconnects++;
+  for(auto comp : comps) {
     auto subsolution = solve(comp, budget - solution.cost, highL);
     if(!subsolution.worked || solution.cost + subsolution.cost > budget) {
       solution.worked = false;
@@ -224,5 +245,6 @@ int main(int argc, char* argv[]) {
   auto solution = solveMaybeUnconnected(graph, 1e9, true);
   cout << solution.worked << endl;
   cout << "k=" << solution.cost << endl;
+  cout << stats << endl;
   return 0;
 }
