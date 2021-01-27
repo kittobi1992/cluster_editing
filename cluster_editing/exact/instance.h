@@ -6,6 +6,8 @@
 using Edges = std::vector<std::vector<int>>; // adj matrix
 using IDMap = std::vector<std::vector<int>>; // for every node in current graph, a list of original nodes that it represents
 
+const int INF = 1e9;
+
 struct Instance {
   Edges edges;
   IDMap idmap;

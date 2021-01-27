@@ -16,3 +16,7 @@ std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>> computeI
 
 // check for unaffordable edge modifications (params by reference because they contain updated values after reducton)
 std::optional<Instance> icxReductions(const Instance& inst, int budget);
+
+
+// set all pairs with dist>=4 to forbidden
+std::optional<Instance> distance4Reduction(const Instance& inst);

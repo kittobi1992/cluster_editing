@@ -170,8 +170,8 @@ Solution solve(Instance graph, int budget, bool highL = false) {
   auto minstance = merge(graph,u,v); // merged instance
   auto finstance = graph; // forbidden instance
   finstance.spendCost += max(0,graph.edges[u][v]); // cost for deletion
-  finstance.edges[u][v] = -1e8;
-  finstance.edges[v][u] = -1e8;
+  finstance.edges[u][v] = -INF;
+  finstance.edges[v][u] = -INF;
 
   for(int k=graph.spendCost; k<=budget; ++k) {
 
@@ -242,7 +242,11 @@ int main(int argc, char* argv[]) {
   Instance graph(edges.size());
   graph.edges = edges;
 
-  auto solution = solveMaybeUnconnected(graph, 1e9, true);
+  auto distReduced = distance4Reduction(graph);
+  if(distReduced) graph = *distReduced;
+
+
+  auto solution = solveMaybeUnconnected(graph, INF, true);
   cout << solution.worked << endl;
   cout << "k=" << solution.cost << endl;
   cout << stats << endl;

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <queue>
 
 using namespace std;
 
@@ -67,7 +68,7 @@ Instance merge(const Instance& inst, int u, int v) {
   // all above v has index -1
   if(u>v) swap(u,v); // u<v
   Edges merged(n-1, vector<int>(n-1, -1));
-  auto newid = [n,v](int node) { return node - (node>v); };
+  auto newid = [v](int node) { return node - (node>v); };
 
   // keep all edges not not involving u or v
   for(int i=0; i<n; ++i) {
@@ -78,14 +79,18 @@ Instance merge(const Instance& inst, int u, int v) {
     }
   }
 
-  // hanlde edges to u,v
+  // handle edges to u,v
   for(int w=0; w<n; ++w) {
       if(w==u || w==v) continue;
       // merge (u,w) and (v,w) into (u',w)
       auto uw = inst.edges[u][w];
       auto vw = inst.edges[v][w];
-      merged[newid(w)][u] = uw + vw;
-      merged[u][newid(w)] = uw + vw;
+      assert( ! (min(uw,vw)==-INF && max(uw,vw)==INF));
+      auto newval = uw+vw;
+      if(min(uw,vw)==-INF) newval = -INF;
+      if(max(uw,vw)==INF) newval = INF;
+      merged[newid(w)][u] = newval;
+      merged[u][newid(w)] = newval;
       if((uw<0 && vw>0) || (uw>0 && vw<0))
         mergeCost += min(abs(uw), abs(vw));
   }
@@ -144,14 +149,57 @@ std::optional<Instance> icxReductions(const Instance& inst, int budget) {
         return merge(inst,u,v);
 
       // must be forbidden
-      if(icp[u][v]>budget-inst.spendCost && inst.edges[u][v]>-1e7) { // TODO magic number?
+      if(icp[u][v]>budget-inst.spendCost && inst.edges[u][v]>-INF/2) { // TODO magic number?
         auto finstance = inst;
         finstance.spendCost += max(0,finstance.edges[u][v]); // cost for deletion
-        finstance.edges[u][v] = -1e8;
-        finstance.edges[v][u] = -1e8;
+        finstance.edges[u][v] = -INF;
+        finstance.edges[v][u] = -INF;
         return finstance;
       }
     }
   }
   return {};
+}
+
+vector<int> distances(const Instance& inst, int source) {
+    int n = size(inst.edges);
+    vector<int> dists(n, INF);
+    queue<int> q;
+
+    q.emplace(source);
+    dists[source] = 0;
+
+    while (!q.empty()) {
+        auto node = q.front(); q.pop();
+        for (int neigh=0; neigh<n; ++neigh) {
+            if (inst.edges[node][neigh] > 0 && dists[neigh]==INF) {
+                dists[neigh] = dists[node] + 1;
+                q.emplace(neigh);
+            }
+        }
+    }
+    return dists;
+}
+
+std::optional<Instance> distance4Reduction(const Instance &inst) {
+    // APSP
+    int n = size(inst.edges);
+    vector<vector<int>> apsp(n);
+    for(int v=0; v<n; ++v)
+        apsp[v] = distances(inst, v);
+
+    bool applicable = false;
+    for(auto& row : apsp)
+        for(auto val : row)
+            applicable |= val >= 4;
+    if(!applicable)
+        return {};
+
+    auto reduced = inst;
+    for(int v=0; v<n; ++v)
+        for(int u=v+1; u<n; ++u)
+            if(apsp[u][v]>=4)
+                reduced.edges[u][v] = reduced.edges[v][u] = -INF;
+
+    return reduced;
 }
