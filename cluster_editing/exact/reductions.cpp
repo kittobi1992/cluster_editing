@@ -191,14 +191,14 @@ std::optional<Instance> distance4Reduction(const Instance &inst) {
     bool applicable = false;
     for(auto& row : apsp)
         for(auto val : row)
-            applicable |= val >= 4;
+            applicable |= val >= 3;
     if(!applicable)
         return {};
 
     auto reduced = inst;
     for(int v=0; v<n; ++v)
         for(int u=v+1; u<n; ++u)
-            if(apsp[u][v]>=4)
+            if(apsp[u][v]>=3)
                 reduced.edges[u][v] = reduced.edges[v][u] = -INF;
 
     return reduced;
