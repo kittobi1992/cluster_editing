@@ -245,15 +245,119 @@ auto solveHeuristic(const vector<vector<unsigned int>>& adjList) {
     context.general.verbose_output = false;
 
     cluster_editing::multilevel::solve(graph, context);
-    const size_t edge_insertions = cluster_editing::metrics::edge_insertions(graph);
-    const size_t edge_deletions = cluster_editing::metrics::edge_deletions(graph);
-    cout << "Objectives:" << endl;
-    cout << " Edge Insertions     (minimize) =" << edge_insertions << endl;
-    cout << " Edge Deletions      (minimize) =" << edge_deletions << endl;
-    cout << " Total Modifications (minimize) =" << (edge_insertions + edge_deletions) << endl;
     return graph;
 };
 
+auto solveHeuristic(const Instance& graph) {
+    auto adj = makeAdjList(graph);
+    return solveHeuristic((adj));
+}
+
+auto cost(cluster_editing::Graph& graph) {
+    const size_t edge_insertions = cluster_editing::metrics::edge_insertions(graph);
+    const size_t edge_deletions = cluster_editing::metrics::edge_deletions(graph);
+    return edge_insertions + edge_deletions;
+};
+
+auto clusters(cluster_editing::Graph& graph) {
+    auto n = graph.numNodes();
+    auto clique = vector<int>(n);
+    int maxclq = 0;
+    for (auto node: graph.nodes()) {
+        clique[node] = graph.clique(node);
+        if (clique[node] > maxclq)
+            maxclq = clique[node];
+    }
+    auto clusters = vector<vector<int>>(maxclq+1);
+    for (int i = 0; i < n; ++i) {
+        clusters[clique[i]].push_back(i);
+    }
+    return clusters;
+}
+
+Instance createSubinst(Instance& graph, vector<int>& cluster) {
+    auto inst = Instance(size(graph.edges));
+    for (auto node: cluster) {
+        for (int i = 0; i < size(graph.edges); ++i) {
+            inst.edges[node][i] = graph.edges[node][i];
+            //inst.edges[i][node] = graph.edges[i][node];
+        }
+    }
+    return inst;
+}
+
+int calc_together_cost(vector<int>& cluster, Instance& graph) {
+    auto in_cluster = vector<bool>(size(graph.edges));
+    for (auto node: cluster)
+        in_cluster[node] = true;
+    int cost = 0;
+    for (auto node: cluster) {
+        for (int i = 0; i < size(graph.edges); ++i) {
+            if (node >= i)
+                continue;
+            if (in_cluster[i] && graph.edges[node][i]<0) {
+                cost -= graph.edges[node][i];
+            } else if (!in_cluster[i] && graph.edges[node][i]>0){
+                cost += graph.edges[node][i];
+            }
+        }
+    }
+    return cost;
+}
+
+Instance put_together(Instance& graph, vector<int> cluster) {
+    return Instance();
+}
+
+Solution solve2(Instance graph, int budget, bool highL = false) {
+    auto heur = solveHeuristic(graph);
+    int h_cost = cost(heur);
+    if (h_cost < budget)
+        budget = h_cost;
+
+    auto h_clusters = clusters(heur);
+    sort(begin(h_clusters), end(h_clusters), [](auto a, auto b){return size(a) > size(b);});
+    for (auto cluster: h_clusters) {
+        if (size(cluster) < 2)
+            continue;
+        Instance subinst = createSubinst(graph, cluster);
+        int put_together_cost = calc_together_cost(cluster, graph);
+        auto opt_cost = solve(subinst, budget).cost;
+        if (put_together_cost <= opt_cost) {
+            Instance new_graph = put_together(graph, cluster);
+            return solve2(new_graph, budget-opt_cost, highL);
+        }
+    }
+    return solve(graph, budget);
+}
+
+int other_main(int argc, char* argv[]) {
+    string file = "../../../instances/exact/exact001.gr";
+    if(argc>1)
+        file = argv[1];
+    freopen(file.c_str(), "r", stdin);
+    cout << "reading file " << file << endl;
+    auto edges = readGraph();
+    cout << "n = " << size(edges) << endl;
+
+    Instance graph(edges.size());
+    graph.edges = edges;
+
+    auto distReduced = distance4Reduction(graph);
+    if(distReduced) graph = *distReduced;
+
+    auto heur = solveHeuristic(makeAdjList(graph));
+    auto c = clusters(heur);
+    for (auto cluster: c) {
+        cout << "Cluster: ";
+        for (auto node: cluster) {
+            cout << node+1 << " ";
+        }
+        cout << endl;
+    }
+    return 0;
+
+}
 
 int main(int argc, char* argv[]) {
 
@@ -267,7 +371,7 @@ int main(int argc, char* argv[]) {
   - 155 (k=63)
   - 173 (k=100)
   */
-  string file = "../../../instances/exact/exact137.gr";
+  string file = "../../../instances/exact/exact001.gr";
   if(argc>1)
     file = argv[1];
   freopen(file.c_str(), "r", stdin);
@@ -277,9 +381,6 @@ int main(int argc, char* argv[]) {
 
   Instance graph(edges.size());
   graph.edges = edges;
-
-  //solveHeuristic(makeAdjList(graph));
-  //return 0;
 
   auto distReduced = distance4Reduction(graph);
   if(distReduced) graph = *distReduced;
