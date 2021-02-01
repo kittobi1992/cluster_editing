@@ -21,5 +21,11 @@ set(TARGETS_WANTING_ALL_SOURCES ${TARGETS_WANTING_ALL_SOURCES} ClusterEditing Dr
 add_executable(exact exact.cc)
 target_link_libraries(exact ${Boost_LIBRARIES})
 
+set(TARGETS_WANTING_ALL_SOURCES ${TARGETS_WANTING_ALL_SOURCES} exact PARENT_SCOPE)
+
 set_property(TARGET exact PROPERTY CXX_STANDARD 17)
 set_property(TARGET exact PROPERTY CXX_STANDARD_REQUIRED ON)
+
+add_executable(calc_cost calc_cost.cc)
+set_property(TARGET calc_cost PROPERTY CXX_STANDARD 17)
+set_property(TARGET calc_cost PROPERTY CXX_STANDARD_REQUIRED ON)

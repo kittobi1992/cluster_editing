@@ -8,6 +8,11 @@
 #include <cluster_editing/exact/instance.h>
 #include <cluster_editing/exact/reductions.h>
 
+#include "cluster_editing/multilevel.h"
+#include "cluster_editing/io/graph_io.h"
+#include "cluster_editing/metrics.h"
+#include "cluster_editing/datastructures/graph_factory.h"
+
 
 using namespace std;
 
@@ -218,6 +223,37 @@ Solution solveMaybeUnconnected(Instance graph, int budget, bool highL) {
   return solution;
 }
 
+auto makeAdjList(const Instance& inst) {
+    int n = inst.edges.size();
+    vector<vector<unsigned int>> adj(n);
+    for (int i = 0; i < n; ++i) {
+        for (int j = i+1; j < n; ++j) {
+            assert(abs(inst.edges[i][j])==1);
+            if(inst.edges[i][j]!=1) continue;
+            adj[i].push_back(j);
+            adj[j].push_back(i);
+        }
+    }
+    return adj;
+}
+
+auto solveHeuristic(const vector<vector<unsigned int>>& adjList) {
+    cluster_editing::Context context;
+    context.coarsening.algorithm = cluster_editing::CoarseningAlgorithm::lp_coarsener;
+    context.refinement.algorithm = cluster_editing::RefinementAlgorithm::do_nothing;
+    cluster_editing::Graph graph = cluster_editing::ds::GraphFactory::construct(adjList);
+    context.general.verbose_output = false;
+
+    cluster_editing::multilevel::solve(graph, context);
+    const size_t edge_insertions = cluster_editing::metrics::edge_insertions(graph);
+    const size_t edge_deletions = cluster_editing::metrics::edge_deletions(graph);
+    cout << "Objectives:" << endl;
+    cout << " Edge Insertions     (minimize) =" << edge_insertions << endl;
+    cout << " Edge Deletions      (minimize) =" << edge_deletions << endl;
+    cout << " Total Modifications (minimize) =" << (edge_insertions + edge_deletions) << endl;
+    return graph;
+};
+
 
 int main(int argc, char* argv[]) {
 
@@ -241,6 +277,9 @@ int main(int argc, char* argv[]) {
 
   Instance graph(edges.size());
   graph.edges = edges;
+
+  //solveHeuristic(makeAdjList(graph));
+  //return 0;
 
   auto distReduced = distance4Reduction(graph);
   if(distReduced) graph = *distReduced;
