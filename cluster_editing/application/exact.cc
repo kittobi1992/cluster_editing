@@ -248,11 +248,6 @@ auto solveHeuristic(const vector<vector<unsigned int>>& adjList) {
     return graph;
 };
 
-auto solveHeuristic(const Instance& graph) {
-    auto adj = makeAdjList(graph);
-    return solveHeuristic((adj));
-}
-
 auto cost(cluster_editing::Graph& graph) {
     const size_t edge_insertions = cluster_editing::metrics::edge_insertions(graph);
     const size_t edge_deletions = cluster_editing::metrics::edge_deletions(graph);
@@ -306,57 +301,76 @@ int calc_together_cost(vector<int>& cluster, Instance& graph) {
 }
 
 Instance put_together(Instance& graph, vector<int> cluster) {
-    return Instance();
+    Instance copy = graph; // das ist ja eine deep copy oder?
+    auto in_cluster = vector<bool>(size(graph.edges));
+    for (auto node: cluster)
+        in_cluster[node] = true;
+
+    for (auto node: cluster) {
+        for (int i = 0; i < size(graph.edges); ++i) {
+            if (node >= i)
+                continue;
+            if (in_cluster[i]) {
+                copy.edges[node][i] = 1;
+                copy.edges[i][node] = 1;
+            } else {
+                copy.edges[node][i] = -1;
+                copy.edges[i][node] = -1;
+            }
+        }
+    }
+    return copy;
 }
 
+Solution solveMaybeUnconnected2(Instance graph, int budget, bool highL);
+
 Solution solve2(Instance graph, int budget, bool highL = false) {
-    auto heur = solveHeuristic(graph);
+    cout << "-1" << endl;
+    auto adjlist = makeAdjList(graph);
+    auto heur = solveHeuristic(adjlist);
+    cout << "0" << endl;
     int h_cost = cost(heur);
     if (h_cost < budget)
         budget = h_cost;
 
+    cout << "1" << endl;
     auto h_clusters = clusters(heur);
+    cout << "2" << endl;
     sort(begin(h_clusters), end(h_clusters), [](auto a, auto b){return size(a) > size(b);});
+    cout << "3" << endl;
     for (auto cluster: h_clusters) {
         if (size(cluster) < 2)
             continue;
         Instance subinst = createSubinst(graph, cluster);
         int put_together_cost = calc_together_cost(cluster, graph);
-        auto opt_cost = solve(subinst, budget).cost;
+        auto opt_cost = solveMaybeUnconnected(subinst, budget).cost;
         if (put_together_cost <= opt_cost) {
             Instance new_graph = put_together(graph, cluster);
-            return solve2(new_graph, budget-opt_cost, highL);
+            return solveMaybeUnconnected2(new_graph, budget-opt_cost, highL);
         }
     }
     return solve(graph, budget);
 }
 
-int other_main(int argc, char* argv[]) {
-    string file = "../../../instances/exact/exact001.gr";
-    if(argc>1)
-        file = argv[1];
-    freopen(file.c_str(), "r", stdin);
-    cout << "reading file " << file << endl;
-    auto edges = readGraph();
-    cout << "n = " << size(edges) << endl;
-
-    Instance graph(edges.size());
-    graph.edges = edges;
-
-    auto distReduced = distance4Reduction(graph);
-    if(distReduced) graph = *distReduced;
-
-    auto heur = solveHeuristic(makeAdjList(graph));
-    auto c = clusters(heur);
-    for (auto cluster: c) {
-        cout << "Cluster: ";
-        for (auto node: cluster) {
-            cout << node+1 << " ";
-        }
-        cout << endl;
+Solution solveMaybeUnconnected2(Instance graph, int budget, bool highL) {
+    if(budget<graph.spendCost) return {}; // that should probably never happen
+    Solution solution;
+    solution.worked = true;
+    solution.cost = graph.spendCost;
+    auto comps = constructConnectedComponents(graph);
+    if(size(comps)>1) stats.numDisconnects++;
+    for(auto comp : comps) {
+        auto subsolution = solve2(comp, budget - solution.cost, highL);
+        if(!subsolution.worked || solution.cost + subsolution.cost > budget) {
+            solution.worked = false;
+            break;
+        };
+        solution.cost += subsolution.cost;
+        // add cliques of component to solution for complete graph
+        for(auto clique : subsolution.cliques)
+            solution.cliques.push_back(clique);
     }
-    return 0;
-
+    return solution;
 }
 
 int main(int argc, char* argv[]) {
@@ -371,7 +385,7 @@ int main(int argc, char* argv[]) {
   - 155 (k=63)
   - 173 (k=100)
   */
-  string file = "../../../instances/exact/exact001.gr";
+  string file = "../../../instances/exact/exact003.gr";
   if(argc>1)
     file = argv[1];
   freopen(file.c_str(), "r", stdin);
@@ -386,7 +400,7 @@ int main(int argc, char* argv[]) {
   if(distReduced) graph = *distReduced;
 
 
-  auto solution = solveMaybeUnconnected(graph, INF, true);
+  auto solution = solveMaybeUnconnected2(graph, INF, true);
   cout << solution.worked << endl;
   cout << "k=" << solution.cost << endl;
   cout << stats << endl;
