@@ -302,6 +302,7 @@ int calc_together_cost(vector<int>& cluster, Instance& graph) {
 
 Instance put_together(Instance& graph, vector<int> cluster) {
     Instance copy = graph; // das ist ja eine deep copy oder?
+
     auto in_cluster = vector<bool>(size(graph.edges));
     for (auto node: cluster)
         in_cluster[node] = true;
@@ -322,55 +323,39 @@ Instance put_together(Instance& graph, vector<int> cluster) {
     return copy;
 }
 
-Solution solveMaybeUnconnected2(Instance graph, int budget, bool highL);
-
-Solution solve2(Instance graph, int budget, bool highL = false) {
-    cout << "-1" << endl;
+pair<Instance,int> heureduction(Instance graph, int budget) {
     auto adjlist = makeAdjList(graph);
     auto heur = solveHeuristic(adjlist);
-    cout << "0" << endl;
-    int h_cost = cost(heur);
-    if (h_cost < budget)
-        budget = h_cost;
 
-    cout << "1" << endl;
+    int h_cost = cost(heur);
+    budget = min(h_cost, budget);
+
     auto h_clusters = clusters(heur);
-    cout << "2" << endl;
-    sort(begin(h_clusters), end(h_clusters), [](auto a, auto b){return size(a) > size(b);});
-    cout << "3" << endl;
+    sort(begin(h_clusters), end(h_clusters), [](auto a, auto b){return size(a) <= size(b);});
     for (auto cluster: h_clusters) {
         if (size(cluster) < 2)
             continue;
         Instance subinst = createSubinst(graph, cluster);
         int put_together_cost = calc_together_cost(cluster, graph);
-        auto opt_cost = solveMaybeUnconnected(subinst, budget).cost;
+        if (put_together_cost == 0) {
+            continue;
+        }
+        if (size(subinst.edges) > 5 && false) {
+            auto d4red = distance4Reduction(subinst);
+            if (d4red)
+                subinst = *d4red;
+        }
+        cout << "Checking heuristic cluster of size " << size(cluster) << endl;
+        auto opt_cost = solveMaybeUnconnected(subinst, budget, false).cost;
         if (put_together_cost <= opt_cost) {
+            cout << "Found safe cluster of size " << size(cluster) << endl;
             Instance new_graph = put_together(graph, cluster);
-            return solveMaybeUnconnected2(new_graph, budget-opt_cost, highL);
+            auto res = heureduction(new_graph, budget-opt_cost);
+            res.second += opt_cost;
+            return res;
         }
     }
-    return solve(graph, budget);
-}
-
-Solution solveMaybeUnconnected2(Instance graph, int budget, bool highL) {
-    if(budget<graph.spendCost) return {}; // that should probably never happen
-    Solution solution;
-    solution.worked = true;
-    solution.cost = graph.spendCost;
-    auto comps = constructConnectedComponents(graph);
-    if(size(comps)>1) stats.numDisconnects++;
-    for(auto comp : comps) {
-        auto subsolution = solve2(comp, budget - solution.cost, highL);
-        if(!subsolution.worked || solution.cost + subsolution.cost > budget) {
-            solution.worked = false;
-            break;
-        };
-        solution.cost += subsolution.cost;
-        // add cliques of component to solution for complete graph
-        for(auto clique : subsolution.cliques)
-            solution.cliques.push_back(clique);
-    }
-    return solution;
+    return make_pair(graph, 0);
 }
 
 int main(int argc, char* argv[]) {
@@ -385,7 +370,7 @@ int main(int argc, char* argv[]) {
   - 155 (k=63)
   - 173 (k=100)
   */
-  string file = "../../../instances/exact/exact003.gr";
+  string file = "../../../instances/exact/exact065.gr";
   if(argc>1)
     file = argv[1];
   freopen(file.c_str(), "r", stdin);
@@ -396,13 +381,17 @@ int main(int argc, char* argv[]) {
   Instance graph(edges.size());
   graph.edges = edges;
 
+  auto reduced = heureduction(graph, INF);
+  graph = reduced.first;
+  auto reduce_cost = reduced.second;
+
   auto distReduced = distance4Reduction(graph);
   if(distReduced) graph = *distReduced;
 
 
-  auto solution = solveMaybeUnconnected2(graph, INF, true);
+  auto solution = solveMaybeUnconnected(graph, INF, true);
   cout << solution.worked << endl;
-  cout << "k=" << solution.cost << endl;
+  cout << "k=" << solution.cost + reduce_cost << endl;
   cout << stats << endl;
   return 0;
 }
