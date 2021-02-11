@@ -55,6 +55,7 @@ int main(int argc, char *argv[]) {
     - 001 (k=3)
     - 065 (k=128) longest with 1s
     - 077 (k=78)
+    - 097 (k=95 auch wenn TU Berlin solver 96 sagt)
     - 137 (k=16)
     - 153 (k=6)
     - 155 (k=63)
