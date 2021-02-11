@@ -46,6 +46,26 @@ vector<vector<int>> readGraph() {
     return res;
 }
 
+void verifySolution(const Edges& edges, const Solution& sol) {
+    if(!sol.worked) return;
+
+    int n = size(edges);
+    vector<int> cluster_id(n,-1);
+    for(int i=0; i<size(sol.cliques); ++i) {
+        for(auto v : sol.cliques[i]) {
+            assert(cluster_id[v]==-1);
+            cluster_id[v] = i;
+        }
+    }
+    for(auto id : cluster_id)
+        assert(id!=-1);
+    long long cost = 0;
+    for(auto u=0; u<n; ++u)
+        for(int v=u+1; v<n; ++v)
+            if((cluster_id[u]==cluster_id[v]) == (edges[u][v]<0))
+                cost += abs(edges[u][v]);
+    assert(cost == sol.cost);
+}
 
 
 int main(int argc, char *argv[]) {
@@ -101,10 +121,14 @@ int main(int argc, char *argv[]) {
     auto distReduced = distance4Reduction(graph);
     if (distReduced) graph = *distReduced;
 
-
-    auto solution = solveMaybeUnconnected(graph, INF, true);
+    ExactSolver solver;
+    solver.verbose = true;
+    auto solution = solver.solve(graph);
     cout << solution.worked << endl;
     cout << "k=" << solution.cost << endl;
     //cout << stats << endl;
+
+    verifySolution(edges, solution);
+
     return 0;
 }

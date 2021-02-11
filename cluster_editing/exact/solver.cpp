@@ -38,27 +38,8 @@ auto selectBranchingEdge(const Instance &graph) {
     return pair(-1, -1);
 }
 
-struct RunStatistics {
-    int branchingNodes = 0;
-    int numReducingNodes = 0;
-    int sumReductions = 0;
-    int numDisconnects = 0;
-    int numPrunes = 0; // unsolvable leaf
 
-};
-
-ostream &operator<<(ostream &os, const RunStatistics &rhs) {
-    os << "branching nodes: " << rhs.branchingNodes << endl;
-    os << "reductions:      " << rhs.numReducingNodes << endl;
-    os << "disconnects:     " << rhs.numDisconnects << endl;
-    os << "prunes:          " << rhs.numPrunes << endl;
-    os << "iters/reduction: " << rhs.sumReductions * 1.0 / rhs.numReducingNodes << endl;
-    return os;
-}
-
-RunStatistics stats;
-
-Solution solve(Instance graph, int budget, bool highL = false) {
+Solution ExactSolver::solve_connected(Instance graph, int budget, bool highL) {
 
     // apply reductions
     int num_reduces = 0;
@@ -67,23 +48,23 @@ Solution solve(Instance graph, int budget, bool highL = false) {
 
         if (budget < graph.spendCost) {
             if (changed) {
-                stats.sumReductions += num_reduces;
-                stats.numReducingNodes++;
+                sumReductions += num_reduces;
+                numReducingNodes++;
             }
-            stats.numPrunes++;
+            numPrunes++;
             return {};
         }
 
         if (isClique(graph.edges)) {
             if (changed) {
-                stats.sumReductions += num_reduces;
-                stats.numReducingNodes++;
+                sumReductions += num_reduces;
+                numReducingNodes++;
             }
             Solution solution;
             solution.cost = graph.spendCost;
             solution.worked = true;
             vector<int> expandedNodeSet;
-            for (int v = 0; v < size(graph.edges); ++v)
+            for (int v = 0; v < (int)size(graph.edges); ++v)
                 expandedNodeSet.insert(end(expandedNodeSet), begin(graph.idmap[v]), end(graph.idmap[v]));
             solution.cliques.push_back(expandedNodeSet);
             //cout << "found clique of size " << size(graph.edges) << endl;
@@ -98,16 +79,16 @@ Solution solve(Instance graph, int budget, bool highL = false) {
     }
 
     if (changed) {
-        stats.sumReductions += num_reduces;
-        stats.numReducingNodes++;
-        return solveMaybeUnconnected(graph, budget);
+        sumReductions += num_reduces;
+        numReducingNodes++;
+        return solve_unconnected(graph, budget);
     }
 
     //if(auto r = icxReductions(graph, budget); r)
     //return solveMaybeUnconnected(*r, budget);
 
 
-    stats.branchingNodes++;
+    branchingNodes++;
     // here we choose the edge to branch on
     auto[u, v] = selectBranchingEdge(graph);
     auto[icf, icp] = computeICFandICP(graph.edges);
@@ -133,20 +114,20 @@ Solution solve(Instance graph, int budget, bool highL = false) {
 
     for (int k = graph.spendCost; k <= budget; ++k) {
 
-        if (highL) {
-            cout << stats << endl;
-            stats = RunStatistics{};
+        if (highL && verbose) {
+            cout << *this << endl;
+            reset_stats();
             cout << "===== " << k << "===== " << endl; // debug stuff
         }
 
         // try merging
-        auto mergedSolution = solveMaybeUnconnected(minstance, k);
+        auto mergedSolution = solve_unconnected(minstance, k);
         assert(!mergedSolution.worked || mergedSolution.cost == k);
         if (mergedSolution.worked)
             return mergedSolution;
 
         // try permanent deletion
-        auto forbiddenSolution = solveMaybeUnconnected(finstance, k);
+        auto forbiddenSolution = solve_unconnected(finstance, k);
         assert(!forbiddenSolution.worked || forbiddenSolution.cost == k);
         if (forbiddenSolution.worked)
             return forbiddenSolution;
@@ -155,15 +136,15 @@ Solution solve(Instance graph, int budget, bool highL = false) {
     return {};
 }
 
-Solution solveMaybeUnconnected(Instance graph, int budget, bool highL) {
+Solution ExactSolver::solve_unconnected(Instance graph, int budget, bool highL) {
     if (budget < graph.spendCost) return {}; // that should probably never happen
     Solution solution;
     solution.worked = true;
     solution.cost = graph.spendCost;
     auto comps = constructConnectedComponents(graph);
-    if (size(comps) > 1) stats.numDisconnects++;
+    if (size(comps) > 1) numDisconnects++;
     for (auto comp : comps) {
-        auto subsolution = solve(comp, budget - solution.cost, highL);
+        auto subsolution = solve_connected(comp, budget - solution.cost, highL);
         if (!subsolution.worked || solution.cost + subsolution.cost > budget) {
             solution.worked = false;
             break;
@@ -174,4 +155,29 @@ Solution solveMaybeUnconnected(Instance graph, int budget, bool highL) {
             solution.cliques.push_back(clique);
     }
     return solution;
+}
+
+void ExactSolver::reset_stats() {
+    branchingNodes = 0;
+    numReducingNodes = 0;
+    sumReductions = 0;
+    numDisconnects = 0;
+    numPrunes = 0;
+}
+
+Solution ExactSolver::solve(Instance inst, int budget_limit) {
+    return solve_unconnected(inst, budget_limit, true);
+}
+
+Solution solve_exact(Instance inst, int budget_limit) {
+    return ExactSolver().solve(inst, budget_limit);
+}
+
+ostream &operator<<(ostream &os, const ExactSolver &rhs) {
+    os << "branching nodes: " << rhs.branchingNodes << endl;
+    os << "reductions:      " << rhs.numReducingNodes << endl;
+    os << "disconnects:     " << rhs.numDisconnects << endl;
+    os << "prunes:          " << rhs.numPrunes << endl;
+    os << "iters/reduction: " << rhs.sumReductions * 1.0 / rhs.numReducingNodes << endl;
+    return os;
 }

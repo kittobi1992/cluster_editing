@@ -34,7 +34,7 @@ auto cost(cluster_editing::Graph &graph) {
     const size_t edge_insertions = cluster_editing::metrics::edge_insertions(graph);
     const size_t edge_deletions = cluster_editing::metrics::edge_deletions(graph);
     return edge_insertions + edge_deletions;
-};
+}
 
 auto clusters(cluster_editing::Graph &graph) {
     auto n = graph.numNodes();
@@ -159,7 +159,7 @@ optional<Instance> thomas(Instance graph) {
         //cout << "Checking heuristic cluster of size " << size(cluster) << " and Subinstance size: " << subinstSize << endl;
         // put_together cost is an upper bound for subinst because it is a valid solution to make one cluster
         // put_together cost is smaller than heuristic cost because the heuristic solution has this cluster (thus paid put_together cost)
-        auto subsolution = solveMaybeUnconnected(subinst, put_together_cost, false);
+        auto subsolution = solve_exact(subinst, put_together_cost);
         auto opt_cost = subsolution.cost;
         assert(subsolution.worked);
         if (put_together_cost == opt_cost) {

@@ -1,5 +1,8 @@
 
+#pragma once
+
 #include <vector>
+#include <iostream>
 
 #include "instance.h"
 
@@ -9,4 +12,24 @@ struct Solution {
     std::vector<std::vector<int>> cliques;
 };
 
-Solution solveMaybeUnconnected(Instance graph, int budget, bool highL = false);
+class ExactSolver {
+public:
+    Solution solve(Instance inst, int budget_limit = INF);
+
+    // stats
+    bool verbose = false;
+    int branchingNodes = 0;
+    int numReducingNodes = 0;
+    int sumReductions = 0;
+    int numDisconnects = 0;
+    int numPrunes = 0; // unsolvable leaf
+
+    void reset_stats();
+private:
+    Solution solve_unconnected(Instance graph, int budget, bool highL = false);
+    Solution solve_connected(Instance graph, int budget, bool highL = false);
+};
+
+Solution solve_exact(Instance inst, int budget_limit = INF);
+
+std::ostream &operator<<(std::ostream& os, const ExactSolver& rhs);
