@@ -1,0 +1,6 @@
+
+#pragma once
+
+const auto REPO_ROOT = "${CMAKE_SOURCE_DIR}/";
+const auto EXACT_DATA_DIR = "${CMAKE_SOURCE_DIR}/instances/exact/";
+const auto HEURISTIC_DATA_DIR = "${CMAKE_SOURCE_DIR}/instances/heur/";

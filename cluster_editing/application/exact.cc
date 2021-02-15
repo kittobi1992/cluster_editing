@@ -10,6 +10,8 @@
 #include <cluster_editing/exact/thomas.h>
 #include <cluster_editing/exact/solver.h>
 
+#include <cluster_editing/data_path.h>
+
 using namespace std;
 
 // read graph into matrix
@@ -81,7 +83,7 @@ int main(int argc, char *argv[]) {
     - 155 (k=63)
     - 173 (k=100)
     */
-    string file = "../../../instances/exact/exact179.gr";
+    string file = EXACT_DATA_DIR + "exact179.gr"s;
     if (argc > 1)
         file = argv[1];
     freopen(file.c_str(), "r", stdin);

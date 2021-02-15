@@ -4,7 +4,8 @@
 #include <iostream>
 #include <cassert>
 
-#include "reductions.h"
+#include <cluster_editing/exact/reductions.h>
+#include <cluster_editing/exact/thomas.h>
 
 using namespace std;
 
@@ -166,6 +167,16 @@ void ExactSolver::reset_stats() {
 }
 
 Solution ExactSolver::solve(Instance inst, int budget_limit) {
+    // try some reductions for unweighted instances only
+    auto isUnweighted = true;
+    for(auto& row : inst.edges)
+        for(auto val : row)
+            isUnweighted &= val==1 || val==-1;
+    if(isUnweighted) {
+        if(auto opt = thomas(inst); opt) inst = *opt;
+        if(auto opt = distance4Reduction(inst); opt) inst = *opt;
+    }
+
     return solve_unconnected(inst, budget_limit, true);
 }
 

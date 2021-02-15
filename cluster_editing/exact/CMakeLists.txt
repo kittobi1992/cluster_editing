@@ -9,6 +9,6 @@ set(ExactSources
 )
 
 
-target_sources(exact PRIVATE ${ExactSources})
-
-
+foreach(modtarget IN LISTS TARGETS_WANTING_ALL_SOURCES)
+    target_sources(${modtarget} PRIVATE ${ExactSources})
+endforeach()
