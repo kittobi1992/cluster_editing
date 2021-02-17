@@ -11,6 +11,7 @@
 #include <cluster_editing/exact/solver.h>
 
 #include <cluster_editing/data_path.h>
+#include <cluster_editing/utils/timer.h>
 
 using namespace std;
 
@@ -123,6 +124,9 @@ int main(int argc, char *argv[]) {
     auto distReduced = distance4Reduction(graph);
     if (distReduced) graph = *distReduced;
 
+    auto& timer = cluster_editing::utils::Timer::instance();
+    timer.start_timer("solving", "solving instance");
+
     ExactSolver solver;
     solver.verbose = true;
     auto solution = solver.solve(graph);
@@ -131,6 +135,9 @@ int main(int argc, char *argv[]) {
     //cout << stats << endl;
 
     verifySolution(edges, solution);
+
+    timer.stop_timer("solving");
+    cout << timer.get("solving") << endl;
 
     return 0;
 }

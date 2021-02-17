@@ -26,8 +26,8 @@ public:
 
     void reset_stats();
 private:
-    Solution solve_unconnected(Instance graph, int budget, bool highL = false);
-    Solution solve_connected(Instance graph, int budget, bool highL = false);
+    Solution solve_unconnected(Instance graph, int budget);
+    Solution solve_internal(Instance graph, int budget);
 };
 
 Solution solve_exact(Instance inst, int budget_limit = INF);

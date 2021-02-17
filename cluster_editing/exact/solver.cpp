@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <algorithm>
 
 #include <cluster_editing/exact/reductions.h>
 #include <cluster_editing/exact/thomas.h>
@@ -20,7 +21,20 @@ bool isClique(const Edges &graph) {
     return true;
 }
 
-
+// check if graph is union of cliques
+std::optional<vector<vector<int>>> cliques(const Edges& graph) {
+    auto compId = connectedComponents(graph);
+    int n = size(graph);
+    for(int v=0; v<n; ++v)
+        for(int u=v+1; u<n; ++u)
+            if((compId[v]==compId[u]) != (graph[v][u]>0))
+                return {};
+    int num = 1+ *max_element(begin(compId), end(compId));
+    vector<vector<int>> res(num);
+    for(int i=0; i<n; ++i)
+        res[compId[i]].push_back(i);
+    return res;
+}
 
 auto selectBranchingEdge(const Instance &graph) {
     // find conflict triple
@@ -39,15 +53,40 @@ auto selectBranchingEdge(const Instance &graph) {
     return pair(-1, -1);
 }
 
+auto packing_lower_bound(Edges edges, int budget) {
+    int n = size(edges);
 
-Solution ExactSolver::solve_connected(Instance graph, int budget, bool highL) {
+    long long best = 0;
+    for(int u=0; u<n; ++u) {
+        for(int v=u+1; v<n; ++v) {
+            auto& uv = edges[u][v];
+            if(uv<=0) continue;
+            for(int w=v+1; w<n && uv>0; ++w) {
+                auto& uw = edges[u][w];
+                auto& vw = edges[v][w];
+                if(uw<=0 || vw>=0) continue;
+                auto mn = min(uv,min(uw,-vw));
+                best += mn;
+                if(best>budget) return best;
+                uv -= mn;
+                uw -= mn;
+                vw += mn;
+            }
+        }
+    }
+
+    return best;
+}
+
+Solution ExactSolver::solve_internal(Instance graph, int budget) {
 
     // apply reductions
     int num_reduces = 0;
     bool changed = false;
     for (bool repeat = true; repeat; changed |= repeat) {
 
-        if (budget < graph.spendCost) {
+        auto lower_bound = packing_lower_bound(graph.edges, budget-graph.spendCost);
+        if(lower_bound + graph.spendCost > budget) {
             if (changed) {
                 sumReductions += num_reduces;
                 numReducingNodes++;
@@ -56,7 +95,7 @@ Solution ExactSolver::solve_connected(Instance graph, int budget, bool highL) {
             return {};
         }
 
-        if (isClique(graph.edges)) {
+        if (auto opt=cliques(graph.edges); opt) { // check if graph is cliques
             if (changed) {
                 sumReductions += num_reduces;
                 numReducingNodes++;
@@ -64,11 +103,12 @@ Solution ExactSolver::solve_connected(Instance graph, int budget, bool highL) {
             Solution solution;
             solution.cost = graph.spendCost;
             solution.worked = true;
-            vector<int> expandedNodeSet;
-            for (int v = 0; v < (int)size(graph.edges); ++v)
-                expandedNodeSet.insert(end(expandedNodeSet), begin(graph.idmap[v]), end(graph.idmap[v]));
-            solution.cliques.push_back(expandedNodeSet);
-            //cout << "found clique of size " << size(graph.edges) << endl;
+            for(auto& cl : *opt) {
+                vector<int> expandedNodeSet;
+                for(auto v : cl)
+                    expandedNodeSet.insert(end(expandedNodeSet), begin(graph.idmap[v]), end(graph.idmap[v]));
+                solution.cliques.push_back(expandedNodeSet);
+            }
             return solution;
         }
 
@@ -82,8 +122,11 @@ Solution ExactSolver::solve_connected(Instance graph, int budget, bool highL) {
     if (changed) {
         sumReductions += num_reduces;
         numReducingNodes++;
-        return solve_unconnected(graph, budget);
     }
+
+    auto comps = connectedComponents(graph.edges);
+    auto num_comps = 1 + *max_element(begin(comps), end(comps));
+    //if(num_comps>1) return solve_unconnected(graph, budget);
 
     //if(auto r = icxReductions(graph, budget); r)
     //return solveMaybeUnconnected(*r, budget);
@@ -113,31 +156,19 @@ Solution ExactSolver::solve_connected(Instance graph, int budget, bool highL) {
     finstance.edges[u][v] = -INF;
     finstance.edges[v][u] = -INF;
 
-    for (int k = graph.spendCost; k <= budget; ++k) {
+    // try merging
+    auto mergedSolution = solve_internal(minstance, budget);
+    assert(!mergedSolution.worked || mergedSolution.cost <= budget);
+    if (mergedSolution.worked)
+        return mergedSolution;
 
-        if (highL && verbose) {
-            cout << *this << endl;
-            reset_stats();
-            cout << "===== " << k << "===== " << endl; // debug stuff
-        }
-
-        // try merging
-        auto mergedSolution = solve_unconnected(minstance, k);
-        assert(!mergedSolution.worked || mergedSolution.cost == k);
-        if (mergedSolution.worked)
-            return mergedSolution;
-
-        // try permanent deletion
-        auto forbiddenSolution = solve_unconnected(finstance, k);
-        assert(!forbiddenSolution.worked || forbiddenSolution.cost == k);
-        if (forbiddenSolution.worked)
-            return forbiddenSolution;
-    }
-
-    return {};
+    // try permanent deletion
+    auto forbiddenSolution = solve_internal(finstance, budget);
+    assert(!forbiddenSolution.worked || forbiddenSolution.cost <= budget);
+    return forbiddenSolution;
 }
 
-Solution ExactSolver::solve_unconnected(Instance graph, int budget, bool highL) {
+Solution ExactSolver::solve_unconnected(Instance graph, int budget) {
     if (budget < graph.spendCost) return {}; // that should probably never happen
     Solution solution;
     solution.worked = true;
@@ -145,7 +176,7 @@ Solution ExactSolver::solve_unconnected(Instance graph, int budget, bool highL) 
     auto comps = constructConnectedComponents(graph);
     if (size(comps) > 1) numDisconnects++;
     for (auto comp : comps) {
-        auto subsolution = solve_connected(comp, budget - solution.cost, highL);
+        auto subsolution = solve_internal(comp, budget - solution.cost); // TODO this breaks if solve_internal is not guaranteed to find best solution
         if (!subsolution.worked || solution.cost + subsolution.cost > budget) {
             solution.worked = false;
             break;
@@ -177,7 +208,37 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
         if(auto opt = distance4Reduction(inst); opt) inst = *opt;
     }
 
-    return solve_unconnected(inst, budget_limit, true);
+    Solution s_comb;
+    s_comb.cost = inst.spendCost;
+
+    if(verbose) cout << "cost of initial reductions " << s_comb.cost << endl;
+    auto comps = constructConnectedComponents(inst);
+    sort(begin(comps), end(comps), [](auto& a, auto& b){ return size(a.edges)<size(b.edges); });
+    if(verbose) cout << "split into " << size(comps) << " CCs" << endl;
+    for (auto& comp : comps) {
+
+        if(verbose) cout << "start solving CC of size " << size(comp.edges) << endl;
+
+        Solution s;
+        auto lower = packing_lower_bound(comp.edges, INF);
+        for (int budget = lower; !s.worked && s_comb.cost+budget<=budget_limit; ++budget) {
+            if(verbose) cout << "===== starting " << budget << " =====" << endl;
+            s = solve_internal(comp, budget);
+            if(verbose) cout << *this;
+            reset_stats();
+            if(verbose) cout << "===== finished " << budget << " =====" << endl << endl;
+        }
+
+        if(!s.worked) return {};
+
+        // add cliques of component to solution for complete graph
+        s_comb.cost += s.cost;
+        for (auto& clique : s.cliques)
+            s_comb.cliques.push_back(clique);
+    }
+    s_comb.worked = true;
+
+    return s_comb;
 }
 
 Solution solve_exact(Instance inst, int budget_limit) {

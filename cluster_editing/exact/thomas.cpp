@@ -152,14 +152,14 @@ optional<Instance> thomas(Instance graph) {
             subinst = *d4red;
 
         auto subinstSize = getSize(subinst.edges, cluster);
-        if (subinstSize == size(graph.edges) || subinstSize > 15) { // magic number
+        if (subinstSize == size(graph.edges) || subinstSize > 25) { // magic number
             //cout << "skipping cluster because it's too large" << endl;
             continue;
         }
         //cout << "Checking heuristic cluster of size " << size(cluster) << " and Subinstance size: " << subinstSize << endl;
         // put_together cost is an upper bound for subinst because it is a valid solution to make one cluster
         // put_together cost is smaller than heuristic cost because the heuristic solution has this cluster (thus paid put_together cost)
-        auto subsolution = solve_exact(subinst, put_together_cost);
+        auto subsolution = solve_exact(subinst, put_together_cost); // TODO only do this until put_together_cost -1
         auto opt_cost = subsolution.cost;
         assert(subsolution.worked);
         if (put_together_cost == opt_cost) {
