@@ -15,6 +15,6 @@ class DoNothingRefiner final : public IRefiner {
  private:
   void initializeImpl(Graph&) override final { }
 
-  void refineImpl(Graph&) override final { }
+  bool refineImpl(Graph&) override final { return false; }
 };
 }  // namespace cluster_editing
