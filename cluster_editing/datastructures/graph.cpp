@@ -82,4 +82,10 @@ namespace cluster_editing::ds {
     return std::make_pair(c_graph, clique_to_coarse_node);
   }
 
+  void Graph::reset() {
+    for ( const NodeID& u : nodes() ) {
+      _nodes[u].setClique(u);
+    }
+  }
+
 } // namespace cluster_editing::ds

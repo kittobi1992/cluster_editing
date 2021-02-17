@@ -312,6 +312,10 @@ class Graph {
    */
   std::pair<Graph, std::vector<NodeID>> contract() const;
 
+
+  // ####################### Reset #######################
+  void reset();
+
  private:
   friend class GraphFactory;
 

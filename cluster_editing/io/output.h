@@ -27,6 +27,8 @@
 
 namespace cluster_editing::io {
 
+  void printObjectives(const Graph& graph,
+                       const std::chrono::duration<double>& elapsed_seconds);
   void printClusterEditingResults(const Graph& hypergraph,
                                   const Context& context,
                                   const std::chrono::duration<double>& elapsed_seconds);

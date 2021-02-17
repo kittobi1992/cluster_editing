@@ -12,6 +12,7 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params) {
   str << "  Verbose Output:                " << std::boolalpha << params.verbose_output << std::endl;
   str << "  Seed:                          " << params.seed << std::endl;
   str << "  Use Multilevel:                " << std::boolalpha << params.use_multilevel << std::endl;
+  str << "  Number of Repititions:         " << params.num_repititions << std::endl;
   return str;
 }
 

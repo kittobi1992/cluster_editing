@@ -15,6 +15,7 @@ struct GeneralParameters {
   bool print_result_line = false;
   int seed = 0;
   bool use_multilevel = false;
+  int num_repititions = 0;
 };
 
 std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);

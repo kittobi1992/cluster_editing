@@ -53,7 +53,9 @@ namespace cluster_editing {
     po::options_description options("General Options", num_columns);
     options.add_options()
             ("use-multilevel", po::value<bool>(&context.general.use_multilevel)->value_name("<bool>")->default_value(false),
-             "If true, than multilevel paradigm is used.");
+             "If true, than multilevel paradigm is used.")
+            ("num-repititions", po::value<int>(&context.general.num_repititions)->value_name("<int>"),
+             "Number of Repititions");
     return options;
   }
 
