@@ -48,6 +48,15 @@ namespace cluster_editing {
     return options;
   }
 
+  po::options_description createGenericOptionsDescription(Context& context,
+                                                          const int num_columns) {
+    po::options_description options("General Options", num_columns);
+    options.add_options()
+            ("use-multilevel", po::value<bool>(&context.general.use_multilevel)->value_name("<bool>")->default_value(false),
+             "If true, than multilevel paradigm is used.");
+    return options;
+  }
+
   po::options_description createCoarseningOptionsDescription(Context& context,
                                                              const int num_columns) {
     po::options_description options("Coarsening Options", num_columns);
@@ -58,11 +67,7 @@ namespace cluster_editing {
                        context.coarsening.algorithm = cluster_editing::coarseningAlgorithmFromString(ctype);
                      }),
              "Coarsening Algorithm:\n"
-             " - do_nothing")
-            ("c-maximum-lp-iterations", po::value<int>(&context.coarsening.maximum_lp_iterations)->value_name("<int>"),
-             "Maximum iterations made by the label propagation coarsener per pass")
-            ("c-only-single-level", po::value<bool>(&context.coarsening.only_single_level)->value_name("<bool>")->default_value(true),
-             "If true, than graph is recursively clustered.");
+             " - do_nothing");
     return options;
   }
 
@@ -70,13 +75,10 @@ namespace cluster_editing {
                                                              const int num_columns) {
     po::options_description options("Refinement Options", num_columns);
     options.add_options()
-            ("r-type",
-             po::value<std::string>()->value_name("<string>")->notifier(
-                     [&](const std::string& rtype) {
-                       context.refinement.algorithm = cluster_editing::refinementAlgorithmFromString(rtype);
-                     }),
-             "Refinement Algorithm:\n"
-             " - do_nothing");
+            ("r-use-lp-refiner", po::value<bool>(&context.refinement.use_lp_refiner)->value_name("<bool>")->default_value(false),
+             "If true, than label propagation is used to improve quality.")
+            ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
+             "Maximum iterations made by the label propagation refiner");
     return options;
   }
 
@@ -85,6 +87,8 @@ namespace cluster_editing {
 
     po::options_description general_options =
       createGeneralOptionsDescription(context, num_columns);
+    po::options_description generic_options =
+      createGenericOptionsDescription(context, num_columns);
     po::options_description coarsening_options =
       createCoarseningOptionsDescription(context, num_columns);
     po::options_description refinement_options =
@@ -93,6 +97,7 @@ namespace cluster_editing {
     po::options_description cmd_line_options;
     cmd_line_options
       .add(general_options)
+      .add(generic_options)
       .add(coarsening_options)
       .add(refinement_options);
 
@@ -115,6 +120,7 @@ namespace cluster_editing {
 
     po::options_description ini_line_options;
     ini_line_options
+      .add(generic_options)
       .add(coarsening_options)
       .add(refinement_options);
 

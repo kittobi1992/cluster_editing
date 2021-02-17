@@ -23,7 +23,7 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
   EdgeWeight start_metric =
     metrics::edge_deletions(graph) + metrics::edge_insertions(graph);
   EdgeWeight current_metric = start_metric;
-  for ( int i = 0; i < _context.coarsening.maximum_lp_iterations && !converged; ++i ) {
+  for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
 
     utils::Timer::instance().start_timer("random_shuffle", "Random Shuffle");
     utils::Randomize::instance().shuffleVector(_nodes, _nodes.size());

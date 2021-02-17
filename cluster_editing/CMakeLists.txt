@@ -11,6 +11,7 @@ configure_file(data_path.h.in data_path.h)
 
 set(ClusterEditingSources
       preprocessing.cpp
+      flat.cpp
       multilevel.cpp
       data_path.h
       )

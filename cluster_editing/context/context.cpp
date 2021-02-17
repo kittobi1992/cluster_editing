@@ -11,20 +11,27 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params) {
   str << "  Output File:                   " << params.output_file << std::endl;
   str << "  Verbose Output:                " << std::boolalpha << params.verbose_output << std::endl;
   str << "  Seed:                          " << params.seed << std::endl;
+  str << "  Use Multilevel:                " << std::boolalpha << params.use_multilevel << std::endl;
   return str;
 }
 
 std::ostream & operator<< (std::ostream& str, const CoarseningParameters& params) {
   str << "Coarsening Parameters:" << std::endl;
   str << "  Algorithm:                     " << params.algorithm << std::endl;
-  str << "  Maximum LP Iterations:         " << params.maximum_lp_iterations << std::endl;
-  str << "  Only Single-Level:             " << std::boolalpha << params.only_single_level << std::endl;
+  return str;
+}
+
+std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParameters& params) {
+  str << "\n  Label Propagation Refiner Parameters:" << std::endl;
+  str << "    Maximum LP Iterations:       " << params.maximum_lp_iterations << std::endl;
   return str;
 }
 
 std::ostream & operator<< (std::ostream& str, const RefinementParameters& params) {
   str << "Refinement Parameters:" << std::endl;
-  str << "  Algorithm:                     " << params.algorithm << std::endl;
+  if ( params.use_lp_refiner ) {
+    str << params.lp;
+  }
   return str;
 }
 

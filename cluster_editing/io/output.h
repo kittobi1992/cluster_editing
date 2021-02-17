@@ -42,5 +42,6 @@ namespace cluster_editing::io {
   void printPreprocessingBanner(const Context& context);
   void printUndoPreprocessingBanner(const Context& context);
   void printCoarseningBanner(const Context& context);
+  void printFlatBanner(const Context& context);
   void printUncoarseningBanner(const Context& context);
 }  // namespace cluster_editing::io

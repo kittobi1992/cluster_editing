@@ -14,20 +14,26 @@ struct GeneralParameters {
   bool verbose_output = true;
   bool print_result_line = false;
   int seed = 0;
+  bool use_multilevel = false;
 };
 
 std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);
 
 struct CoarseningParameters {
   CoarseningAlgorithm algorithm = CoarseningAlgorithm::UNDEFINED;
-  int maximum_lp_iterations = std::numeric_limits<int>::max();
-  bool only_single_level = false;
 };
 
 std::ostream & operator<< (std::ostream& str, const CoarseningParameters& params);
 
+struct LabelPropagationRefinerParameters {
+  int maximum_lp_iterations = std::numeric_limits<int>::max();
+};
+
+std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParameters& params);
+
 struct RefinementParameters {
-  RefinementAlgorithm algorithm = RefinementAlgorithm::UNDEFINED;
+  bool use_lp_refiner = false;
+  LabelPropagationRefinerParameters lp;
 };
 
 std::ostream & operator<< (std::ostream& str, const RefinementParameters& params);

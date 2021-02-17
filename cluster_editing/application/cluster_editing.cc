@@ -2,6 +2,7 @@
 
 #include "cluster_editing/definitions.h"
 #include "cluster_editing/preprocessing.h"
+#include "cluster_editing/flat.h"
 #include "cluster_editing/multilevel.h"
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/utils/randomize.h"
@@ -36,7 +37,11 @@ int main(int argc, char* argv[]) {
 
   // Multilevel Solver
   cluster_editing::utils::Timer::instance().start_timer("multilevel_solver", "Multilevel Solver");
-  cluster_editing::multilevel::solve(graph, context);
+  if ( context.general.use_multilevel ) {
+    cluster_editing::multilevel::solve(graph, context);
+  } else {
+    cluster_editing::flat::solve(graph, context);
+  }
   cluster_editing::utils::Timer::instance().stop_timer("multilevel_solver");
 
   // Undo Preprocessing

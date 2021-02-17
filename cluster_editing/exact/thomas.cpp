@@ -56,7 +56,7 @@ auto solveHeuristic(const Instance &inst) {
     auto adjList = makeAdjList(inst);
     cluster_editing::Context context;
     context.coarsening.algorithm = cluster_editing::CoarseningAlgorithm::lp_coarsener;
-    context.refinement.algorithm = cluster_editing::RefinementAlgorithm::do_nothing;
+    context.refinement.lp.maximum_lp_iterations = 5;
     cluster_editing::Graph graph = cluster_editing::ds::GraphFactory::construct(adjList);
     context.general.verbose_output = false;
 
