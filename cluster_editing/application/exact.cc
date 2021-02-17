@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
     - 097 (k=95 auch wenn TU Berlin solver 96 sagt)
     - 115 (k=306) 10s
     - 119 (k=184) 9s
-    - 127 (k=131 aber TU sagt 130?)
+    - 127 (k=130)
     - 137 (k=16)
     - 153 (k=6)
     - 155 (k=63)

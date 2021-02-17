@@ -71,6 +71,7 @@ auto solveHeuristic(const Instance &inst) {
 
 Instance createSubinst(Instance &graph, vector<int> &cluster) {
     auto inst = Instance(size(graph.edges));
+    for(auto& row : inst.edges) fill(begin(row), end(row), 0);
     for (auto node: cluster) {
         for (int i = 0; i < size(graph.edges); ++i) {
             inst.edges[node][i] = graph.edges[node][i];
