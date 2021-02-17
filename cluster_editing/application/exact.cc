@@ -76,13 +76,27 @@ int main(int argc, char *argv[]) {
     /*
     we can solve
     - 001 (k=3)
-    - 065 (k=128) longest with 1s
+    - 003 (k=42)
+    - 005 (k=46)
+    - 007 (k=46) 226s
+    - 009 (k=86) 231s
+    - 011 (k=81) 77s
+    - 041 (k=184) 15s
+    - 057 (k=122)
+    - 065 (k=128) 10s
+    - 075 (k=132) 61s
     - 077 (k=78)
+    - 079 (k=48)
     - 097 (k=95 auch wenn TU Berlin solver 96 sagt)
+    - 115 (k=306) 10s
+    - 119 (k=184) 9s
+    - 127 (k=131 aber TU sagt 130?)
     - 137 (k=16)
     - 153 (k=6)
     - 155 (k=63)
+    - 161 (k=333) 88s
     - 173 (k=100)
+    - 185 (k=203) 51s
     */
     string file = EXACT_DATA_DIR + "exact179.gr"s;
     if (argc > 1)

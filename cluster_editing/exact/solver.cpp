@@ -222,12 +222,14 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
         Solution s;
         auto lower = packing_lower_bound(comp.edges, INF);
         for (int budget = lower; !s.worked && s_comb.cost+budget<=budget_limit; ++budget) {
-            if(verbose) cout << "===== starting " << budget << " =====" << endl;
+            //if(verbose) cout << "===== starting " << budget << " =====" << endl;
+            if(verbose) cout << budget << "   \r" << flush;
             s = solve_internal(comp, budget);
-            if(verbose) cout << *this;
+            //if(verbose) cout << *this;
             reset_stats();
-            if(verbose) cout << "===== finished " << budget << " =====" << endl << endl;
+            //if(verbose) cout << "===== finished " << budget << " =====" << endl << endl;
         }
+        if(verbose) cout << endl;
 
         if(!s.worked) return {};
 
