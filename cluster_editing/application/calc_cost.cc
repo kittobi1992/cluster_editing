@@ -1,90 +1,78 @@
 
 #include <algorithm>
 #include <iostream>
-#include <numeric>
-#include <sstream>
 #include <cassert>
+#include <fstream>
+
+#include <cluster_editing/exact/instance.h>
+#include <cluster_editing/exact/reductions.h>
+#include <cluster_editing/exact/thomas.h>
+#include <cluster_editing/exact/solver.h>
+
+#include <cluster_editing/data_path.h>
+#include <cluster_editing/utils/timer.h>
 
 using namespace std;
 
 // read graph into matrix
-vector<vector<int>> readGraph() {
 
-  std::istringstream sstream;
-  auto getline = [&]() {
-    std::string line;
-    do {
-      std::getline(cin, line);
-    } while ( line[0] == 'c' );
-    sstream = std::istringstream(line);
-  };
+vector<vector<int>> read_graph(int num) {
+    auto suf = to_string(num);
+    while(size(suf)<3) suf = '0'+suf;
+    auto file_name = EXACT_DATA_DIR + ("exact" + suf + ".gr");
+    ifstream in(file_name);
 
+    std::istringstream sstream;
+    auto getline = [&]() {
+        std::string line;
+        do {
+            std::getline(in, line);
+        } while (line[0] == 'c');
+        sstream = std::istringstream(line);
+    };
 
-  getline();
-  std::string skip;
-  int n, m;
-  sstream >> skip >> skip >> n >> m;
-
-  vector<vector<int>> res(n, vector<int>(n, -1));
-
-  for ( int i = 0; i < m; ++i ) {
     getline();
+    std::string skip;
+    int n, m;
+    sstream >> skip >> skip >> n >> m;
 
-    int u, v;
-    sstream >> u >> v;
-    --u; --v;
-    res[u][v] = 1;
-    res[v][u] = 1;
-  }
+    vector<vector<int>> res(n, vector<int>(n, -1));
 
-  return res;
+    for (int i = 0; i < m; ++i) {
+        getline();
+        int u, v;
+        sstream >> u >> v;
+        --u;
+        --v;
+        res[u][v] = 1;
+        res[v][u] = 1;
+    }
+
+    return res;
 }
 
 
-int main(int argc, char* argv[]) {
-  string file = "../../../instances/exact/exact005.gr";
+int main(int argc, char *argv[]) {
 
-  if(argc>1)
-    file = argv[1];
-  freopen(file.c_str(), "r", stdin);
-  cout << "reading file " << file << endl;
-  auto edges = readGraph();
-  cout << "n = " << size(edges) << endl;
+    int seconds = 1;
+    if(argc>1) seconds = atoi(argv[1]);
 
-  int n = size(edges);
-
-  vector<vector<int>> clust{
-    {1,6,7,8,9,10,13,14,15,19},
-    {2,16,17,18,20},
-    {3,4,5},
-    {11,12},
-  };
-
-  vector solution(n,0);
-  for(int c=0; c<size(clust); ++c)
-    for(auto v : clust[c])
-      solution[v-1] = c;
-
-
-  int detail = 19;
-  int plus = 0, neg = 0;
-
-  int cost = 0;
-  for(int i=0; i<n; ++i) 
-    for(int j=i+1; j<n; ++j) {
-      if(solution[i]!=solution[j]) cost += max(0, edges[i][j]);
-      else cost += max(0,-edges[i][j]);
-      if(i==detail-1||j==detail-1) {
-        if(solution[i]!=solution[j] && edges[i][j]>0) cout << "+ " << i+1 << ' ' << j+1 << endl, plus++;
-        if(solution[i]==solution[j] && edges[i][j]<0) cout << "- " << i+1 << ' ' << j+1 << endl, neg++;
-
-      }
+    int solved = 0;
+    for(int i=1; i<200; i+=2) {
+        auto edges = read_graph(i);
+        Instance inst(size(edges));
+        inst.edges = edges;
+        auto t1 = chrono::steady_clock::now();
+        auto s = solve_exact(inst, INF, 1'000*seconds);
+        auto t2 = chrono::steady_clock::now();
+        auto dur = chrono::duration_cast<chrono::milliseconds>(t2-t1).count() * 0.001;
+        if(s.worked) {
+            solved++;
+            cout << "solved " << i << " in " << dur << " seconds" << endl;
+        }
     }
 
-  cout << "pos: " << plus<< endl;
-  cout << "neg: " << neg << endl;
+    cout << "total: " << solved << endl;
 
-  cout << cost << endl;
-
-  return 0;
+    return 0;
 }

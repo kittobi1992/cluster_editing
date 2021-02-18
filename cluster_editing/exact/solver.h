@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iostream>
+#include <chrono>
 
 #include "instance.h"
 
@@ -25,11 +26,12 @@ public:
     int numPrunes = 0; // unsolvable leaf
 
     void reset_stats();
+    std::chrono::steady_clock::time_point time_limit = std::chrono::steady_clock::time_point::max();
 private:
     Solution solve_unconnected(Instance graph, int budget);
     Solution solve_internal(Instance graph, int budget);
 };
 
-Solution solve_exact(Instance inst, int budget_limit = INF);
+Solution solve_exact(Instance inst, int budget_limit = INF, int time_limit = INF);
 
 std::ostream &operator<<(std::ostream& os, const ExactSolver& rhs);
