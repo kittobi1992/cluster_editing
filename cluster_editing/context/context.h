@@ -28,6 +28,8 @@ std::ostream & operator<< (std::ostream& str, const CoarseningParameters& params
 
 struct LabelPropagationRefinerParameters {
   int maximum_lp_iterations = std::numeric_limits<int>::max();
+  int activate_all_cliques_after_rounds = std::numeric_limits<int>::max();
+  bool random_shuffle_each_round = false;
 };
 
 std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParameters& params);

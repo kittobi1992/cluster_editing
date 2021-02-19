@@ -25,6 +25,8 @@ std::ostream & operator<< (std::ostream& str, const CoarseningParameters& params
 std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParameters& params) {
   str << "\n  Label Propagation Refiner Parameters:" << std::endl;
   str << "    Maximum LP Iterations:       " << params.maximum_lp_iterations << std::endl;
+  str << "    Act. Cliques After Round:    " << params.activate_all_cliques_after_rounds << std::endl;
+  str << "    Random Shuffle each Round:   " << std::boolalpha << params.random_shuffle_each_round << std::endl;
   return str;
 }
 
