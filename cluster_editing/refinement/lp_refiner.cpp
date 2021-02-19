@@ -8,6 +8,15 @@
 
 namespace cluster_editing {
 
+/**
+ * Lessons learned:
+ *  - LP Refiner converges slowly for large sparse graphs (still good improvements
+ *    later iterations)
+ *  - A move of a vertex can change the gain of a non-adjacent vertex, since
+ *    number of insertions depends on cluster size
+ *  - Tie breaking is important to achieve higher quality
+ */
+
 void LabelPropagationRefiner::initializeImpl(Graph& graph) {
   _moved_vertices = 0;
   _clique_weight.assign(graph.numNodes(), 0);
