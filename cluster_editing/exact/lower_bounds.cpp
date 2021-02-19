@@ -1,53 +1,97 @@
 
 #include <cluster_editing/exact/lower_bounds.h>
 
-#include <array>
 #include <cassert>
 #include <vector>
-#include <optional>
 #include <numeric>
 #include <algorithm>
+#include <random>
 
 using namespace std;
 
-int packing_local_search_bound(const Instance& inst, int limit) {
-    auto edges = inst.edges;
-    using Triple = array<int,4>; // array (u,v,w,cost) represents triple v-u-w with cost being min(uv,uw,-vw)
+struct Triple {
+    int u=-1,v=-1,w=-1;
+    int cost=0;
+    bool valid = false;
 
-    int n = size(edges);
-    long long cost = 0; // maintains sum of packing[i].cost
-    auto apply = [&](const Triple& t, bool undo=false) {
-        auto [u,v,w,uvw_cost] = t;
-        if(undo) uvw_cost = -uvw_cost;
-        cost += uvw_cost;
-        edges[v][u] = edges[u][v] = edges[u][v] - uvw_cost;
-        edges[w][u] = edges[u][w] = edges[u][w] - uvw_cost;
-        edges[w][v] = edges[v][w] = edges[v][w] + uvw_cost;
+    Triple() = default;
+    Triple(int a, int b, int c, const Edges& potential) {
+        if (a==b || b==c || a==c)
+            return;
 
-        if(!undo) {
-            assert(edges[u][v]>=0);
-            assert(edges[u][w]>=0);
-            assert(edges[v][w]<=0);
+        if (potential[a][b] < 0)
+            u = c, v = a, w = b;
+        else if (potential[b][c] < 0)
+            u = a, v = b, w = c;
+        else if (potential[a][c] < 0)
+            u = b, v = a, w = c;
+
+        if (u==-1)
+            return;
+        if (v > w)
+            swap(v, w);
+        auto uv = potential[u][v];
+        auto vw = potential[v][w];
+        auto uw = potential[u][w];
+        if (!(uv > 0 && uw > 0))
+            return;
+        assert(uv > 0);
+        assert(uw > 0);
+        assert(vw < 0);
+
+        cost = min(uv, min(uw, -vw));
+        assert(cost > 0);
+        valid = true;
+    }
+
+    // returns cost modification of total packing
+    int apply(Edges& potential, bool undo=false) {
+        int mod = undo ? -cost : cost;
+        potential[v][u] = potential[u][v] = potential[u][v] - mod;
+        potential[w][u] = potential[u][w] = potential[u][w] - mod;
+        potential[w][v] = potential[v][w] = potential[v][w] + mod;
+        assert(potential[u][v] >= 0);
+        assert(potential[u][w] >= 0);
+        assert(potential[v][w] <= 0);
+        if(undo) {
+            assert(potential[u][v]);
+            assert(potential[u][w]);
+            assert(potential[v][w]);
         }
-    };
+        return mod;
+    }
 
+    bool operator<(const Triple& rhs) const {
+        return !rhs.valid || this->cost < rhs.cost;
+    }
+};
+
+int packing_local_search_bound(const Instance& inst, int limit) {
+    auto potential = inst.edges;
+
+    int n = size(potential);
+    long long cost = 0; // maintains sum of packing[i].cost
+
+    // build initial packing
     vector<Triple> packing;
     for(int u=0; u<n; ++u) {
         for(int v=0; v<n; ++v) {
-            auto& uv = edges[u][v];
-            if(uv<=0) continue;
+            auto& uv = potential[u][v];
             for(int w=v+1; w<n && uv>0; ++w) {
-                auto& uw = edges[u][w];
-                auto& vw = edges[v][w];
+                auto& uw = potential[u][w];
+                auto& vw = potential[v][w];
                 if(uw<=0 || vw>=0) continue;
-                packing.push_back({u,v,w, min(uv,min(uw,-vw))});
-                assert(edges[u][v]>0 && edges[u][w]>0 && edges[v][w]<0);
-                assert(packing.back()[3]>0);
-                apply(packing.back());
+                Triple t(u,v,w,potential);
+                assert(t.valid);
+                cost += t.apply(potential);
+                packing.push_back(t);
                 if(cost>limit) return cost;
             }
         }
     }
+
+    mt19937 gen(1337);
+    uniform_real_distribution<> dist; // [0,1)
 
     // local search part
     int num_no_improvement = 0;
@@ -57,66 +101,41 @@ int packing_local_search_bound(const Instance& inst, int limit) {
 
         for(int i=0; i<size(packing); ++i) {
             // try to replace this triple in packing
-            auto [u,v,w,uvw_cost] = packing[i];
+            auto [u,v,w,uvw_cost,valid] = packing[i];
             // undo triple
-            apply(packing[i], true);
-            assert(edges[u][v]>0 && edges[u][w]>0 && edges[v][w]<0);
+            cost += packing[i].apply(potential, true);
 
-            optional<Triple> rep_uv;
-            for(int x=0; x<n; ++x) { // find other triple using the edge uv
-                if(x==w || x==v || x==u) continue;
-                if(edges[v][x]==0 || edges[u][x]==0) continue;
-                if((edges[v][x]>0)==(edges[u][x]>0)) continue;
-                int c = min(edges[u][v], min(abs(edges[u][x]), abs(edges[v][x])));
-                Triple t{u,v,x,c};
-                if(edges[u][x]<0) swap(t[0],t[1]);
-                assert(edges[t[0]][t[1]]>0 && edges[t[0]][t[2]]>0 && edges[t[1]][t[2]]<0);
-                if(!rep_uv || rep_uv->at(3)<c) rep_uv = t;
+            vector<pair<Triple,int>> alternatives; // 0-3 elemns
+            for(auto [a,b] : {pair(u,v), pair(u,w), pair(v,w)}) {
+
+                tuple<Triple,double,int> mx;
+                auto& [best,rand,cand] = mx;
+                for(int x=0; x<n; ++x) {
+                    if(x==u||x==v||x==w) continue;
+                    Triple t(a,b,x,potential);
+                    if(!t.valid) continue;
+                    mx = max(mx, tuple(t,dist(gen),x));
+                }
+                for(auto& [t,x] : alternatives)
+                    best.valid &= cand != x;
+                if(best.valid)
+                    alternatives.push_back(pair(best,cand));
             }
 
-            optional<Triple> rep_uw;
-            for(int x=0; x<n; ++x) { // find other triple using the edge uw
-                if(x==w || x==v || x==u || (rep_uv && x==rep_uv->at(2))) continue;
-                if(edges[w][x]==0 || edges[u][x]==0) continue;
-                if((edges[w][x]>0)==(edges[u][x]>0)) continue;
-                int c = min(edges[u][w], min(abs(edges[u][x]), abs(edges[w][x])));
-                Triple t{u,w,x,c};
-                if(edges[u][x]<0) swap(t[0],t[1]);
-                assert(edges[t[0]][t[1]]>0 && edges[t[0]][t[2]]>0 && edges[t[1]][t[2]]<0);
-                if(!rep_uw || rep_uw->at(3)<c) rep_uw = t;
-            }
+            int sum = 0;
+            for(auto& [t,x] : alternatives) sum += t.cost;
 
-            optional<Triple> rep_vw;
-            for(int x=0; x<n; ++x) { // find other triple using the edge vw
-                if(x==w || x==v || x==u) continue;
-                if(rep_uv && x==rep_uv->at(2)) continue;
-                if(rep_uw && x==rep_uw->at(2)) continue;
-                if(edges[w][x]<=0 || edges[v][x]<=0) continue; // both must be present
-                int c = min(-edges[v][w], min(edges[v][x], edges[w][x]));
-                Triple t{x,v,w,c};
-                assert(edges[t[0]][t[1]]>0 && edges[t[0]][t[2]]>0 && edges[t[1]][t[2]]<0);
-                if(!rep_vw || rep_vw->at(3)<c) rep_vw = t;
-            }
-
-            vector<Triple> reps;
-            if(rep_uv) reps.push_back(*rep_uv);
-            if(rep_uw) reps.push_back(*rep_uw);
-            if(rep_vw) reps.push_back(*rep_vw);
-            auto sum = accumulate(begin(reps), end(reps), 0, [](int acc, auto& t){ return acc+t[3]; });
-            if(uvw_cost>=sum) { // uvw was good
-                apply(packing[i]);
+            if(uvw_cost>sum || (uvw_cost==sum && dist(gen)<0.7)) { // uvw was good
+                cost += packing[i].apply(potential); // do not replace uvw
                 continue;
             }
 
             // replace uvw
-            has_improved = true;
-            sort(begin(reps), end(reps), [](auto& t1, auto& t2){ return t1[3]>t2[3]; });
-            packing[i] = reps[0];
-            apply(reps[0]);
-            for(int k=1; k<size(reps); ++k) {
-                packing.push_back(reps[k]);
-                apply(reps[k]);
-            }
+            has_improved = uvw_cost<sum;
+            for(auto& [t,x] : alternatives) cost += t.apply(potential);
+            packing[i] = alternatives.back().first;
+            alternatives.pop_back();
+            for(auto& [t,x] : alternatives) packing.push_back(t);
         }
 
         num_no_improvement = has_improved ? 0 : num_no_improvement+1;

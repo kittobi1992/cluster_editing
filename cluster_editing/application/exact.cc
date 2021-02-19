@@ -11,7 +11,9 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
-    auto inst = load_exact_instance(179);
+    int num = 179;
+    if(argc>1) num = atoi(argv[1]);
+    auto inst = load_exact_instance(num);
 
     auto& timer = cluster_editing::utils::Timer::instance();
     timer.start_timer("solving", "solving instance");
