@@ -20,7 +20,8 @@ private:
 
 	struct NodeData {
 		CliqueID desired_target = INVALID_CLIQUE;
-		NodeID ttv_index = INVALID_NODE;
+		EdgeWeight weight_to_target_clique, weight_to_current_clique = 0;
+		NodeID index_in_target_clique = INVALID_NODE, index_in_current_clique = INVALID_NODE;
 		uint32_t num_skips = 0,  last_move_round = 0;
 	};
 
@@ -37,9 +38,10 @@ public:
 			_nodes(),
 			_clique_weight(graph.numNodes()),
 			_empty_cliques(),
-			_rating(graph.numNodes()),
+			edge_weight_to_clique(graph.numNodes()),
 			n(graph.numNodes()),
-			target_clique_to_nodes(graph.numNodes()),
+			target_cliques(graph.numNodes()),
+			current_cliques(graph.numNodes()),
 			pq(graph.numNodes())
 			{ }
 
@@ -57,27 +59,40 @@ private:
 
 	Rating computeBestClique(Graph& graph, const NodeID u);
 
-	void updateLookupDatastructure(NodeID u, CliqueID target) {
-		removeFromLookupDataStructure(u);
-		insertIntoLookupDatastructure(u, target);
+	void updateTargetClique(NodeID u, CliqueID target) {
+		removeFromTargetClique(u);
+		insertIntoTargetClique(u, target);
 	}
 
-	void removeFromLookupDataStructure(NodeID u) {
+	void removeFromTargetClique(NodeID u) {
 		CliqueID old_target = n[u].desired_target;
 		if (old_target != ISOLATE_CLIQUE) {
-			target_clique_to_nodes[old_target][n[u].ttv_index] = target_clique_to_nodes[old_target].back();
-			n[target_clique_to_nodes[old_target].back()].ttv_index = n[u].ttv_index;
-			target_clique_to_nodes[old_target].pop_back();
-			n[u].ttv_index = std::numeric_limits<uint32_t>::max();
+			target_cliques[old_target][n[u].index_in_target_clique] = target_cliques[old_target].back();
+			n[target_cliques[old_target].back()].index_in_target_clique = n[u].index_in_target_clique;
+			target_cliques[old_target].pop_back();
+			n[u].index_in_target_clique = std::numeric_limits<uint32_t>::max();
 		}
 	}
 
-	void insertIntoLookupDatastructure(NodeID u, CliqueID target) {
+	void insertIntoTargetClique(NodeID u, CliqueID target) {
 		n[u].desired_target = target;
 		if (target != ISOLATE_CLIQUE) {
-			n[u].ttv_index = target_clique_to_nodes[target].size();
-			target_clique_to_nodes[target].push_back(u);
+			n[u].index_in_target_clique = target_cliques[target].size();
+			target_cliques[target].push_back(u);
 		}
+	}
+
+
+	EdgeWeight insertions(NodeWeight u_weight, NodeWeight target_clique_weight, EdgeWeight edge_weight_to_target_clique) const {
+		return u_weight * target_clique_weight - edge_weight_to_target_clique;
+	}
+
+	EdgeWeight deletions(EdgeWeight weighted_degree, EdgeWeight edge_weight_to_target_clique) const {
+		return weighted_degree - edge_weight_to_target_clique;
+	}
+
+	EdgeWeight gain(Graph& graph, NodeID u, CliqueID from, CliqueID target, EdgeWeight weight_to_current_clique, EdgeWeight weight_to_target_clique) const {
+		return (_clique_weight[target] - _clique_weight[from] + graph.nodeWeight(u)) * graph.nodeWeight(u) + 2 * (weight_to_current_clique - weight_to_target_clique);
 	}
 
 	const Context& _context;
@@ -85,11 +100,11 @@ private:
 	std::vector<NodeID> _nodes;
 	std::vector<NodeWeight> _clique_weight;
 	std::vector<CliqueID> _empty_cliques;
-	ds::SparseMap<CliqueID, EdgeWeight> _rating;
+	ds::SparseMap<CliqueID, EdgeWeight> edge_weight_to_clique;
 
 	uint32_t move_round;
 	std::vector<NodeData> n;
-	std::vector<std::vector<NodeID>> target_clique_to_nodes;
+	std::vector<std::vector<NodeID>> target_cliques, current_cliques;
 	mt_kahypar::ds::MinHeap<EdgeWeight, NodeID> pq;
 	std::vector<Move> moves;
 };

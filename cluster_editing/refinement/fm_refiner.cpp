@@ -8,23 +8,18 @@
 namespace cluster_editing {
 
 
-
-namespace {
-ATTRIBUTE_ALWAYS_INLINE EdgeWeight insertions(const NodeWeight u_weight,
-											  const NodeWeight clique_weight,
-											  const EdgeWeight incident_edge_weight) {
-	return u_weight * clique_weight - incident_edge_weight;
-}
-}
-
 void FMRefiner::initializeImpl(Graph& graph) {
 	_moved_vertices = 0;
 	_clique_weight.assign(graph.numNodes(), 0);
 	_empty_cliques.clear();
 	_nodes.clear();
 	for ( const NodeID& u : graph.nodes() ) {
-		_nodes.push_back(u);
 		_clique_weight[graph.clique(u)] += graph.nodeWeight(u);
+	}
+	for (NodeID u : graph.nodes()) {
+		if (_clique_weight[u] == 0) {
+			_empty_cliques.push_back(u);
+		}
 	}
 }
 
@@ -38,10 +33,10 @@ bool FMRefiner::refineImpl(Graph& graph) {
 		EdgeWeight best_delta = 0;
 
 		// init PQ
-		for ( const NodeID& u : _nodes ) {
+		for (const NodeID u : graph.nodes()) {
 			Rating rating = computeBestClique(graph, u);
 			pq.insert(u, rating.delta);
-			insertIntoLookupDatastructure(u, rating.clique);
+			insertIntoTargetClique(u, rating.clique);
 		}
 
 		// perform moves
@@ -53,25 +48,88 @@ bool FMRefiner::refineImpl(Graph& graph) {
 			if (rating.delta != estimated_gain) {
 				// retry! 		or do KaHiP approach and just apply? only if improvement?
 				pq.adjustKey(u, rating.delta);
-				updateLookupDatastructure(u, rating.clique);
+				updateTargetClique(u, rating.clique);
 				continue;
 			}
 
+			const CliqueID from = graph.clique(u), to = rating.clique;
 			round_delta += rating.delta;
 			if (round_delta < best_delta) {
 				// permanently apply all moves
 				moves.clear();
 			} else {
 				// store for rollback later
-				moves.push_back({ u, graph.clique(u), rating.clique });
+				moves.push_back({ u, from, to });
 			}
 
-			removeFromLookupDataStructure(u);
-			moveVertex(graph, u, rating.clique);
+
+			removeFromTargetClique(u);
+			moveVertex(graph, u, to);
 			ASSERT(current_metric + round_delta == metrics::edits(graph), "Rating is wrong. Expected:" << metrics::edits(graph) << "but is" << (current_metric + round_delta));
 
-			// update neighbors
-			
+			// TODO delay pq updates with SparseSet? so we do 1 instead of up to 8 pq updates
+
+			// update neighbors -- in original graph
+			for (const Neighbor& nb : graph.neighbors(u)) {
+				const NodeID v = nb.target;
+				const EdgeWeight we = graph.edgeWeight(nb.id);
+				if (graph.clique(v) == from) {
+					n[v].weight_to_current_clique -= we;
+					if (pq.contains(v)) {
+						pq.adjustKey(v, pq.getKey(v) - 2*we);
+					}
+				} else if (graph.clique(v) == to) {
+					n[v].weight_to_current_clique += we;
+					if (pq.contains(v)) {
+						pq.adjustKey(v, pq.getKey(v) + 2*we);
+					}
+				}
+				if (n[v].desired_target == from) {
+					n[v].weight_to_target_clique -= we;
+					if (pq.contains(v)) {
+						pq.adjustKey(v, pq.getKey(v) + 2*we);
+					}
+				} else if (n[v].desired_target == to) {
+					n[v].weight_to_target_clique += we;
+					if (pq.contains(v)) {
+						pq.adjustKey(v, pq.getKey(v) - 2*we);
+					}
+				}
+			}
+
+			// updates due to clique weight changes
+			const NodeWeight wu = graph.nodeWeight(u);
+			for (NodeID v : target_cliques[from]) {
+				if (pq.contains(v)) {
+					pq.adjustKey(v, pq.getKey(v) - wu * graph.nodeWeight(v));
+				}
+			}
+			for (NodeID v : target_cliques[to]) {
+				if (pq.contains(v)) {
+					pq.adjustKey(v, pq.getKey(v) + wu * graph.nodeWeight(v));
+				}
+			}
+
+			for (NodeID v : current_cliques[from]) {
+				if (pq.contains(v)) {
+					pq.adjustKey(v, pq.getKey(v) + wu * graph.nodeWeight(v));
+				}
+			}
+			for (NodeID v : current_cliques[to]) {
+				if (pq.contains(v)) {
+					pq.adjustKey(v, pq.getKey(v) - wu * graph.nodeWeight(v));
+				}
+			}
+
+			ASSERT([&] {
+				for (size_t i = 0; i < pq.size(); ++i) {
+					NodeID u = pq.at(i);
+					if (pq.keyAtPos(i) != gain(graph, u, graph.clique(u), n[u].desired_target, n[u].weight_to_current_clique, n[u].weight_to_target_clique)) {
+						return false;
+					}
+				}
+				return true;
+			}());
 
 		}
 
@@ -90,9 +148,14 @@ bool FMRefiner::refineImpl(Graph& graph) {
 	return current_metric < start_metric;
 }
 
-void FMRefiner::moveVertex(Graph& graph, const NodeID u, const CliqueID to) {
+void FMRefiner::moveVertex(Graph& graph, const NodeID u, CliqueID to) {
 	const CliqueID from = graph.clique(u);
 	ASSERT(from != to);
+	if (to == ISOLATE_CLIQUE) {
+		ASSERT(_empty_cliques.empty());
+		to = _empty_cliques.back();
+		ASSERT(_clique_weight[to] == 0);
+	}
 	_clique_weight[from] -= graph.nodeWeight(u);
 	const bool from_becomes_empty = _clique_weight[from] == 0;
 	const bool to_becomes_non_empty = _clique_weight[to] == 0;
@@ -110,42 +173,38 @@ void FMRefiner::moveVertex(Graph& graph, const NodeID u, const CliqueID to) {
 }
 
 FMRefiner::Rating FMRefiner::computeBestClique(Graph& graph, const NodeID u) {
-	_rating.clear();
-	const CliqueID u_c = graph.clique(u);
-	_rating[u_c] = 0;
+	edge_weight_to_clique.clear();
+	const CliqueID from = graph.clique(u);
 
-	for ( const Neighbor& n : graph.neighbors(u) ) {
-		const CliqueID v_c = graph.clique(n.target);
-		_rating[v_c] += graph.edgeWeight(n.id);
+	for ( const Neighbor& nb : graph.neighbors(u) ) {
+		const CliqueID v_c = graph.clique(nb.target);
+		edge_weight_to_clique[v_c] += graph.edgeWeight(nb.id);
 	}
 
 	const EdgeWeight u_weighted_degree = graph.weightedDegree(u);
 	const NodeWeight u_weight = graph.nodeWeight(u);
-	const EdgeWeight current_rating = insertions(u_weight, _clique_weight[u_c] -
-														   u_weight, _rating[u_c]) + (u_weighted_degree - _rating[u_c]) /* deletions */;
+	const EdgeWeight from_rating = insertions(u_weight, _clique_weight[from] - u_weight, edge_weight_to_clique[from])
+									+ deletions(u_weighted_degree, edge_weight_to_clique[from]);
 
 	// ignore the zero gain move of keeping u in its clique
 	Rating best_rating = { INVALID_CLIQUE, std::numeric_limits<EdgeWeight>::max(), std::numeric_limits<EdgeWeight>::max() };
 
-	for ( const auto& entry : _rating ) {
-		const CliqueID target_c = entry.key;
-		if ( target_c != u_c ) {
-			const EdgeWeight rating = insertions(u_weight, _clique_weight[target_c],
-												 entry.value) + (u_weighted_degree - entry.value) /* deletions */;
-			if (   rating < best_rating.rating ||
-				   ( rating == best_rating.rating && utils::Randomize::instance().flipCoin() )) {
-				best_rating.clique = target_c;
-				best_rating.rating = rating;
-				best_rating.delta = rating - current_rating;
+	for ( const auto& entry : edge_weight_to_clique ) {
+		const CliqueID to = entry.key;
+		if (to != from ) {
+			const EdgeWeight to_rating = insertions(u_weight, _clique_weight[to], entry.value)
+											+ deletions(u_weighted_degree, entry.value);
+			if (to_rating < best_rating.rating || (to_rating == best_rating.rating && utils::Randomize::instance().flipCoin())) {
+				best_rating = { to, to_rating, to_rating - from_rating };
 			}
 		}
 	}
 
-	// Check if it is beneficial to isolate the vertex again
+	// Check if it is beneficial to isolate the vertex again. if u is already isolated then this is not triggered
 	if ( !_empty_cliques.empty() && u_weighted_degree < best_rating.rating ) {
 		best_rating.clique = ISOLATE_CLIQUE;
 		best_rating.rating = u_weighted_degree;
-		best_rating.delta = u_weighted_degree - current_rating;
+		best_rating.delta = u_weighted_degree - from_rating;
 	}
 
 	return best_rating;
