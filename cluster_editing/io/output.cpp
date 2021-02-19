@@ -209,10 +209,20 @@ namespace internal {
 
   void printObjectives(const Graph& graph,
                        const std::chrono::duration<double>& elapsed_seconds) {
-    unused(graph);
+    std::vector<bool> _visited_cliques(graph.numNodes(), false);
+    size_t num_cliques = 0;
+    for ( const NodeID& u : graph.nodes() ) {
+      const CliqueID from = graph.clique(u);
+      if ( !_visited_cliques[from] ) {
+        ++num_cliques;
+        _visited_cliques[from] = true;
+      }
+    }
+
     const size_t edge_insertions = metrics::edge_insertions(graph);
     const size_t edge_deletions = metrics::edge_deletions(graph);
     LOG << "Objectives:";
+    LOG << " Number of Cliques              =" << num_cliques;
     LOG << " Edge Insertions     (minimize) =" << edge_insertions;
     LOG << " Edge Deletions      (minimize) =" << edge_deletions;
     LOG << " Total Modifications (minimize) =" << (edge_insertions + edge_deletions);

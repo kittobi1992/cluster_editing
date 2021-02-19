@@ -3,9 +3,20 @@
 #include "cluster_editing/io/output.h"
 #include "cluster_editing/utils/randomize.h"
 #include "cluster_editing/utils/timer.h"
+#include "cluster_editing/utils/progress_bar.h"
 #include "cluster_editing/metrics.h"
 
 namespace cluster_editing {
+
+/**
+ * Lessons learned:
+ *  - LP Refiner converges slowly for large sparse graphs (still good improvements
+ *    later iterations)
+ *  - A move of a vertex can change the gain of a non-adjacent vertex, since
+ *    number of insertions depends on cluster size
+ *  - Tie breaking is important to achieve higher quality
+ *  - Often finds exact solution for small instances
+ */
 
 void LabelPropagationRefiner::initializeImpl(Graph& graph) {
   _moved_vertices = 0;
@@ -19,10 +30,14 @@ void LabelPropagationRefiner::initializeImpl(Graph& graph) {
 }
 
 bool LabelPropagationRefiner::refineImpl(Graph& graph) {
+
   bool converged = false;
   EdgeWeight start_metric =
     metrics::edge_deletions(graph) + metrics::edge_insertions(graph);
   EdgeWeight current_metric = start_metric;
+  utils::ProgressBar lp_progress(
+    _context.refinement.lp.maximum_lp_iterations, start_metric,
+    _context.general.verbose_output && !_context.general.use_multilevel && !debug);
   for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
 
     utils::Timer::instance().start_timer("random_shuffle", "Random Shuffle");
@@ -33,7 +48,7 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
     converged = true;
     const EdgeWeight initial_metric = current_metric;
     for ( const NodeID& u : _nodes ) {
-      Rating rating = computeBestClique(graph, u);
+      Rating rating = computeBetTargetClique(graph, u);
       if ( rating.clique != graph.clique(u) ) {
         moveVertex(graph, u, rating.clique);
         ++_moved_vertices;
@@ -51,9 +66,13 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
     }
     utils::Timer::instance().stop_timer("local_moving");
 
+    lp_progress.setObjective(current_metric);
+    lp_progress += 1;
     DBG << "Pass Nr." << (i + 1) << "improved metric from"
-        << initial_metric << "to" << current_metric;
+        << initial_metric << "to" << current_metric
+        << "( Moved Vertices:" << _moved_vertices << ")";
   }
+  lp_progress += (_context.refinement.lp.maximum_lp_iterations - lp_progress.count());
 
   return current_metric < start_metric;
 }
@@ -79,41 +98,50 @@ void LabelPropagationRefiner::moveVertex(Graph& graph, const NodeID u, const Cli
 namespace {
 
   ATTRIBUTE_ALWAYS_INLINE EdgeWeight insertions(const NodeWeight u_weight,
-                                                const NodeWeight clique_weight,
-                                                const EdgeWeight incident_edge_weight) {
-    return u_weight * clique_weight - incident_edge_weight;
+                                                const NodeWeight target_clique_weight,
+                                                const EdgeWeight incident_edge_weight_to_target_clique) {
+    return u_weight * target_clique_weight - incident_edge_weight_to_target_clique;
+  }
+
+  ATTRIBUTE_ALWAYS_INLINE EdgeWeight deletions(const EdgeWeight u_weight_degree,
+                                               const EdgeWeight incident_edge_weight_to_target_clique) {
+    return u_weight_degree - incident_edge_weight_to_target_clique;
   }
 
 }
 
-LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestClique(Graph& graph, const NodeID u) {
+LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBetTargetClique(Graph& graph, const NodeID u) {
   _rating.clear();
   Rating best_rating;
-  const CliqueID u_c = graph.clique(u);
-  best_rating.clique = u_c;
-  _rating[u_c] = 0;
+  const CliqueID from = graph.clique(u);
+  best_rating.clique = from;
+  _rating[from] = 0;
 
   for ( const Neighbor& n : graph.neighbors(u) ) {
-    const CliqueID v_c = graph.clique(n.target);
-    _rating[v_c] += graph.edgeWeight(n.id);
+    const CliqueID to = graph.clique(n.target);
+    _rating[to] += graph.edgeWeight(n.id);
   }
 
   const EdgeWeight u_weighted_degree = graph.weightedDegree(u);
   const NodeWeight u_weight = graph.nodeWeight(u);
-  const EdgeWeight current_rating = insertions(u_weight, _clique_weight[u_c] -
-    u_weight, _rating[u_c]) + (u_weighted_degree - _rating[u_c]) /* deletions */;
-  best_rating.rating = current_rating;
+  const EdgeWeight from_rating =
+    insertions(u_weight, _clique_weight[from] - u_weight /* assumes u is not part of clique 'from'*/, _rating[from]) +
+    deletions(u_weighted_degree, _rating[from]);
+  best_rating.rating = from_rating;
   best_rating.delta = 0;
   for ( const auto& entry : _rating ) {
-    const CliqueID target_c = entry.key;
-    if ( target_c != u_c ) {
-      const EdgeWeight rating = insertions(u_weight, _clique_weight[target_c],
-        entry.value) + (u_weighted_degree - entry.value) /* deletions */;
-      if (   rating < best_rating.rating ||
-           ( rating == best_rating.rating && utils::Randomize::instance().flipCoin() )) {
-        best_rating.clique = target_c;
-        best_rating.rating = rating;
-        best_rating.delta = rating - current_rating;
+    const CliqueID to = entry.key;
+    if ( to != from ) {
+      const EdgeWeight to_rating =
+        insertions(u_weight, _clique_weight[to], entry.value) +
+        deletions(u_weighted_degree, entry.value);
+
+      // It looks like that tie breaking is very important to achieve better quality
+      if (   to_rating < best_rating.rating ||
+           ( to_rating == best_rating.rating && utils::Randomize::instance().flipCoin() ) ) {
+        best_rating.clique = to;
+        best_rating.rating = to_rating;
+        best_rating.delta = to_rating - from_rating;
       }
     }
   }
@@ -122,7 +150,7 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestClique(Graph
   if ( !_empty_cliques.empty() && u_weighted_degree < best_rating.rating ) {
     best_rating.clique = _empty_cliques.back();
     best_rating.rating = u_weighted_degree;
-    best_rating.delta = u_weighted_degree - current_rating;
+    best_rating.delta = u_weighted_degree - from_rating;
   }
 
   return best_rating;

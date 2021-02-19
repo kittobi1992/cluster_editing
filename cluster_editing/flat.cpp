@@ -1,3 +1,4 @@
+#include <cluster_editing/refinement/fm_refiner.h>
 #include "flat.h"
 
 #include "cluster_editing/macros.h"
@@ -20,6 +21,12 @@ void solve(Graph& graph, const Context& context) {
     lp_refiner.refine(graph);
   }
 
+  /*
+  FMRefiner fm_refiner(graph, context);
+  fm_refiner.initialize(graph);
+  fm_refiner.refine(graph);
+  */
+  
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds(end - start);
   if ( context.general.verbose_output ) {

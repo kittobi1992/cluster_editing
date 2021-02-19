@@ -41,4 +41,8 @@ inline size_t edge_deletions(const Graph& graph) {
   return deletions;
 }
 
+inline size_t edits(const Graph& graph) {
+	return edge_deletions(graph) + edge_insertions(graph);
+}
+
 } // namespace metrics
