@@ -3,6 +3,7 @@
 #include "cluster_editing/io/output.h"
 #include "cluster_editing/utils/randomize.h"
 #include "cluster_editing/utils/timer.h"
+#include "cluster_editing/utils/progress_bar.h"
 #include "cluster_editing/metrics.h"
 
 namespace cluster_editing {
@@ -24,6 +25,9 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
   EdgeWeight start_metric =
     metrics::edge_deletions(graph) + metrics::edge_insertions(graph);
   EdgeWeight current_metric = start_metric;
+  utils::ProgressBar lp_progress(
+    _context.refinement.lp.maximum_lp_iterations, start_metric,
+    _context.general.verbose_output && !debug);
   for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
 
     utils::Timer::instance().start_timer("random_shuffle", "Random Shuffle");
@@ -52,9 +56,13 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
     }
     utils::Timer::instance().stop_timer("local_moving");
 
+    lp_progress.setObjective(current_metric);
+    lp_progress += 1;
     DBG << "Pass Nr." << (i + 1) << "improved metric from"
-        << initial_metric << "to" << current_metric;
+        << initial_metric << "to" << current_metric
+        << "( Moved Vertices:" << _moved_vertices << ")";
   }
+  lp_progress += (_context.refinement.lp.maximum_lp_iterations - lp_progress.count());
 
   return current_metric < start_metric;
 }
@@ -117,6 +125,8 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBetTargetClique(
       const EdgeWeight to_rating =
         insertions(u_weight, _clique_weight[to], entry.value) +
         deletions(u_weighted_degree, entry.value);
+
+      // It looks like that tie breaking is very important to achieve better quality
       if (   to_rating < best_rating.rating ||
            ( to_rating == best_rating.rating && utils::Randomize::instance().flipCoin() ) ) {
         best_rating.clique = to;
