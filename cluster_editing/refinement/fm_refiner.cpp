@@ -36,7 +36,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
 		for (const NodeID u : graph.nodes()) {
 			Rating rating = computeBestClique(graph, u);
 			pq.insert(u, rating.delta);
-			insertIntoTargetClique(u, rating.clique);
+			insertIntoTargetClique(u, rating);
 		}
 
 		// perform moves
@@ -46,10 +46,10 @@ bool FMRefiner::refineImpl(Graph& graph) {
 
 			Rating rating = computeBestClique(graph, u);
 			if (rating.delta != estimated_gain) {
-				// retry! 		or do KaHiP approach and just apply? only if improvement?
+				// retry! 		or do KaHiP/Metis approach and just apply? only if improvement?
 				pq.adjustKey(u, rating.delta);
 				if (rating.clique != graph.clique(u)) {
-					updateTargetClique(u, rating.clique);
+					updateTargetClique(u, rating);
 				}
 				continue;
 			}
@@ -71,6 +71,8 @@ bool FMRefiner::refineImpl(Graph& graph) {
 
 			// TODO delay pq updates with SparseSet? so we do 1 instead of up to 8 pq updates
 
+			static constexpr uint32_t SKIP_THRESHOLD = 200;
+
 			// update neighbors -- in original graph
 			for (const Neighbor& nb : graph.neighbors(u)) {
 				const NodeID v = nb.target;
@@ -85,7 +87,17 @@ bool FMRefiner::refineImpl(Graph& graph) {
 					if (pq.contains(v)) {
 						pq.adjustKey(v, pq.getKey(v) + 2*we);
 					}
+				} else {
+					// TODO could also sum up edge weight changes. if weight changes allow for target cluster to change (multiply by some treshold) --> recompute
+					if (++n[v].num_skips > SKIP_THRESHOLD) {
+						n[v].num_skips = 0;
+						Rating rv = computeBestClique(graph, v);
+						if (rv.clique != n[v].desired_target) {
+							updateTargetClique(v, rv);
+						}
+					}
 				}
+
 				if (n[v].desired_target == from) {
 					n[v].weight_to_target_clique -= we;
 					if (pq.contains(v)) {
@@ -95,6 +107,14 @@ bool FMRefiner::refineImpl(Graph& graph) {
 					n[v].weight_to_target_clique += we;
 					if (pq.contains(v)) {
 						pq.adjustKey(v, pq.getKey(v) - 2*we);
+					}
+				} else {
+					if (++n[v].num_skips > SKIP_THRESHOLD) {
+						n[v].num_skips = 0;
+						Rating rv = computeBestClique(graph, v);
+						if (rv.clique != n[v].desired_target) {
+							updateTargetClique(v, rv);
+						}
 					}
 				}
 			}
@@ -153,6 +173,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
 void FMRefiner::moveVertex(Graph& graph, const NodeID u, CliqueID to) {
 	const CliqueID from = graph.clique(u);
 	ASSERT(from != to);
+	
 	if (to == ISOLATE_CLIQUE) {
 		ASSERT(_empty_cliques.empty());
 		to = _empty_cliques.back();
@@ -189,7 +210,7 @@ FMRefiner::Rating FMRefiner::computeBestClique(Graph& graph, const NodeID u) {
 									+ deletions(u_weighted_degree, edge_weight_to_clique[from]);
 
 	// ignore the zero gain move of keeping u in its clique
-	Rating best_rating = { INVALID_CLIQUE, std::numeric_limits<EdgeWeight>::max(), std::numeric_limits<EdgeWeight>::max() };
+	Rating best_rating = { INVALID_CLIQUE, std::numeric_limits<EdgeWeight>::max(), std::numeric_limits<EdgeWeight>::max(), std::numeric_limits<EdgeWeight>::max() };
 
 	for ( const auto& entry : edge_weight_to_clique ) {
 		const CliqueID to = entry.key;
@@ -197,16 +218,14 @@ FMRefiner::Rating FMRefiner::computeBestClique(Graph& graph, const NodeID u) {
 			const EdgeWeight to_rating = insertions(u_weight, _clique_weight[to], entry.value)
 											+ deletions(u_weighted_degree, entry.value);
 			if (to_rating < best_rating.rating || (to_rating == best_rating.rating && utils::Randomize::instance().flipCoin())) {
-				best_rating = { to, to_rating, to_rating - from_rating };
+				best_rating = { to, to_rating, to_rating - from_rating, entry.value };
 			}
 		}
 	}
 
 	// Check if it is beneficial to isolate the vertex again. if u is already isolated then this is not triggered
 	if ( !_empty_cliques.empty() && u_weighted_degree < best_rating.rating ) {
-		best_rating.clique = ISOLATE_CLIQUE;
-		best_rating.rating = u_weighted_degree;
-		best_rating.delta = u_weighted_degree - from_rating;
+		best_rating = { ISOLATE_CLIQUE, u_weighted_degree, u_weighted_degree - from_rating, 0 };
 	}
 
 	return best_rating;

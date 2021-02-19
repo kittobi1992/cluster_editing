@@ -16,6 +16,7 @@ private:
 		CliqueID clique;
 		EdgeWeight rating;
 		EdgeWeight delta;
+		EdgeWeight weight_to_clique;
 	};
 
 	struct NodeData {
@@ -59,9 +60,9 @@ private:
 
 	Rating computeBestClique(Graph& graph, const NodeID u);
 
-	void updateTargetClique(NodeID u, CliqueID target) {
+	void updateTargetClique(NodeID u, Rating& r) {
 		removeFromTargetClique(u);
-		insertIntoTargetClique(u, target);
+		insertIntoTargetClique(u, r);
 	}
 
 	void removeFromTargetClique(NodeID u) {
@@ -74,8 +75,10 @@ private:
 		}
 	}
 
-	void insertIntoTargetClique(NodeID u, CliqueID target) {
+	void insertIntoTargetClique(NodeID u, Rating& r) {
+		CliqueID target = r.clique;
 		n[u].desired_target = target;
+		n[u].weight_to_target_clique = r.weight_to_clique;
 		if (target != ISOLATE_CLIQUE) {
 			n[u].index_in_target_clique = target_cliques[target].size();
 			target_cliques[target].push_back(u);
