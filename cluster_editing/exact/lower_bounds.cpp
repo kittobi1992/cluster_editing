@@ -74,33 +74,28 @@ int packingCost(const vector<Triple> & packing) {
     return cost;
 }
 
-void maximizePacking(vector<Triple>& packing, Edges& potential) {
-    mt19937 gen{random_device{}()};
+void maximizePacking(vector<Triple>& packing, Edges& potential, int limit) {
     int n = size(potential);
-    vector perm(n,0);
-    iota(begin(perm), end(perm), 0);
-    shuffle(begin(perm), end(perm), gen); // TODO make this better
     // build initial packing
-    for(int iu=0; iu<n; ++iu) {
-        auto u = perm[iu];
-        for(int iv=0; iv<n; ++iv) {
-            auto v = perm[iv];
+    auto cost = packingCost(packing);
+    for(int u=0; u<n; ++u) {
+        for(int v=0; v<n; ++v) {
             auto& uv = potential[u][v];
-            for(int iw=iv+1; iw<n && uv>0; ++iw) {
-                auto w = perm[iw];
+            for(int w=v+1; w<n && uv>0; ++w) {
                 auto& uw = potential[u][w];
                 auto& vw = potential[v][w];
                 if(uw<=0 || vw>=0) continue;
                 Triple t(u,v,w,potential);
                 assert(t.valid);
-                t.apply(potential);
+                cost += t.apply(potential);
                 packing.push_back(t);
+                if(cost>limit) return;
             }
         }
     }
 }
 
-void swapLocal(vector<Triple>& packing, Edges& potential) {
+void swapLocal(vector<Triple>& packing, Edges& potential, int limit) {
     int n = size(potential);
     mt19937 gen(1337);
     uniform_real_distribution<> dist; // [0,1)
@@ -150,6 +145,8 @@ void swapLocal(vector<Triple>& packing, Edges& potential) {
             packing[i] = alternatives.back().first;
             alternatives.pop_back();
             for (auto&[t, x] : alternatives) packing.push_back(t);
+
+            if(cost>limit) return;
         }
 
         num_no_improvement = has_improved ? 0 : num_no_improvement + 1;
@@ -165,18 +162,18 @@ int packing_local_search_bound(const Instance& inst, int limit) {
     // build initial packing
     vector<Triple> packing;
     auto potential = inst.edges;
-    maximizePacking(packing, potential);
-    swapLocal(packing, potential);
+    maximizePacking(packing, potential,limit);
+    swapLocal(packing, potential,limit);
     auto cost = packingCost(packing);
 
-    for(int throws = 0; throws<2; ++throws) {
+    for(int throws = 0; throws<0; ++throws) {
 
         vector<Triple> nextPacking;
         nextPacking.reserve(packing.size());
         auto next_potential = inst.edges;
         for(auto& t : packing) if(dist(gen)<0.8) nextPacking.push_back(t), t.apply(next_potential);
-        maximizePacking(nextPacking, next_potential);
-        swapLocal(nextPacking, next_potential);
+        maximizePacking(nextPacking, next_potential, limit);
+        swapLocal(nextPacking, next_potential, limit);
         auto next_cost = packingCost(nextPacking);
 
         if(next_cost > cost) {
