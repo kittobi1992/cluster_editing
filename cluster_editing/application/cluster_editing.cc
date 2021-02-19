@@ -55,6 +55,10 @@ int main(int argc, char* argv[]) {
       metrics::edge_deletions(graph) +
       metrics::edge_insertions(graph);
     if ( current_objective < best_objective ) {
+      if ( context.general.verbose_output ) {
+        LOG << GREEN << "Improved best solution from"
+            << best_objective << "to" << current_objective << END;
+      }
       for ( const NodeID& u : graph.nodes() ) {
         best_cliques[u] = graph.clique(u);
       }

@@ -29,7 +29,7 @@ namespace cluster_editing {
 class LabelPropagationRefiner final : public IRefiner {
  private:
 
-  static constexpr bool debug = false;
+  static constexpr bool debug = true;
 
   struct Rating {
     CliqueID clique;
@@ -64,7 +64,7 @@ class LabelPropagationRefiner final : public IRefiner {
 
   void moveVertex(Graph& graph, const NodeID u, const CliqueID to);
 
-  Rating computeBestClique(Graph& graph, const NodeID u);
+  Rating computeBetTargetClique(Graph& graph, const NodeID u);
 
   const Context& _context;
   size_t _moved_vertices;
