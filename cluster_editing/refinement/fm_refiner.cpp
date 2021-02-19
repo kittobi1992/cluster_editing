@@ -48,7 +48,9 @@ bool FMRefiner::refineImpl(Graph& graph) {
 			if (rating.delta != estimated_gain) {
 				// retry! 		or do KaHiP approach and just apply? only if improvement?
 				pq.adjustKey(u, rating.delta);
-				updateTargetClique(u, rating.clique);
+				if (rating.clique != graph.clique(u)) {
+					updateTargetClique(u, rating.clique);
+				}
 				continue;
 			}
 
