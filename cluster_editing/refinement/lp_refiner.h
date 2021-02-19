@@ -29,7 +29,7 @@ namespace cluster_editing {
 class LabelPropagationRefiner final : public IRefiner {
  private:
 
-  static constexpr bool debug = true;
+  static constexpr bool debug = false;
 
   struct Rating {
     CliqueID clique;
