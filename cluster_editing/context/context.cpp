@@ -27,6 +27,7 @@ std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParam
   str << "    Maximum LP Iterations:       " << params.maximum_lp_iterations << std::endl;
   str << "    Act. Cliques After Round:    " << params.activate_all_cliques_after_rounds << std::endl;
   str << "    Random Shuffle each Round:   " << std::boolalpha << params.random_shuffle_each_round << std::endl;
+  str << "    Node Ordering:               " << params.node_order << std::endl;
   return str;
 }
 

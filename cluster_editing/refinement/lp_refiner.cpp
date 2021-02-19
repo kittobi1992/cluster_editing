@@ -43,9 +43,17 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
     _context.refinement.lp.maximum_lp_iterations, start_metric,
     _context.general.verbose_output && !_context.general.use_multilevel && !debug);
 
-  utils::Timer::instance().start_timer("random_shuffle", "Random Shuffle");
-  utils::Randomize::instance().shuffleVector(_nodes, _nodes.size());
-  utils::Timer::instance().stop_timer("random_shuffle");
+  if ( _context.refinement.lp.node_order == NodeOrdering::random_shuffle ) {
+    utils::Randomize::instance().shuffleVector(_nodes, _nodes.size());
+  } else if ( _context.refinement.lp.node_order == NodeOrdering::degree_increasing ) {
+    std::sort(_nodes.begin(), _nodes.end(), [&](const NodeID& u, const NodeID& v) {
+      return graph.weightedDegree(u) < graph.weightedDegree(v);
+    });
+  } else if ( _context.refinement.lp.node_order == NodeOrdering::degree_decreasing ) {
+    std::sort(_nodes.begin(), _nodes.end(), [&](const NodeID& u, const NodeID& v) {
+      return graph.weightedDegree(u) > graph.weightedDegree(v);
+    });
+  }
 
   for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
     utils::Timer::instance().start_timer("local_moving", "Local Moving");
@@ -102,7 +110,8 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
         << initial_metric << "to" << current_metric
         << "( Moved Vertices:" << _moved_vertices << ")";
 
-    if ( _context.refinement.lp.random_shuffle_each_round ) {
+    if ( _context.refinement.lp.random_shuffle_each_round &&
+         _context.refinement.lp.node_order == NodeOrdering::random_shuffle ) {
       utils::Timer::instance().start_timer("random_shuffle", "Random Shuffle");
       utils::Randomize::instance().shuffleVector(_nodes, _nodes.size());
       utils::Timer::instance().stop_timer("random_shuffle");
