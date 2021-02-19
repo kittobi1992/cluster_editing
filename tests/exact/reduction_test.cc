@@ -4,7 +4,6 @@
 #include <fstream>
 
 #include <cluster_editing/exact/instance.h>
-#include <cluster_editing/data_path.h>
 #include <cluster_editing/exact/solver.h>
 #include <cluster_editing/exact/reductions.h>
 
@@ -113,41 +112,6 @@ const map<int,int> optimalSolutions {
         //{199, 0},
 };
 
-vector<vector<int>> read_graph(int num) {
-    auto suf = to_string(num);
-    while(size(suf)<3) suf = '0'+suf;
-    auto file_name = EXACT_DATA_DIR + ("exact" + suf + ".gr");
-    ifstream in(file_name);
-
-    std::istringstream sstream;
-    auto getline = [&]() {
-        std::string line;
-        do {
-            std::getline(in, line);
-        } while (line[0] == 'c');
-        sstream = std::istringstream(line);
-    };
-
-    getline();
-    std::string skip;
-    int n, m;
-    sstream >> skip >> skip >> n >> m;
-
-    vector<vector<int>> res(n, vector<int>(n, -1));
-
-    for (int i = 0; i < m; ++i) {
-        getline();
-        int u, v;
-        sstream >> u >> v;
-        --u;
-        --v;
-        res[u][v] = 1;
-        res[v][u] = 1;
-    }
-
-    return res;
-}
-
 void verifySolution(const Edges& edges, const Solution& sol) {
     if(!sol.worked) return;
 
@@ -171,8 +135,8 @@ void verifySolution(const Edges& edges, const Solution& sol) {
 
 TEST(ExactTest, canLoadGraphs) {
     for(int i=1; i<200; i+=2) {
-        auto edges = read_graph(i);
-        EXPECT_GT(size(edges), 0);
+        auto inst = load_exact_instance(i);
+        EXPECT_GT(size(inst.edges), 0);
     }
 }
 
@@ -180,14 +144,12 @@ TEST(ExactTest, canLoadGraphs) {
 struct SolverTest : public testing::TestWithParam<int> { };
 TEST_P(SolverTest, canSolve) {
     auto num = GetParam();
-    auto edges = read_graph(num);
-    auto inst = Instance(size(edges));
-    inst.edges = edges;
+    auto inst = load_exact_instance(num);
 
     auto sol = solve_exact(inst, INF, 500);
     if(!sol.worked) return; // quit if not solve in timelimit
     // check if solution has same value as claimed and is valid partitioning
-    verifySolution(edges, sol);
+    verifySolution(inst.edges, sol);
     // check if solution is optimal
     auto it = optimalSolutions.find(num);
     ASSERT_NE(it, end(optimalSolutions));
