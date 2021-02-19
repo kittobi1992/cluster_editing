@@ -15,6 +15,7 @@ namespace cluster_editing {
  *  - A move of a vertex can change the gain of a non-adjacent vertex, since
  *    number of insertions depends on cluster size
  *  - Tie breaking is important to achieve higher quality
+ *  - Often finds exact solution for small instances
  */
 
 void LabelPropagationRefiner::initializeImpl(Graph& graph) {
