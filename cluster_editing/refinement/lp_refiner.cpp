@@ -43,12 +43,11 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
     _context.refinement.lp.maximum_lp_iterations, start_metric,
     _context.general.verbose_output && !_context.general.use_multilevel && !debug);
 
+  utils::Timer::instance().start_timer("random_shuffle", "Random Shuffle");
+  utils::Randomize::instance().shuffleVector(_nodes, _nodes.size());
+  utils::Timer::instance().stop_timer("random_shuffle");
+
   for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
-
-    utils::Timer::instance().start_timer("random_shuffle", "Random Shuffle");
-    utils::Randomize::instance().shuffleVector(_nodes, _nodes.size());
-    utils::Timer::instance().stop_timer("random_shuffle");
-
     utils::Timer::instance().start_timer("local_moving", "Local Moving");
     converged = true;
     const EdgeWeight initial_metric = current_metric;
@@ -102,6 +101,12 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
     DBG << "Pass Nr." << (i + 1) << "improved metric from"
         << initial_metric << "to" << current_metric
         << "( Moved Vertices:" << _moved_vertices << ")";
+
+    if ( _context.refinement.lp.random_shuffle_each_round ) {
+      utils::Timer::instance().start_timer("random_shuffle", "Random Shuffle");
+      utils::Randomize::instance().shuffleVector(_nodes, _nodes.size());
+      utils::Timer::instance().stop_timer("random_shuffle");
+    }
   }
   lp_progress += (_context.refinement.lp.maximum_lp_iterations - lp_progress.count());
 

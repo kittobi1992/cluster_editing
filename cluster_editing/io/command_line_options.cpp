@@ -82,7 +82,9 @@ namespace cluster_editing {
             ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
              "Maximum iterations made by the label propagation refiner")
             ("r-activate-all-cliques-after-rounds", po::value<int>(&context.refinement.lp.activate_all_cliques_after_rounds)->value_name("<int>"),
-             "Each #activate_all_cliques_after_rounds iterations, label propagation refiner reactivates all nodes again.");
+             "Each #activate_all_cliques_after_rounds iterations, label propagation refiner reactivates all nodes again.")
+            ("r-random-shuffle-each-round", po::value<bool>(&context.refinement.lp.random_shuffle_each_round)->value_name("<bool>")->default_value(false),
+             "If true, label propagation random shuffles all nodes after each iteration");
     return options;
   }
 
