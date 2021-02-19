@@ -26,7 +26,7 @@ void solve(Graph& graph, const Context& context) {
   fm_refiner.initialize(graph);
   fm_refiner.refine(graph);
   */
-  
+
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds(end - start);
   if ( context.general.verbose_output ) {
