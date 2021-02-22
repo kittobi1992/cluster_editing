@@ -185,10 +185,17 @@ bool FMRefiner::refineImpl(Graph& graph) {
     // revert leftovers
     for (Move& m : moves) {
       LOG << "revert move" << V(m.node) << V(m.from) << V(m.to);
-      moveVertex(graph, m.node, m.from);
+      CliqueID from = graph.clique(m.node), to = m.from;
       for (const Neighbor& nb : graph.neighbors(m.node)) {
-        
+        const NodeID v = nb.target;
+        if (graph.clique(v) == from) {
+          n[v].weight_to_current_clique -= graph.edgeWeight(nb.id);
+        } else if (graph.clique(v) == to) {
+          n[v].weight_to_current_clique += graph.edgeWeight(nb.id);
+        }
       }
+      moveVertex(graph, m.node, to);
+
     }
     current_metric += best_delta;
     assert(current_metric == metrics::edits(graph));
