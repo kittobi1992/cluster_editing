@@ -109,7 +109,9 @@ private:
   }
 
   EdgeWeight gain(Graph& graph, NodeID u, CliqueID from, CliqueID target, EdgeWeight weight_to_current_clique, EdgeWeight weight_to_target_clique) const {
-    return (_clique_weight[target] - _clique_weight[from] + graph.nodeWeight(u)) * graph.nodeWeight(u) + 2 * (weight_to_current_clique - weight_to_target_clique);
+    const NodeWeight target_weight = target == ISOLATE_CLIQUE ? 0 : _clique_weight[target];
+    return (target_weight - _clique_weight[from] + graph.nodeWeight(u)) * graph.nodeWeight(u)
+            + 2 * (weight_to_current_clique - weight_to_target_clique);
   }
 
   const Context& _context;

@@ -38,7 +38,9 @@ bool FMRefiner::refineImpl(Graph& graph) {
   EdgeWeight current_metric = start_metric;
   EdgeWeight round_delta = -1;
 
-  for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && round_delta < 0; ++i ) {
+  for ( int round = 0; round < _context.refinement.lp.maximum_lp_iterations && round_delta < 0; ++round ) {
+    LOG << "round" << (round+1);
+
     round_delta = 0;
     EdgeWeight best_delta = 0;
 
@@ -66,10 +68,12 @@ bool FMRefiner::refineImpl(Graph& graph) {
         continue;
       }
 
+      pq.deleteTop();
       const CliqueID from = graph.clique(u), to = rating.clique;
       round_delta += rating.delta;
       if (round_delta < best_delta) {
-        // permanently apply all moves
+        best_delta = round_delta;
+        // permanently keep all moves up to here
         moves.clear();
       } else {
         // store for rollback later
@@ -78,10 +82,13 @@ bool FMRefiner::refineImpl(Graph& graph) {
 
       removeFromTargetClique(u);
       moveVertex(graph, u, to);
+      LOG << "move" << V(u) << V(to) << V(from) << V(rating.delta) << V(round_delta) << V(best_delta);
+
       ASSERT(current_metric + round_delta == metrics::edits(graph), "Rating is wrong. Expected:" << metrics::edits(graph) << "but is" << (current_metric + round_delta));
 
       static constexpr uint32_t SKIP_THRESHOLD = 200;
 
+      LOG << "update gains";
       // update neighbors -- in original graph
       for (const Neighbor& nb : graph.neighbors(u)) {
         const NodeID v = nb.target;
@@ -135,9 +142,11 @@ bool FMRefiner::refineImpl(Graph& graph) {
           pq.adjustKey(v, pq.getKey(v) - wu * graph.nodeWeight(v));
         }
       }
-      for (NodeID v : target_cliques[to]) {
-        if (pq.contains(v)) {
-          pq.adjustKey(v, pq.getKey(v) + wu * graph.nodeWeight(v));
+      if (to != ISOLATE_CLIQUE) {
+        for (NodeID v : target_cliques[to]) {
+          if (pq.contains(v)) {
+            pq.adjustKey(v, pq.getKey(v) + wu * graph.nodeWeight(v));
+          }
         }
       }
 
@@ -146,33 +155,46 @@ bool FMRefiner::refineImpl(Graph& graph) {
           pq.adjustKey(v, pq.getKey(v) + wu * graph.nodeWeight(v));
         }
       }
-      for (NodeID v : current_cliques[to]) {
-        if (pq.contains(v)) {
-          pq.adjustKey(v, pq.getKey(v) - wu * graph.nodeWeight(v));
+      if (to != ISOLATE_CLIQUE) {
+        for (NodeID v : current_cliques[to]) {
+          if (pq.contains(v)) {
+            pq.adjustKey(v, pq.getKey(v) - wu * graph.nodeWeight(v));
+          }
         }
       }
 
-      ASSERT([&] {
-        for (size_t i = 0; i < pq.size(); ++i) {
-          NodeID u = pq.at(i);
-          if (pq.keyAtPos(i) != gain(graph, u, graph.clique(u), n[u].desired_target, n[u].weight_to_current_clique, n[u].weight_to_target_clique)) {
-            return false;
+      for (size_t j = 0; j < pq.size(); ++j) {
+        NodeID v = pq.at(j);
+        if (pq.keyAtPos(j) != gain(graph, v, graph.clique(v), n[v].desired_target, n[v].weight_to_current_clique, n[v].weight_to_target_clique)) {
+          LOG << V(j) << V(v) << V(graph.clique(v)) << V(n[v].desired_target) << V(n[v].weight_to_current_clique) << V(n[v].weight_to_target_clique);
+          std::cout << "cliques: ";
+          for (NodeID w : graph.nodes()) {
+            std::cout << graph.clique(w) << " ";
           }
+          std::cout << "\nneighbors: ";
+          for (const Neighbor& nb : graph.neighbors(v)) {
+            std::cout << nb.target << " " << graph.clique(nb.target) << " | ";
+          }
+          std::cout << std::endl;
         }
-        return true;
-      }());
+        assert(pq.keyAtPos(j) == gain(graph, v, graph.clique(v), n[v].desired_target, n[v].weight_to_current_clique, n[v].weight_to_target_clique));
+      }
 
     }
 
     // revert leftovers
     for (Move& m : moves) {
+      LOG << "revert move" << V(m.node) << V(m.from) << V(m.to);
       moveVertex(graph, m.node, m.from);
+      for (const Neighbor& nb : graph.neighbors(m.node)) {
+        
+      }
     }
     current_metric += best_delta;
-    ASSERT(current_metric == metrics::edge_deletions(graph));
+    assert(current_metric == metrics::edits(graph));
 
 
-    DBG << "Pass Nr." << (i + 1) << "improved metric from"
+    DBG << "Pass Nr." << (round + 1) << "improved metric from"
       << start_metric << "to" << current_metric;
   }
 
@@ -184,7 +206,7 @@ void FMRefiner::moveVertex(Graph& graph, NodeID u, CliqueID to, EdgeWeight weigh
   ASSERT(from != to);
 
   if (to == ISOLATE_CLIQUE) {
-    ASSERT(_empty_cliques.empty());
+    ASSERT(!_empty_cliques.empty());
     to = _empty_cliques.back();
     ASSERT(_clique_weight[to] == 0);
   }
