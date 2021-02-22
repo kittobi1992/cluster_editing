@@ -10,6 +10,12 @@
 #include <cluster_editing/exact/lower_bounds.h>
 #include <cluster_editing/exact/thomas.h>
 
+#include "cluster_editing/multilevel.h"
+#include "cluster_editing/io/graph_io.h"
+#include "cluster_editing/metrics.h"
+#include "cluster_editing/datastructures/graph_factory.h"
+
+
 using namespace std;
 
 // check if graph is union of cliques
@@ -28,9 +34,26 @@ std::optional<vector<vector<int>>> cliques(const Edges& graph) {
 }
 
 auto selectBranchingEdge(const Instance &graph) {
-    auto u=0,v=1;
-    auto value = [&](int a,int b) { return graph.edges[a][b]; };
     int n = size(graph.edges);
+    vector tripePerEdge(n, vector(n,0));
+    for(int u=0; u<n; ++u) {
+        for(int v=0; v<n; ++v) {
+            auto& uv = graph.edges[u][v];
+            for(int w=v+1; w<n && uv>0; ++w) {
+                auto& uw = graph.edges[u][w];
+                auto& vw = graph.edges[v][w];
+                if(uw<=0 || vw>=0) continue;
+                for(auto [a,b] : {pair(u,v), pair(u,w), pair(v,w)}) {
+                    tripePerEdge[a][b]++;
+                    tripePerEdge[b][a]++;
+                }
+            }
+        }
+    }
+
+
+    auto u=0,v=1;
+    auto value = [&](int a,int b) { return pair(graph.edges[a][b], tripePerEdge[a][b]); };
     for (int i = 0; i < n; ++i)
         for (int j = i + 1; j < n; ++j)
             if (value(i,j) > value(u,v))
@@ -78,8 +101,8 @@ Solution ExactSolver::solve_internal(Instance graph, int budget) {
         }
 
         repeat = false;
-        //auto r1 = icxReductions(graph, budget);
-        //if (r1) repeat = true, graph = *r1;
+        if(auto opt = forcedChoices(graph, budget); opt) graph = *opt, repeat=true;
+        //if(auto opt = icxReductions(graph, budget); opt) graph = *opt, repeat=true;
         // more reductions
         num_reduces++;
     }
@@ -111,6 +134,8 @@ Solution ExactSolver::solve_internal(Instance graph, int budget) {
 }
 
 Solution ExactSolver::solve(Instance inst, int budget_limit) {
+
+    if(verbose) cout << "solving instance with n=" << size(inst.edges) << endl;
     // try some reductions for unweighted instances only
     auto isUnweighted = true;
     for(auto& row : inst.edges)
@@ -118,6 +143,7 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
             isUnweighted &= val==1 || val==-1;
     if(isUnweighted) {
         if(auto opt = thomas(inst); opt) inst = *opt; // TODO multiple thomas reductions
+        if(auto opt = forcedChoices(inst, solve_heuristic(inst).cost); opt) inst = *opt;
         if(auto opt = distance4Reduction(inst); opt) inst = *opt;
     }
 
@@ -125,6 +151,7 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
     s_comb.cost = inst.spendCost;
 
     if(verbose) cout << "cost of initial reductions " << s_comb.cost << endl;
+    if(verbose) cout << "instance size after reductions n=" << size(inst.edges) << endl;
     auto comps = constructConnectedComponents(inst);
     sort(begin(comps), end(comps), [](auto& a, auto& b){ return size(a.edges)<size(b.edges); });
     if(verbose) cout << "split into " << size(comps) << " CCs" << endl;
@@ -162,6 +189,50 @@ Solution solve_exact(Instance inst, int budget_limit, int time_limit) {
     solver.time_limit = chrono::steady_clock::now() + chrono::milliseconds(time_limit);
     return solver.solve(inst, budget_limit);
 }
+
+Solution solve_heuristic(const Instance &inst) {
+
+    // ugly transform to unweighted instance
+    int n = inst.edges.size();
+    vector<vector<unsigned int>> adj(n);
+    for (int i = 0; i < n; ++i) {
+        for (int j = i + 1; j < n; ++j) {
+            assert(abs(inst.edges[i][j]) == 1);
+            if (inst.edges[i][j] != 1) continue;
+            adj[i].push_back(j);
+            adj[j].push_back(i);
+        }
+    }
+
+    cluster_editing::Context context;
+    context.coarsening.algorithm = cluster_editing::CoarseningAlgorithm::lp_coarsener;
+    context.refinement.lp.maximum_lp_iterations = 5;
+    cluster_editing::Graph graph = cluster_editing::ds::GraphFactory::construct(adj);
+    context.general.verbose_output = false;
+
+    cluster_editing::multilevel::solve(graph, context);
+
+    // build the solution
+    Solution solution;
+    const size_t edge_insertions = cluster_editing::metrics::edge_insertions(graph);
+    const size_t edge_deletions = cluster_editing::metrics::edge_deletions(graph);
+    solution.cost = inst.spendCost + edge_deletions + edge_insertions;
+
+    vector<int> clique(n);
+    int maxclq = 0;
+    for (auto node: graph.nodes()) {
+        clique[node] = graph.clique(node);
+        if (clique[node] > maxclq)
+            maxclq = clique[node];
+    }
+    vector<vector<int>> clusters(maxclq + 1);
+    for (int i = 0; i < n; ++i)
+        clusters[clique[i]].push_back(i);
+    solution.cliques = clusters;
+
+    return solution;
+}
+
 
 ostream &operator<<(ostream &os, const ExactSolver &rhs) {
     os << "branching nodes: " << rhs.branchingNodes << endl;

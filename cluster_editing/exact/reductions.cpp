@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <cassert>
 #include <queue>
+#include <iostream>
+
+#include <cluster_editing/exact/lower_bounds.h>
 
 using namespace std;
 
@@ -85,7 +88,7 @@ Instance merge(const Instance& inst, int u, int v) {
       // merge (u,w) and (v,w) into (u',w)
       auto uw = inst.edges[u][w];
       auto vw = inst.edges[v][w];
-      assert( ! (min(uw,vw)==-INF && max(uw,vw)==INF));
+      if(min(uw,vw)==-INF && max(uw,vw)==INF) return {}; // in this case the instance is not solvable
       auto newval = uw+vw;
       if(min(uw,vw)==-INF) newval = -INF;
       if(max(uw,vw)==INF) newval = INF;
@@ -202,4 +205,84 @@ std::optional<Instance> distance4Reduction(const Instance &inst) {
                 reduced.edges[u][v] = reduced.edges[v][u] = -INF;
 
     return reduced;
+}
+
+std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, bool verbose) {
+    auto packing = getAPacking(inst);
+    auto potential = inst.edges;
+    auto lower = 0;
+    for(auto t : packing) lower += t.apply(potential);
+
+    int n=size(inst.edges);
+    // contains for each edge u,v the triple in the packing corresponding to that edges (if any)
+    // -1 if no triple
+    // -2 if more than one triple
+    vector tripleMap(n, vector(n, -1));
+    for(int i=0; i<size(packing); ++i) {
+        auto [u,v,w,cost,valid] = packing[i];
+        for(auto [a,b] : {pair(u,v), pair(u,w), pair(v,w)})
+            tripleMap[a][b] = tripleMap[b][a] = (tripleMap[a][b]==-1 ? i : -2);
+    }
+
+    vector<tuple<int,int,int>> forced;
+    for(int u=0; u<n; ++u) {
+        for(int v=u+1; v<n; ++v) {
+
+            // remove triple
+            auto old = potential[u][v];
+            if(tripleMap[u][v]==-2) continue; // TODO for now only try edges that have 0 or 1 assinged triples
+            if(tripleMap[u][v] != -1) {
+                auto t = packing[tripleMap[u][v]];
+                lower += t.apply(potential,true);
+                old = potential[u][v];
+            }
+
+            // see what happens if i set uv to permanent or forbidden
+            for(auto choice : {INF, -INF}) {
+                int increase = 0;
+                auto uv_cost = inst.edges[u][v];
+                if(choice==INF && uv_cost<0) increase += uv_cost;
+                if(choice==-INF && uv_cost>0) increase += uv_cost;
+                potential[u][v] = potential[v][u] = choice;
+                for(int x=0; x<n; ++x) {
+                    auto t = Triple(u,v,x,potential);
+                    if(t.valid) increase += t.cost;
+                }
+                if(lower+increase+inst.spendCost > upper_bound)
+                    forced.emplace_back(u,v,-choice);
+            }
+
+            // reapply triple
+            potential[u][v] = potential[v][u] = old;
+            if(tripleMap[u][v] != -1) {
+                auto t = packing[tripleMap[u][v]];
+                lower += t.apply(potential);
+            }
+        }
+    }
+
+    int perms = 0;
+    for(auto [u,v,c] : forced) perms += (c==INF);
+    if(verbose) cout << "Forced: " << size(forced) << "\tPerm: " << perms << "\tForb: " << size(forced)-perms << endl;
+    if(empty(forced)) return {};
+
+    // apply all forced choices
+    auto res = inst;
+    for(auto [u,v,c] : forced) {
+        if(c==INF && res.edges[u][v]<0) res.spendCost -= res.edges[u][v];
+        if(c==-INF&& res.edges[u][v]>0) res.spendCost += res.edges[u][v];
+        res.edges[u][v] = res.edges[v][u] = c;
+        if(res.spendCost>upper_bound) {
+            return res;
+        }
+    }
+
+    // merge stuff
+    // WARNING: this depends on merge choosing min(u,v) as representative
+    for(int u=0; u<size(res.edges); ++u)
+        for(int v=u+1; v<size(res.edges); ++v)
+            if(res.edges[u][v]==INF)
+                res = merge(res,u,v);
+
+    return res;
 }

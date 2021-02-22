@@ -15,13 +15,18 @@ int main(int argc, char *argv[]) {
 
     for(int i=1; i<200; i+=2) {
         auto inst = load_exact_instance(i);
+        cout << "instance " << i << " of size " << size(inst.edges) << endl;
+        cout << "Lower " << packing_local_search_bound(inst, INF) << endl;
+        cout << "Upper " << solve_heuristic(inst).cost << endl;
         if(auto opt = thomas(inst); opt) inst = *opt; // TODO multiple thomas reductions
         if(auto opt = distance4Reduction(inst); opt) inst = *opt;
-        auto t1 = chrono::steady_clock::now();
-        auto lower_bound = packing_local_search_bound(inst, INF);
-        auto t2 = chrono::steady_clock::now();
-        auto dur = chrono::duration_cast<chrono::milliseconds>(t2-t1).count() * 0.001;
-        cout << "lower bound for\t" << i << '\t' << inst.spendCost + lower_bound << "\tin " << dur << " seconds" << endl;
+        if(auto opt = forcedChoices(inst, solve_heuristic(inst).cost, true); opt) inst = *opt;
+        cout << "After Reductions n=" << size(inst.edges) << endl;
+        auto lower = packing_local_search_bound(inst, INF);
+        cout << "Spent         " << inst.spendCost << endl;
+        cout << "Lower         " << lower << endl;
+        cout << "Spend + Lower " << lower+inst.spendCost << endl;
+        cout << endl;
     }
 
     return 0;

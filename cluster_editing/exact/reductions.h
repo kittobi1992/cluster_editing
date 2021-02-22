@@ -20,3 +20,5 @@ std::optional<Instance> icxReductions(const Instance& inst, int budget);
 
 // set all pairs with dist>=4 to forbidden
 std::optional<Instance> distance4Reduction(const Instance& inst);
+
+std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, bool verbose=false);

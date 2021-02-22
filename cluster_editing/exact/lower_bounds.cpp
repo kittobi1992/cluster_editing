@@ -9,62 +9,51 @@
 
 using namespace std;
 
-struct Triple {
-    int u=-1,v=-1,w=-1;
-    int cost=0;
-    bool valid = false;
+Triple::Triple(int a, int b, int c, const Edges& potential) {
+    if (a==b || b==c || a==c)
+        return;
 
-    Triple() = default;
-    Triple(int a, int b, int c, const Edges& potential) {
-        if (a==b || b==c || a==c)
-            return;
+    if (potential[a][b] < 0)
+        u = c, v = a, w = b;
+    else if (potential[b][c] < 0)
+        u = a, v = b, w = c;
+    else if (potential[a][c] < 0)
+        u = b, v = a, w = c;
 
-        if (potential[a][b] < 0)
-            u = c, v = a, w = b;
-        else if (potential[b][c] < 0)
-            u = a, v = b, w = c;
-        else if (potential[a][c] < 0)
-            u = b, v = a, w = c;
+    if (u==-1)
+        return;
+    if (v > w)
+        swap(v, w);
+    auto uv = potential[u][v];
+    auto vw = potential[v][w];
+    auto uw = potential[u][w];
+    if (!(uv > 0 && uw > 0))
+        return;
+    assert(uv > 0);
+    assert(uw > 0);
+    assert(vw < 0);
 
-        if (u==-1)
-            return;
-        if (v > w)
-            swap(v, w);
-        auto uv = potential[u][v];
-        auto vw = potential[v][w];
-        auto uw = potential[u][w];
-        if (!(uv > 0 && uw > 0))
-            return;
-        assert(uv > 0);
-        assert(uw > 0);
-        assert(vw < 0);
+    cost = min(uv, min(uw, -vw));
+    assert(cost > 0);
+    valid = true;
+}
 
-        cost = min(uv, min(uw, -vw));
-        assert(cost > 0);
-        valid = true;
+// returns cost modification of total packing
+int Triple::apply(Edges& potential, bool undo) {
+    int mod = undo ? -cost : cost;
+    potential[v][u] = potential[u][v] = potential[u][v] - mod;
+    potential[w][u] = potential[u][w] = potential[u][w] - mod;
+    potential[w][v] = potential[v][w] = potential[v][w] + mod;
+    assert(potential[u][v] >= 0);
+    assert(potential[u][w] >= 0);
+    assert(potential[v][w] <= 0);
+    if(undo) {
+        assert(potential[u][v]);
+        assert(potential[u][w]);
+        assert(potential[v][w]);
     }
-
-    // returns cost modification of total packing
-    int apply(Edges& potential, bool undo=false) {
-        int mod = undo ? -cost : cost;
-        potential[v][u] = potential[u][v] = potential[u][v] - mod;
-        potential[w][u] = potential[u][w] = potential[u][w] - mod;
-        potential[w][v] = potential[v][w] = potential[v][w] + mod;
-        assert(potential[u][v] >= 0);
-        assert(potential[u][w] >= 0);
-        assert(potential[v][w] <= 0);
-        if(undo) {
-            assert(potential[u][v]);
-            assert(potential[u][w]);
-            assert(potential[v][w]);
-        }
-        return mod;
-    }
-
-    bool operator<(const Triple& rhs) const {
-        return !rhs.valid || this->cost < rhs.cost;
-    }
-};
+    return mod;
+}
 
 int packingCost(const vector<Triple> & packing) {
     int cost = 0;
@@ -184,4 +173,12 @@ int packing_local_search_bound(const Instance& inst, int limit) {
     }
 
     return cost;
+}
+
+vector<Triple> getAPacking(const Instance &inst) {
+    vector<Triple> packing;
+    auto potential = inst.edges;
+    maximizePacking(packing, potential,INF);
+    swapLocal(packing, potential,INF);
+    return packing;
 }
