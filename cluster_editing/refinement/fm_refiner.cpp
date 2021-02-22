@@ -45,8 +45,10 @@ bool FMRefiner::refineImpl(Graph& graph) {
     // init PQ
     for (const NodeID u : graph.nodes()) {
       Rating rating = computeBestClique(graph, u);
-      pq.insert(u, rating.delta);
-      insertIntoTargetClique(u, rating);
+      if (rating.clique != INVALID_CLIQUE) {
+        pq.insert(u, rating.delta);
+        insertIntoTargetClique(u, rating);
+      }
     }
 
     // perform moves
