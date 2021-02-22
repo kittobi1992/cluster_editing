@@ -56,7 +56,8 @@ private:
 
 	bool refineImpl(Graph& graph) final ;
 
-	void moveVertex(Graph& graph, const NodeID u, const CliqueID to);
+	void moveVertex(Graph& graph, NodeID u, CliqueID to,
+				 	EdgeWeight weight_to_clique=std::numeric_limits<EdgeWeight>::max());
 
 	Rating computeBestClique(Graph& graph, const NodeID u);
 
@@ -83,6 +84,19 @@ private:
 			n[u].index_in_target_clique = target_cliques[target].size();
 			target_cliques[target].push_back(u);
 		}
+	}
+
+	void removeFromCurrentClique(NodeID u, CliqueID current) {
+		current_cliques[current][n[u].index_in_current_clique] = current_cliques[current].back();
+		n[current_cliques[current].back()].index_in_current_clique = n[u].index_in_current_clique;
+		current_cliques[current].pop_back();
+		n[u].index_in_current_clique = std::numeric_limits<uint32_t>::max();
+	}
+
+	void insertIntoCurrentClique(NodeID u, CliqueID to, EdgeWeight weight_to_clique) {
+		n[u].weight_to_current_clique = weight_to_clique;
+		n[u].index_in_current_clique = current_cliques[to].size();
+		current_cliques[to].push_back(u);
 	}
 
 

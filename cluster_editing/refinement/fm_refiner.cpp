@@ -15,6 +15,16 @@ void FMRefiner::initializeImpl(Graph& graph) {
 	_nodes.clear();
 	for ( const NodeID& u : graph.nodes() ) {
 		_clique_weight[graph.clique(u)] += graph.nodeWeight(u);
+
+		EdgeWeight weight = 0;
+		const CliqueID clique = graph.clique(u);
+		// TODO accelerate case with singleton init?
+		for (const Neighbor& nb : graph.neighbors(u)) {
+			if (graph.clique(nb.target) == clique) {
+				weight += graph.edgeWeight(nb.id);
+			}
+		}
+		insertIntoCurrentClique(u, clique, weight);
 	}
 	for (NodeID u : graph.nodes()) {
 		if (_clique_weight[u] == 0) {
@@ -64,12 +74,9 @@ bool FMRefiner::refineImpl(Graph& graph) {
 				moves.push_back({ u, from, to });
 			}
 
-
 			removeFromTargetClique(u);
 			moveVertex(graph, u, to);
 			ASSERT(current_metric + round_delta == metrics::edits(graph), "Rating is wrong. Expected:" << metrics::edits(graph) << "but is" << (current_metric + round_delta));
-
-			// TODO delay pq updates with SparseSet? so we do 1 instead of up to 8 pq updates
 
 			static constexpr uint32_t SKIP_THRESHOLD = 200;
 
@@ -170,10 +177,10 @@ bool FMRefiner::refineImpl(Graph& graph) {
 	return current_metric < start_metric;
 }
 
-void FMRefiner::moveVertex(Graph& graph, const NodeID u, CliqueID to) {
+void FMRefiner::moveVertex(Graph& graph, NodeID u, CliqueID to, EdgeWeight weight_to_clique) {
 	const CliqueID from = graph.clique(u);
 	ASSERT(from != to);
-	
+
 	if (to == ISOLATE_CLIQUE) {
 		ASSERT(_empty_cliques.empty());
 		to = _empty_cliques.back();
@@ -184,6 +191,17 @@ void FMRefiner::moveVertex(Graph& graph, const NodeID u, CliqueID to) {
 	const bool to_becomes_non_empty = _clique_weight[to] == 0;
 	_clique_weight[to] += graph.nodeWeight(u);
 	graph.setClique(u, to);
+
+	removeFromCurrentClique(u, from);
+	if (weight_to_clique == std::numeric_limits<EdgeWeight>::max()) {
+		weight_to_clique = 0;
+		for (const Neighbor& nb : graph.neighbors(u)) {
+			if (graph.clique(nb.target) == to) {
+				weight_to_clique += graph.edgeWeight(nb.id);
+			}
+		}
+	}
+	insertIntoCurrentClique(u, to, weight_to_clique);
 
 	if ( from_becomes_empty ) {
 		_empty_cliques.push_back(from);
