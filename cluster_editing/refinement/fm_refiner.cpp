@@ -81,8 +81,8 @@ bool FMRefiner::refineImpl(Graph& graph) {
       }
 
       removeFromTargetClique(u);
-      moveVertex(graph, u, to);
       LOG << "move" << V(u) << V(to) << V(from) << V(rating.delta) << V(round_delta) << V(best_delta);
+      moveVertex(graph, u, to);
 
       ASSERT(current_metric + round_delta == metrics::edits(graph), "Rating is wrong. Expected:" << metrics::edits(graph) << "but is" << (current_metric + round_delta));
 
@@ -210,12 +210,12 @@ bool FMRefiner::refineImpl(Graph& graph) {
 
 void FMRefiner::moveVertex(Graph& graph, NodeID u, CliqueID to, EdgeWeight weight_to_clique) {
   const CliqueID from = graph.clique(u);
-  ASSERT(from != to);
+  assert(from != to);
 
   if (to == ISOLATE_CLIQUE) {
-    ASSERT(!_empty_cliques.empty());
+    assert(!_empty_cliques.empty());
     to = _empty_cliques.back();
-    ASSERT(_clique_weight[to] == 0);
+    assert(_clique_weight[to] == 0);
   }
   _clique_weight[from] -= graph.nodeWeight(u);
   const bool from_becomes_empty = _clique_weight[from] == 0;
@@ -234,12 +234,12 @@ void FMRefiner::moveVertex(Graph& graph, NodeID u, CliqueID to, EdgeWeight weigh
   }
   insertIntoCurrentClique(u, to, weight_to_clique);
 
+  if ( to_becomes_non_empty ) {
+    assert(_empty_cliques.back() == to);
+    _empty_cliques.pop_back();
+  }
   if ( from_becomes_empty ) {
     _empty_cliques.push_back(from);
-  }
-  if ( to_becomes_non_empty ) {
-    ASSERT(_empty_cliques.back() == to);
-    _empty_cliques.pop_back();
   }
   ++_moved_vertices;
 }
