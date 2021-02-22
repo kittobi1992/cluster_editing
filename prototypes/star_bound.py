@@ -293,10 +293,16 @@ def lowerBoundColoring(g):
                         break
                 # Re-insert v
                 if not two_found:
-                    if not is_p3:
-                        bound.remove_star(candidate_star)
-                        candidate_star.append(v)
-                    bound.add_star(candidate_star)
+                    # Replace by random candidate
+                    all_candidates = list(set((c for c in candidates for candidates in candidates_per_pair.values())))
+                    if all_candidates:
+                        replacement = random.choice(all_candidates)
+                        bound.add_star(replacement)
+                    else:
+                        if not is_p3:
+                            bound.remove_star(candidate_star)
+                            candidate_star.append(v)
+                        bound.add_star(candidate_star)
                 if is_p3:
                     break
     return bound.bound
