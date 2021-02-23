@@ -23,6 +23,7 @@
 #include "cluster_editing/refinement/i_refiner.h"
 #include "cluster_editing/context/context.h"
 #include "cluster_editing/datastructures/sparse_map.h"
+#include "cluster_editing/datastructures/fast_reset_flag_array.h"
 
 namespace cluster_editing {
 
@@ -44,7 +45,9 @@ class LabelPropagationRefiner final : public IRefiner {
     _nodes(),
     _clique_weight(graph.numNodes()),
     _empty_cliques(),
-    _rating(graph.numNodes()) { }
+    _rating(graph.numNodes()),
+    _active_cliques(graph.numNodes()),
+    _has_changed(graph.numNodes()) { }
 
   LabelPropagationRefiner(const LabelPropagationRefiner&) = delete;
   LabelPropagationRefiner(LabelPropagationRefiner&&) = delete;
@@ -72,5 +75,7 @@ class LabelPropagationRefiner final : public IRefiner {
   std::vector<NodeWeight> _clique_weight;
   std::vector<CliqueID> _empty_cliques;
   ds::SparseMap<CliqueID, EdgeWeight> _rating;
+  ds::FastResetFlagArray<> _active_cliques;
+  ds::FastResetFlagArray<> _has_changed;
 };
 }  // namespace cluster_editing

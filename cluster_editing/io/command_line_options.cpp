@@ -80,7 +80,21 @@ namespace cluster_editing {
             ("r-use-lp-refiner", po::value<bool>(&context.refinement.use_lp_refiner)->value_name("<bool>")->default_value(false),
              "If true, than label propagation is used to improve quality.")
             ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
-             "Maximum iterations made by the label propagation refiner");
+             "Maximum iterations made by the label propagation refiner")
+            ("r-activate-all-cliques-after-rounds", po::value<int>(&context.refinement.lp.activate_all_cliques_after_rounds)->value_name("<int>"),
+             "Each #activate_all_cliques_after_rounds iterations, label propagation refiner reactivates all nodes again.")
+            ("r-random-shuffle-each-round", po::value<bool>(&context.refinement.lp.random_shuffle_each_round)->value_name("<bool>")->default_value(false),
+             "If true, label propagation random shuffles all nodes after each iteration")
+            ("r-lp-node-ordering",
+             po::value<std::string>()->value_name("<string>")->notifier(
+                     [&](const std::string& order) {
+                       context.refinement.lp.node_order = cluster_editing::nodeOrderingFromString(order);
+                     }),
+             "Node Orderings:\n"
+             " - none\n"
+             " - random_shuffle\n"
+             " - degree_increasing\n"
+             " - degree_decreasing\n");
     return options;
   }
 

@@ -23,9 +23,13 @@ void LabelPropagationRefiner::initializeImpl(Graph& graph) {
   _clique_weight.assign(graph.numNodes(), 0);
   _empty_cliques.clear();
   _nodes.clear();
+  _active_cliques.reset();
+  _has_changed.reset();
   for ( const NodeID& u : graph.nodes() ) {
     _nodes.push_back(u);
-    _clique_weight[graph.clique(u)] += graph.nodeWeight(u);
+    const CliqueID from = graph.clique(u);
+    _clique_weight[from] += graph.nodeWeight(u);
+    _active_cliques.set(from, true);
   }
 }
 
@@ -38,39 +42,80 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
   utils::ProgressBar lp_progress(
     _context.refinement.lp.maximum_lp_iterations, start_metric,
     _context.general.verbose_output && !_context.general.use_multilevel && !debug);
-  for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
 
-    utils::Timer::instance().start_timer("random_shuffle", "Random Shuffle");
+  if ( _context.refinement.lp.node_order == NodeOrdering::random_shuffle ) {
     utils::Randomize::instance().shuffleVector(_nodes, _nodes.size());
-    utils::Timer::instance().stop_timer("random_shuffle");
+  } else if ( _context.refinement.lp.node_order == NodeOrdering::degree_increasing ) {
+    std::sort(_nodes.begin(), _nodes.end(), [&](const NodeID& u, const NodeID& v) {
+      return graph.weightedDegree(u) < graph.weightedDegree(v);
+    });
+  } else if ( _context.refinement.lp.node_order == NodeOrdering::degree_decreasing ) {
+    std::sort(_nodes.begin(), _nodes.end(), [&](const NodeID& u, const NodeID& v) {
+      return graph.weightedDegree(u) > graph.weightedDegree(v);
+    });
+  }
 
+  for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
     utils::Timer::instance().start_timer("local_moving", "Local Moving");
     converged = true;
     const EdgeWeight initial_metric = current_metric;
+    _has_changed.reset();
     for ( const NodeID& u : _nodes ) {
-      Rating rating = computeBetTargetClique(graph, u);
-      if ( rating.clique != graph.clique(u) ) {
-        moveVertex(graph, u, rating.clique);
-        ++_moved_vertices;
-        converged = false;
+      const CliqueID from = graph.clique(u);
+      if ( _active_cliques[from] ) {
+        Rating rating = computeBetTargetClique(graph, u);
+        const CliqueID to = rating.clique;
+        if ( to != from ) {
+          moveVertex(graph, u, to);
+          ++_moved_vertices;
+          converged = false;
+          _has_changed.set(from, true);
+          _has_changed.set(to, true);
 
-        // Verify, if rating is correct
-        ASSERT(current_metric + rating.delta ==
-          metrics::edge_deletions(graph) + metrics::edge_insertions(graph),
-          "Rating is wrong. Expected:" <<
-          (metrics::edge_deletions(graph) + metrics::edge_insertions(graph)) <<
-          "but is" << (current_metric + rating.delta) << "(" <<
-          V(current_metric) << "," << V(rating.delta) << ")");
-        current_metric += rating.delta;
+          // Verify, if rating is correct
+          ASSERT(current_metric + rating.delta ==
+            metrics::edge_deletions(graph) + metrics::edge_insertions(graph),
+            "Rating is wrong. Expected:" <<
+            (metrics::edge_deletions(graph) + metrics::edge_insertions(graph)) <<
+            "but is" << (current_metric + rating.delta) << "(" <<
+            V(current_metric) << "," << V(rating.delta) << ")");
+          current_metric += rating.delta;
+        }
       }
     }
     utils::Timer::instance().stop_timer("local_moving");
+
+    utils::Timer::instance().start_timer("activate_cliques", "Activate Cliques");
+    if ( i % _context.refinement.lp.activate_all_cliques_after_rounds != 0 ) {
+      _active_cliques.reset();
+      for ( const NodeID& u : _nodes ) {
+        const CliqueID from = graph.clique(u);
+        if ( _has_changed[from] ) {
+          _active_cliques.set(from, true);
+          for ( const Neighbor& n : graph.neighbors(u) ) {
+            _active_cliques.set(graph.clique(n.target), true);
+          }
+        }
+      }
+    } else {
+      for ( const NodeID& u : _nodes ) {
+        _active_cliques.set(u, true);
+      }
+    }
+    utils::Timer::instance().stop_timer("activate_cliques");
 
     lp_progress.setObjective(current_metric);
     lp_progress += 1;
     DBG << "Pass Nr." << (i + 1) << "improved metric from"
         << initial_metric << "to" << current_metric
         << "( Moved Vertices:" << _moved_vertices << ")";
+
+    if ( _context.refinement.lp.random_shuffle_each_round &&
+         _context.refinement.lp.node_order == NodeOrdering::random_shuffle ) {
+      utils::Timer::instance().start_timer("random_shuffle", "Random Shuffle");
+      utils::Randomize::instance().shuffleVector(_nodes, _nodes.size());
+      utils::Timer::instance().stop_timer("random_shuffle");
+    }
   }
   lp_progress += (_context.refinement.lp.maximum_lp_iterations - lp_progress.count());
 

@@ -21,3 +21,5 @@ struct Instance {
     for(int i=0; i<n; ++i) idmap[i] = {i};
   }
 };
+
+Instance load_exact_instance(int num);

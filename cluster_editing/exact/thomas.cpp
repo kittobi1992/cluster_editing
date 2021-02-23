@@ -2,72 +2,13 @@
 #include "thomas.h"
 
 #include <vector>
-//#include <iostream>
 #include <cassert>
 #include <algorithm>
 
-#include "cluster_editing/multilevel.h"
-#include "cluster_editing/io/graph_io.h"
-#include "cluster_editing/metrics.h"
-#include "cluster_editing/datastructures/graph_factory.h"
-
-#include "solver.h"
-#include "reductions.h"
+#include <cluster_editing/exact/solver.h>
 
 using namespace std;
 
-auto makeAdjList(const Instance &inst) {
-    int n = inst.edges.size();
-    vector<vector<unsigned int>> adj(n);
-    for (int i = 0; i < n; ++i) {
-        for (int j = i + 1; j < n; ++j) {
-            assert(abs(inst.edges[i][j]) == 1);
-            if (inst.edges[i][j] != 1) continue;
-            adj[i].push_back(j);
-            adj[j].push_back(i);
-        }
-    }
-    return adj;
-}
-
-auto cost(cluster_editing::Graph &graph) {
-    const size_t edge_insertions = cluster_editing::metrics::edge_insertions(graph);
-    const size_t edge_deletions = cluster_editing::metrics::edge_deletions(graph);
-    return edge_insertions + edge_deletions;
-}
-
-auto clusters(cluster_editing::Graph &graph) {
-    auto n = graph.numNodes();
-    auto clique = vector<int>(n);
-    int maxclq = 0;
-    for (auto node: graph.nodes()) {
-        clique[node] = graph.clique(node);
-        if (clique[node] > maxclq)
-            maxclq = clique[node];
-    }
-    auto clusters = vector<vector<int>>(maxclq + 1);
-    for (int i = 0; i < n; ++i) {
-        clusters[clique[i]].push_back(i);
-    }
-    return clusters;
-}
-
-auto solveHeuristic(const Instance &inst) {
-    auto adjList = makeAdjList(inst);
-    cluster_editing::Context context;
-    context.coarsening.algorithm = cluster_editing::CoarseningAlgorithm::lp_coarsener;
-    context.refinement.lp.maximum_lp_iterations = 5;
-    cluster_editing::Graph graph = cluster_editing::ds::GraphFactory::construct(adjList);
-    context.general.verbose_output = false;
-
-    cluster_editing::multilevel::solve(graph, context);
-
-    Solution solution;
-    solution.cost = cost(graph);
-    solution.cliques = clusters(graph);
-
-    return solution;
-};
 
 Instance createSubinst(Instance &graph, vector<int> &cluster) {
     auto inst = Instance(size(graph.edges));
@@ -134,7 +75,7 @@ int getSize(const Edges &g, const vector<int> &cluster) {
 }
 
 optional<Instance> thomas(Instance graph) {
-    auto solution = solveHeuristic(graph);
+    auto solution = solve_heuristic(graph);
 
     bool changed = false;
 
@@ -147,10 +88,6 @@ optional<Instance> thomas(Instance graph) {
         if (put_together_cost == 0) {
             continue;
         }
-
-        auto d4red = distance4Reduction(subinst);
-        if (d4red)
-            subinst = *d4red;
 
         auto subinstSize = getSize(subinst.edges, cluster);
         if (subinstSize == size(graph.edges) || subinstSize > 25) { // magic number

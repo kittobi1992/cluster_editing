@@ -34,4 +34,7 @@ private:
 
 Solution solve_exact(Instance inst, int budget_limit = INF, int time_limit = INF);
 
+// TODO works only for unweighted instances for now
+Solution solve_heuristic(const Instance& inst);
+
 std::ostream &operator<<(std::ostream& os, const ExactSolver& rhs);
