@@ -64,12 +64,6 @@ public:
     }
 
 
-    // destructor
-    inline ~TriangleMatrix() {
-        _index_list.~Array<int>();
-        _matrix.~Array<Type>();
-        _offset_array.~Array<int>();
-    }
 
 
     // return size of matrix
