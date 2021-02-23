@@ -1,0 +1,7 @@
+/opt/clion-2019.3.2/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/jonas/data/projects/hiwi/peace_cluster_editing
+-- CMAKE_CXX_FLAGS: -g -Wuseless-cast -Wdouble-promotion -Wformat=2
+-- CMAKE_CXX_FLAGS_RELEASE: -O3 -DNDEBUG -O3 -march=native -DNDEBUG
+-- CMAKE_CXX_FLAGS_DEBUG: -g
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-debug

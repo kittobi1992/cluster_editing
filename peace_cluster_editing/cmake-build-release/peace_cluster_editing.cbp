@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="peace_cluster_editing"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="weighted_cluster_editing">
+				<Option output="/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/weighted_cluster_editing" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/jonas/data/projects/hiwi/peace_cluster_editing/src"/>
+					<Add directory="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/CostsParser"/>
+					<Add directory="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/GraphParser"/>
+					<Add directory="/home/jonas/data/projects/hiwi/peace_cluster_editing/tester"/>
+					<Add directory="/home/jonas/data/projects/hiwi/peace_cluster_editing/tools"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 weighted_cluster_editing"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="weighted_cluster_editing/fast">
+				<Option output="/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/weighted_cluster_editing" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/jonas/data/projects/hiwi/peace_cluster_editing/src"/>
+					<Add directory="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/CostsParser"/>
+					<Add directory="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/GraphParser"/>
+					<Add directory="/home/jonas/data/projects/hiwi/peace_cluster_editing/tester"/>
+					<Add directory="/home/jonas/data/projects/hiwi/peace_cluster_editing/tools"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 weighted_cluster_editing/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/jonas/data/projects/hiwi/peace_cluster_editing/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/CostsParser/blastparser.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/CostsParser/blastparser.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/CostsParser/doubleparser.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/CostsParser/doubleparser.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/Exceptions/graphexception.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/Exceptions/graphexception.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/Exceptions/probleminstanceexception.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/Exceptions/probleminstanceexception.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/Exceptions/vertexlistsexception.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/Exceptions/vertexlistsexception.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/GraphParser/edgefileparser.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/GraphParser/edgefileparser.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/GraphParser/matrixparser.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/GraphParser/matrixparser.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/almostclique.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/array.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/bnmanager.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/cc-kernel.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/costsgraph.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/costsgraph.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/criticalclique.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/edgereduction.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/edgereduction.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/graphset.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/graphset.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/lowerbound.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/mergereduction.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/mincut.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/napsack.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/searchtreeweighted.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/searchtreeweighted.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/trianglematrix.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/vertexlists.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/vertexlists.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/weightedprobleminstance.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/src/weightedprobleminstance.h">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/tools/weightedclusterediting.cpp">
+			<Option target="weighted_cluster_editing"/>
+		</Unit>
+		<Unit filename="/home/jonas/data/projects/hiwi/peace_cluster_editing/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
