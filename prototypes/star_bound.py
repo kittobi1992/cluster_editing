@@ -6,6 +6,8 @@ import random
 import collections
 import copy
 from enum import Enum
+from os.path import expanduser
+import pandas as pd
 
 def readGraph(path):
     problem_read = False
@@ -228,6 +230,11 @@ class LowerBound:
         if candidate.candidate_type == CandidateType.P3:
             return self.can_add(candidate.nodes)
         assert candidate.candidate_type == CandidateType.STAR_EXTENSION
+
+        # Ensure that the existing part of the star actually exists
+        if not self.has_star(candidate.nodes[:-1]):
+            return False
+
         for x in candidate.nodes[:-1]:
             if (x, candidate.nodes[-1]) in self.used_pairs:
                 return False
@@ -445,5 +452,8 @@ def lowerBoundColoring(g):
     return bound.bound
 
 
-graph = readGraph("/home/michael/graphs/PACE2021/exact/exact149.gr")
-lowerBoundColoring(graph)
+df = pd.read_csv('../results/2021-02-19-star_bound.csv')
+df['Star bound local search'] = df.Graph.apply(lambda x: lowerBoundColoring(readGraph(expanduser('~/graphs/PACE2021/exact/{}'.format(x)))))
+df.to_csv('../results/2021-02-23-star_bound.csv')
+#graph = readGraph("/home/michael/graphs/PACE2021/exact/exact149.gr")
+#lowerBoundColoring(graph)
