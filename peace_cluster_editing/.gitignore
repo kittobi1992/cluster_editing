@@ -1,15 +1,9 @@
-tools/criticalcliquereduction
-tools/graphvizcreator_neato
-tools/graphvizcreator_yep
-tools/reducedgraphroducer
-tools/reducedgraphroducer_ipec
-tools/weightedclusterediting
-tools/weightedclusterreduction
-tester/cckerneltester
-tester/weightedclustereditingtester
-tester/weightedclustereditingtesteriwpec
-
-
+build/
+results/
+.vscode/
+.cache/
+cmake-build-*/
+.idea/
 
 # Prerequisites
 *.d
