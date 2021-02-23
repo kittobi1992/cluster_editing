@@ -93,52 +93,108 @@ void swapLocal(vector<Triple>& packing, Edges& potential, int limit) {
     // local search part
     int num_no_improvement = 0;
     auto cost = packingCost(packing);
+
+    // Return early if the bound is large enough already
+    if(cost>limit) return;
+
     for (int iter = 0; iter < INF && num_no_improvement < 5; ++iter) {
 
-        bool has_improved = false;
+        const int old_cost = cost;
 
-        for (int i = 0; i < size(packing); ++i) {
+        for (size_t i = 0; i < size(packing); ++i) {
             // try to replace this triple in packing
             auto[u, v, w, uvw_cost, valid] = packing[i];
             // undo triple
             cost += packing[i].apply(potential, true);
 
-            vector<pair<Triple, int>> alternatives; // 0-3 elemns
-            for (auto[a, b] : {pair(u, v), pair(u, w), pair(v, w)}) {
-
-                tuple<Triple, double, int> mx;
-                auto&[best, rand, cand] = mx;
+            struct Alternative {
+                int node;
+                int cost;
+                double random;
+            };
+            std::array<vector<Alternative>, 3> alternatives;
+            std::array<pair<int, int>, 3> node_pairs = {pair(u, v), pair(u, w), pair(v, w)};
+            for (int pi = 0; pi < 3; ++pi) {
+                auto[a, b]  = node_pairs[pi];
                 for (int x = 0; x < n; ++x) {
                     if (x == u || x == v || x == w) continue;
                     Triple t(a, b, x, potential);
                     if (!t.valid) continue;
-                    mx = max(mx, tuple(t, dist(gen), x));
+                    alternatives[pi].push_back(
+                        Alternative{x, t.cost, dist(gen)});
                 }
-                for (auto&[t, x] : alternatives)
-                    best.valid &= cand != x;
-                if (best.valid)
-                    alternatives.push_back(pair(best, cand));
+
+                // Sort dcreasingly by cost
+                std::sort(alternatives[pi].begin(), alternatives[pi].end(),
+                          [](const Alternative &a, const Alternative &b) {
+                              return std::make_tuple(a.cost, a.random) > std::make_tuple(b.cost, b.random);
+                });
             }
 
-            int sum = 0;
-            for (auto&[t, x] : alternatives) sum += t.cost;
-
-            if (uvw_cost > sum || (uvw_cost == sum && dist(gen) < 0.7)) { // uvw was good
-                cost += packing[i].apply(potential); // do not replace uvw
-                continue;
+            int best_cost = -1;
+            double best_random = -1;
+            Triple best_single_replacement;
+            bool two_found = false;
+            for (int pi = 0; pi < 3; ++pi) {
+                for (auto [x1, cost1, r1] : alternatives[pi]) {
+                    Triple t1(node_pairs[pi].first, node_pairs[pi].second, x1, potential);
+                    assert(t1.valid);
+                    cost += t1.apply(potential);
+                    if (std::make_tuple(t1.cost, r1) > std::make_tuple(best_cost, best_random)) {
+                        best_single_replacement = t1;
+                        best_cost = t1.cost;
+                        best_random = r1;
+                    }
+                    for (int j = pi + 1; j < 3; ++j) {
+                        for (auto [x2, cost2, r2] : alternatives[j]) {
+                            Triple t2(node_pairs[j].first, node_pairs[j].second, x2, potential);
+                            if (!t2.valid) continue;
+                            cost += t2.apply(potential);
+                            packing.push_back(t1);
+                            packing.push_back(t2);
+                            two_found = true;
+                            break;
+                            cost += t2.apply(potential, true);
+                        }
+                        if (two_found) break;
+                    }
+                    if (two_found) break;
+                    cost += t1.apply(potential, true);
+                }
+                if (two_found) break;
             }
 
-            // replace uvw
-            has_improved = uvw_cost < sum;
-            for (auto&[t, x] : alternatives) cost += t.apply(potential);
-            packing[i] = alternatives.back().first;
-            alternatives.pop_back();
-            for (auto&[t, x] : alternatives) packing.push_back(t);
+            if (two_found) {
+                for (int pi = 0; pi < 3; ++pi) {
+                    for (auto [x1, cost1, r1] : alternatives[pi]) {
+                        Triple t1(node_pairs[pi].first, node_pairs[pi].second, x1,
+                                  potential);
+                        if (!t1.valid)
+                            continue;
+                        cost += t1.apply(potential);
+                        packing.push_back(t1);
+                    }
+                }
+            } else if (best_cost > uvw_cost || (best_cost > 0 && dist(gen) < 0.7)) {
+                    cost += best_single_replacement.apply(potential);
+                    packing.push_back(best_single_replacement);
+            }
+
+            Triple orig(u, v, w, potential);
+            if (orig.valid) {
+                cost += orig.apply(potential);
+                packing[i] = orig;
+            } else {
+                packing[i] = packing.back();
+                packing.pop_back();
+            }
+
+            assert(cost == packingCost(packing));
 
             if(cost>limit) return;
         }
 
-        num_no_improvement = has_improved ? 0 : num_no_improvement + 1;
+        num_no_improvement = cost > old_cost ? 0 : num_no_improvement + 1;
 
     }
 }
