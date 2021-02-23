@@ -1,3 +1,0 @@
-/home/jonas/data/projects/hiwi/peace_cluster_editing/build/CMakeFiles/rebuild_cache.dir
-/home/jonas/data/projects/hiwi/peace_cluster_editing/build/CMakeFiles/edit_cache.dir
-/home/jonas/data/projects/hiwi/peace_cluster_editing/build/CMakeFiles/weighted_cluster_editing.dir
