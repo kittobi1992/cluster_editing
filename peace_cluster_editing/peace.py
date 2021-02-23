@@ -5,7 +5,7 @@ from subprocess import run
 from tempfile import NamedTemporaryFile
 from pathlib import Path
 from os import environ
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, List, Optional
 import numpy as np
 
 BINARY_ENV_NAME = "PEACE_WEIGHTED_CLUSTER_EDITING_BINARY"
@@ -34,14 +34,14 @@ def convert_pace_to_cm(input_path: Path) -> str:
     return instance_str
 
 
-def peace(input_path: Path, binary_path: Path) -> Tuple[Dict, List[List[str]], float]:
+def peace(input_path: Path, binary_path: Path, timeout: Optional[int] = None) -> Tuple[List[Dict], List[List[str]], float]:
     pace_format_instance = convert_pace_to_cm(input_path)
 
     with NamedTemporaryFile() as output_file, NamedTemporaryFile() as input_file:
         input_file.write(pace_format_instance.encode("utf8"))
         input_file.flush()
 
-        out = run([binary_path, "--mode", "2", input_file.name, output_file.name], capture_output=True)
+        out = run([binary_path, "--mode", "2", input_file.name, output_file.name], capture_output=True, timeout=timeout)
 
         if out.returncode != 0:
             raise RuntimeError(
@@ -50,8 +50,14 @@ def peace(input_path: Path, binary_path: Path) -> Tuple[Dict, List[List[str]], f
         stdout_output_str = out.stdout.decode("utf8")
         output_file_str = output_file.read().decode("utf8")
 
-    statistic_lines = stdout_output_str[stdout_output_str.find("STATISTICS\n") + 11:].split("\n")[:4]
-    statistics = dict([tuple(line.split(": ")) for line in statistic_lines])
+    statistics = []
+    while True:
+        idx = stdout_output_str.find("STATISTICS\n")
+        if idx == -1:
+            break
+        stdout_output_str = stdout_output_str[idx + 11:]
+        statistic_lines = stdout_output_str.split("\n")[:4]
+        statistics.append(dict([tuple(line.split(": ")) for line in statistic_lines]))
 
     solution_lines = output_file_str.split("\n")[:-1]
     component_lines = solution_lines[:-1]
@@ -93,11 +99,12 @@ def main():
 
     statistics, components, sum_of_costs = peace(instance_path, binary_path)
 
-    print(f"time = {statistics['time']}")
+    print(f"time = {sum(float(s['time']) for s in statistics)}")
     print("components = ")
     for component in components:
         print(f"\t{' '.join(component)}")
     print(f"cost = {sum_of_costs}")
+    print(f"{sum(float(s['costs']) for s in statistics)}")
 
 
 if __name__ == '__main__':

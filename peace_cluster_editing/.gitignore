@@ -1,9 +1,18 @@
 build/
 results/
+
 .vscode/
 .cache/
-cmake-build-*/
+
+# Clion
 .idea/
+cmake-build-*/
+
+# Python
+__pycache__/
+.ipynb_checkpoints/
+venv/
+
 
 # Prerequisites
 *.d
