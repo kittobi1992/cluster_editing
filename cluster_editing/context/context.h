@@ -13,6 +13,7 @@ struct GeneralParameters {
   std::string output_file {};
   bool verbose_output = true;
   bool print_result_line = false;
+  bool print_csv = false;
   int seed = 0;
   bool use_multilevel = false;
   int num_repititions = 0;
@@ -37,6 +38,7 @@ std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParam
 
 struct RefinementParameters {
   bool use_lp_refiner = false;
+  bool use_fm_refiner = false;
   LabelPropagationRefinerParameters lp;
 };
 

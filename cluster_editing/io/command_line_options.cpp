@@ -78,7 +78,9 @@ namespace cluster_editing {
     po::options_description options("Refinement Options", num_columns);
     options.add_options()
             ("r-use-lp-refiner", po::value<bool>(&context.refinement.use_lp_refiner)->value_name("<bool>")->default_value(false),
-             "If true, than label propagation is used to improve quality.")
+             "If true, then label propagation is used to improve quality.")
+            ("r-use-fm-refiner", po::value<bool>(&context.refinement.use_fm_refiner)->value_name("<bool>")->default_value(false),
+             "If true, then FM is used to improve quality.")
             ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
              "Maximum iterations made by the label propagation refiner")
             ("r-activate-all-cliques-after-rounds", po::value<int>(&context.refinement.lp.activate_all_cliques_after_rounds)->value_name("<int>"),
