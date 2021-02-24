@@ -66,9 +66,11 @@ void put_together(Instance &graph, vector<int> &cluster) {
 int getSize(const Edges &g, const vector<int> &cluster) {
     int n = size(g);
     vector ininst(n, false);
-    for (auto v : cluster)
+    for (auto v : cluster) {
+        ininst[v] = true;
         for (int i = 0; i < n; ++i)
-            ininst[i] = ininst[i] | g[v][i] > 0;
+            ininst[i] = ininst[i] | (g[v][i] > 0);
+    }
     int res = 0;
     for (auto bit : ininst) res += bit;
     return res;
@@ -97,8 +99,9 @@ optional<Instance> thomas(Instance graph) {
         //cout << "Checking heuristic cluster of size " << size(cluster) << " and Subinstance size: " << subinstSize << endl;
         // put_together cost is an upper bound for subinst because it is a valid solution to make one cluster
         // put_together cost is smaller than heuristic cost because the heuristic solution has this cluster (thus paid put_together cost)
-        auto subsolution = solve_exact(subinst, put_together_cost); // TODO only do this until put_together_cost -1
+        auto subsolution = solve_exact(subinst, put_together_cost, 500); // TODO only do this until put_together_cost -1
         auto opt_cost = subsolution.cost;
+        if(!subsolution.worked) continue;
         assert(subsolution.worked);
         if (put_together_cost == opt_cost) {
             //cout << "Found safe cluster of size " << size(cluster) << endl;

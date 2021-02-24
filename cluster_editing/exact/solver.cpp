@@ -65,12 +65,12 @@ auto selectBranchingEdge(const Instance &graph) {
 
 Solution ExactSolver::solve_internal(Instance graph, int budget) {
 
-    if(chrono::steady_clock::now()>time_limit) return {};
-
     // apply reductions
     int num_reduces = 0;
     bool changed = false;
     for (bool repeat = true; repeat; changed |= repeat) {
+
+        if(chrono::steady_clock::now()>time_limit) return {};
 
         //auto lower_bound = packing_lower_bound(graph.edges, budget-graph.spendCost);
         auto lower_bound = packing_local_search_bound(graph, budget-graph.spendCost);
@@ -142,9 +142,11 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
         for(auto val : row)
             isUnweighted &= val==1 || val==-1;
     if(isUnweighted) {
-        if(auto opt = thomas(inst); opt) inst = *opt; // TODO multiple thomas reductions
-        if(auto opt = forcedChoices(inst, solve_heuristic(inst).cost); opt) inst = *opt;
+        auto upper = solve_heuristic(inst).cost;
+        if(verbose) cout << "upper bound " << upper << endl;
         if(auto opt = distance4Reduction(inst); opt) inst = *opt;
+        if(auto opt = thomas(inst); opt) inst = *opt; // TODO multiple thomas reductions
+        if(auto opt = forcedChoices(inst, upper); opt) inst = *opt;
     }
 
     Solution s_comb;
@@ -194,6 +196,14 @@ Solution solve_heuristic(const Instance &inst) {
 
     // ugly transform to unweighted instance
     int n = inst.edges.size();
+    if(auto opt=cliques(inst.edges); opt) {
+        Solution s;
+        s.worked = true;
+        s.cost = inst.spendCost;
+        s.cliques = *opt; // TODO this (and the code below) does not yield expanded clusters but local indexed vertices instead
+        return s;
+    }
+
     vector<vector<unsigned int>> adj(n);
     for (int i = 0; i < n; ++i) {
         for (int j = i + 1; j < n; ++j) {

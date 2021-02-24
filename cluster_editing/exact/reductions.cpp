@@ -248,7 +248,7 @@ std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, boo
                     auto t = Triple(u,v,x,potential);
                     if(t.valid) increase += t.cost;
                 }
-                if(lower+increase+inst.spendCost > upper_bound)
+                if(lower+increase+inst.spendCost > upper_bound && -choice != inst.edges[u][v])
                     forced.emplace_back(u,v,-choice);
             }
 
