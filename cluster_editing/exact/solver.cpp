@@ -75,19 +75,14 @@ Solution ExactSolver::solve_internal(Instance graph, int budget) {
         //auto lower_bound = packing_lower_bound(graph.edges, budget-graph.spendCost);
         auto lower_bound = packing_local_search_bound(graph, budget-graph.spendCost);
         if(lower_bound + graph.spendCost > budget) {
-            if (changed) {
-                sumReductions += num_reduces;
-                numReducingNodes++;
-            }
+            numReducingNodes += changed;
             numPrunes++;
             return {};
         }
 
         if (auto opt=cliques(graph.edges); opt) { // check if graph is cliques
-            if (changed) {
-                sumReductions += num_reduces;
-                numReducingNodes++;
-            }
+            numReducingNodes += changed;
+
             Solution solution;
             solution.cost = graph.spendCost;
             solution.worked = true;
@@ -101,22 +96,19 @@ Solution ExactSolver::solve_internal(Instance graph, int budget) {
         }
 
         repeat = false;
-        if(auto opt = forcedChoices(graph, budget); opt) graph = *opt, repeat=true;
-        //if(auto opt = icxReductions(graph, budget); opt) graph = *opt, repeat=true;
+        if(auto opt = forcedChoices(graph, budget); opt) graph = *opt, repeat=true, redForced++;
+        if(auto opt = simpleNeighbor(graph); opt) graph = *opt, repeat=true, redTwin++;
+        if(auto opt = icxReductions(graph, budget); opt) graph = *opt, repeat=true, redICX++;
         // more reductions
         num_reduces++;
     }
 
-    if (changed) {
-        sumReductions += num_reduces;
-        numReducingNodes++;
-    }
-
-    //auto comps = connectedComponents(graph.edges);
-    //auto num_comps = 1 + *max_element(begin(comps), end(comps));
-    //if(num_comps>1) return solve_unconnected(graph, budget);
-
+    if (changed) numReducingNodes++;
     branchingNodes++;
+
+    auto comps = connectedComponents(graph.edges);
+    auto num_comps = 1 + *max_element(begin(comps), end(comps));
+    if(num_comps>1) numDisconnects++;
 
     auto [u,v] = selectBranchingEdge(graph);
     auto minstance = merge(graph, u, v); // merged instance
@@ -144,9 +136,10 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
     if(isUnweighted) {
         auto upper = solve_heuristic(inst).cost;
         if(verbose) cout << "upper bound " << upper << endl;
-        if(auto opt = distance4Reduction(inst); opt) inst = *opt;
         if(auto opt = thomas(inst); opt) inst = *opt; // TODO multiple thomas reductions
-        if(auto opt = forcedChoices(inst, upper); opt) inst = *opt;
+        if(auto opt = distance4Reduction(inst); opt) inst = *opt;
+        if(auto opt = simpleNeighbor(inst); opt) inst = *opt;
+        //if(auto opt = forcedChoices(inst, upper); opt) inst = *opt;
     }
 
     Solution s_comb;
@@ -247,8 +240,11 @@ Solution solve_heuristic(const Instance &inst) {
 ostream &operator<<(ostream &os, const ExactSolver &rhs) {
     os << "branching nodes: " << rhs.branchingNodes << endl;
     os << "reductions:      " << rhs.numReducingNodes << endl;
+    os << "\tforced:        " << rhs.redForced << endl;
+    os << "\ttwin:          " << rhs.redTwin << endl;
+    os << "\ticx:           " << rhs.redICX << endl;
     os << "disconnects:     " << rhs.numDisconnects << endl;
     os << "prunes:          " << rhs.numPrunes << endl;
-    os << "iters/reduction: " << rhs.sumReductions * 1.0 / rhs.numReducingNodes << endl;
+    //os << "iters/reduction: " << rhs.sumReductions * 1.0 / rhs.numReducingNodes << endl;
     return os;
 }

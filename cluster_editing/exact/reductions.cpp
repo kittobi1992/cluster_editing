@@ -112,6 +112,22 @@ Instance merge(const Instance& inst, int u, int v) {
   return result;
 }
 
+void mergeAllINF(Instance& inst) {
+
+    for(int v=0; v<size(inst.edges); ++v) {
+        auto it = find(begin(inst.edges[v]), end(inst.edges[v]), INF);
+        while(it!=end(inst.edges[v])) {
+            assert(v!=it-begin(inst.edges[v]));
+            inst = merge(inst, v, it-begin(inst.edges[v]));
+            if(inst.spendCost==INF) return; // merge had cost infinity
+            it = find(begin(inst.edges[v]), end(inst.edges[v]), INF);
+        }
+    }
+    for(auto& row : inst.edges)
+        for(auto v : row)
+            assert(v!=INF);
+}
+
 std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>> computeICFandICP(const Edges& edges) {
   int n = size(edges);
   vector<vector<int>> icf(n, vector<int>(n, 0));
@@ -277,12 +293,52 @@ std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, boo
         }
     }
 
-    // merge stuff
-    // WARNING: this depends on merge choosing min(u,v) as representative
-    for(int u=0; u<size(res.edges); ++u)
-        for(int v=u+1; v<size(res.edges); ++v)
-            if(res.edges[u][v]==INF)
-                res = merge(res,u,v);
+    mergeAllINF(res);
+
+    return res;
+}
+
+std::optional<Instance> simpleNeighbor(const Instance &inst) {
+
+    int n = size(inst.edges);
+    if(n<3) return {};
+
+    Instance res = inst;
+    bool found = false;
+    for(int v=0; v<n; ++v) {
+        for(int u=v+1; u<n; ++u) {
+            if(inst.edges[u][v]<0) continue;
+
+            bool haveFactor = false;
+            int a=1, b=1;
+            int w=0;
+            for(; w<n; ++w) {
+                if(w==u || w==v) continue;
+                auto uw = inst.edges[u][w];
+                auto vw = inst.edges[v][w];
+                // handle all 0 and -INF cases, break for conflicts
+                if((uw==0) != (vw==0)) break;
+                if((uw==-INF) != (vw==-INF)) break;
+                if((uw==0) && (vw==0)) continue;
+                if((uw==-INF) && (vw==-INF)) continue;
+                // handle conflicts from differing sign
+                if((uw>0) != (vw>0)) break;
+                // (possibly set and) check if factor is the same for all
+                if(!haveFactor)
+                  a = vw, b=uw, haveFactor=true;
+                if(a*uw != b*vw) break;
+            }
+            // if no conflict until now we have a twin
+            if(w==n) { // if loop went until the end
+                res.edges[u][v] = res.edges[v][u] = INF;
+                found = true;
+            }
+        }
+    }
+
+    if(!found) return {};
+
+    mergeAllINF(res);
 
     return res;
 }

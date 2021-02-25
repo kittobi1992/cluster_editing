@@ -10,6 +10,7 @@ std::vector<Instance> constructConnectedComponents(const Instance& graph);
 
 // contracts the edge u,v
 Instance merge(const Instance& inst, int u, int v);
+void mergeAllINF(Instance& inst);
 
 // compute icp and ice (lower bound for making an edge permanent/forbidden)
 std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>> computeICFandICP(const Edges& edges);
@@ -22,3 +23,5 @@ std::optional<Instance> icxReductions(const Instance& inst, int budget);
 std::optional<Instance> distance4Reduction(const Instance& inst);
 
 std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, bool verbose=false);
+
+std::optional<Instance> simpleNeighbor(const Instance& inst);
