@@ -314,6 +314,28 @@ namespace cluster_editing::ds {
         ASSERT_EQ(range4.begin(), range4.end());
     }
 
+    TEST_F(AdjacencyRowTest, ForEach) {
+        AdjacencyRow row(70);
+
+        std::vector<NodeID> nodes{12, 14, 20, 63, 64, 69};
+
+        for (NodeID u : nodes) {
+            row[u] = true;
+        }
+
+        auto it = row.begin();
+        row.for_each([&](NodeID u) {
+            ASSERT_EQ(u, *it++);
+        });
+
+        std::vector<NodeID> nodes2;
+        row.for_each([&](NodeID u) {
+            nodes2.push_back(u);
+        });
+
+        ASSERT_EQ(nodes, nodes2);
+    }
+
     TEST_F(AdjacencyRowTest, TriangleIterationWithForbiddenNodePairs) {
         NodeID n = 16;
         // neighbors u: 0..7

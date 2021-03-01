@@ -8,6 +8,13 @@
 #include "graph_common.h"
 
 namespace cluster_editing::ds {
+    namespace detail {
+        [[nodiscard]] constexpr int ctz(unsigned long long n) noexcept {
+            assert(n != 0);
+            return __builtin_ctzll(n);
+        }
+    }
+
     class AdjacencyRow {
     public:
         using block_type = unsigned long long;
@@ -290,6 +297,19 @@ namespace cluster_editing::ds {
         }
 
         void zero_unused_bits() noexcept;
+
+        template<class F>
+        void for_each(F f) const noexcept {
+            for (block_index_type i = 0; i < num_blocks(); i++) {
+                auto block = m_blocks[i];
+                while (block) {
+                    block_width_type bit_pos = detail::ctz(block);
+                    block ^= (block_type(1) << bit_pos);
+                    NodeID v = i * bits_per_block + bit_pos;
+                    f(v);
+                }
+            }
+        }
 
     private:
 

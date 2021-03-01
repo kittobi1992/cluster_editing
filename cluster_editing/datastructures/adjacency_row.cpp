@@ -3,13 +3,6 @@
 
 namespace cluster_editing::ds {
 
-    namespace detail {
-        [[nodiscard]] constexpr int ctz(unsigned long long n) noexcept {
-            assert(n != 0);
-            return __builtin_ctzll(n);
-        }
-    }
-
     AdjacencyRow::NodeIterator &AdjacencyRow::NodeIterator::operator++() noexcept {
         assert(m_node < m_end_node);
 
