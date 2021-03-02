@@ -10,7 +10,6 @@
 
 using namespace std;
 
-
 int main(int argc, char *argv[]) {
 
     for(int i=1; i<200; i+=2) {
@@ -20,6 +19,7 @@ int main(int argc, char *argv[]) {
         cout << "Upper " << solve_heuristic(inst).cost << endl;
         if(auto opt = thomas(inst); opt) inst = *opt; // TODO multiple thomas reductions
         if(auto opt = distance4Reduction(inst); opt) inst = *opt;
+        if(auto opt = simpleNeighbor(inst); opt) inst = *opt;
         if(auto opt = forcedChoices(inst, solve_heuristic(inst).cost, true); opt) inst = *opt;
         cout << "After Reductions n=" << size(inst.edges) << endl;
         auto lower = packing_local_search_bound(inst, INF);

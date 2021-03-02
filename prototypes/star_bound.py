@@ -395,7 +395,7 @@ def tryImprove(bound, star):
         # Re-insert v
         if not two_found:
             # Replace by random candidate
-            all_candidates = list(set((c for c in candidates for candidates in candidates_per_pair.values())))
+            all_candidates = list(set((c for candidates in candidates_per_pair.values() for c in candidates)))
             if all_candidates:
                 if random.random() < 0.8:
                     replacement = min(all_candidates, key=lambda x: x.shared_p3)
