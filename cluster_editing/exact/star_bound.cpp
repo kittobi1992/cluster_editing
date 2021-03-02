@@ -40,19 +40,34 @@ class StarBound {
     //Candidate = collections.namedtuple('Candidate', ['candidate_type',
     //        'nodes', 'shared_p3'])
 
+    int bound = 0;
+    Edges g;
     std::set<std::pair<int, int>> used_pairs;
     std::vector<std::vector<bool>> used_by_bound;
     std::vector<std::set<Star>> stars;
-    std::vector<std::vector<std::vector<Star>>> stars_for_edge;
+    std::vector<std::set<int>> free_edges_g;
+    std::map<pair<int, int>, Star> stars_for_edge;
     std::vector<std::vector<int>> p3_count;
 
+    std::mt19937_64 gen;
+
     StarBound(Edges g)
-    : stars(g.size())
+    : g(g)
+    , stars(g.size())
+    , free_edges_g(g.size())
     {
+        //TODO Make this weighted somehow?
+        for (int u = 0; u < g.size(); ++u) {
+            for (int v = 0; v < g.size(); ++v)
+                if (v != u && g[u][v] > 0)
+                    free_edges_g[u].insert(v);
+        }
 
     }
 
-    std::vector<int> free_neighbors(int u);
+    std::set<int> free_neighbors(int u) {
+        return free_edges_g[u];
+    };
 
     bool pair_used(int u, int v) {
         return used_pairs.find({u, v}) != used_pairs.end();
@@ -67,9 +82,7 @@ class StarBound {
         for (auto & u_stars : stars) {
             std::copy(u_stars.begin(), u_stars.end(), std::back_inserter(ans));
         }
-        std::random_device rd;
-        std::mt19937 g(rd());
-        std::shuffle(ans.begin(), ans.end(), g);
+        std::shuffle(ans.begin(), ans.end(), gen);
         return ans;
 
     };
@@ -82,13 +95,90 @@ class StarBound {
         return true;
     };
 
-    bool can_add_candidate(Candidate candidate);
+    bool can_add_candidate(Candidate candidate) {
+        if (candidate.type == P3)
+            return can_add(Star(candidate.nodes));
 
-    void add_star(Star);
-    void remove_star(Star);
-    void add_candidate(Candidate);
+        auto star = Star(vector<int>(candidate.nodes.begin(), candidate.nodes.end()-1));
+        auto ext = candidate.nodes.back();
+        if (!has_star(star))
+            return false;
+        for (auto node : star.nodes) {
+            if (used_pairs.find({node, ext}) != used_pairs.end())
+                return false;
+        }
+        return true;
+    };
 
-    void remove_candidate(Candidate);
+    void add_star(Star star) {
+        assert(star.nodes.size() > 2);
+        for (int i = 1; i < star.nodes.size(); ++i) {
+            int u = star.nodes[i];
+            assert(g[u][star.center()] > 0);
+            for (int j = i+1; j < star.nodes.size(); ++j)
+                int v = star.nodes[j];
+                assert(g[u][v] < 0);
+        }
+
+        stars[star.center()].insert(star);
+        bound += star.nodes.size() - 2;
+
+
+        for (int i = 1; i < star.nodes.size(); ++i) {
+            int u = star.nodes[i];
+            stars_for_edge[{star.center(), u}] = star;
+        }
+        for (auto u : star.nodes) {
+            for (auto v : star.nodes) {
+                if (u==v)
+                    continue;
+                assert(used_pairs.find({u, v}) == used_pairs.end());
+                used_pairs.insert({u, v});
+                if (g[u][v] > 0)
+                    free_edges_g[u].erase(v);
+            }
+        }
+    };
+
+    void remove_star(Star star) {
+        stars[star.center()].erase(star);
+        bound -= star.nodes.size() - 2;
+        for (int i = 1; i < star.nodes.size(); ++i) {
+            int u = star.nodes[i];
+            stars_for_edge.erase({star.center(), u});
+        }
+        for (auto u : star.nodes) {
+            for (auto v : star.nodes) {
+                if (u == v)
+                    continue;
+                used_pairs.erase({u, v});
+                if (g[u][v] > 0)
+                    free_edges_g[u].insert(v);
+            }
+        }
+    };
+
+    void add_candidate(const Candidate &candidate) {
+        if (candidate.type == CandidateType::P3) {
+            add_star(Star(candidate.nodes));
+        } else {
+            auto existing_star = candidate.nodes;
+            existing_star.pop_back();
+            remove_star(Star(candidate.nodes));
+            add_star(Star(existing_star));
+        }
+    }
+
+    void remove_candidate(const Candidate &candidate) {
+        if (candidate.type == CandidateType::P3) {
+            remove_star(Star(candidate.nodes));
+        } else {
+            auto existing_star = candidate.nodes;
+            existing_star.pop_back();
+            remove_star(Star(candidate.nodes));
+            add_star(Star(existing_star));
+        }
+    }
 
     std::vector<Candidate> get_candidates(int u, int v);
 
@@ -96,40 +186,92 @@ class StarBound {
         // TODO: implement star merging
 
         Star candidate_star = star;
-        std::vector<int> nodes(candidate_star.begin() + 1 , candidate_star.end());
+        std::vector<int> nodes(candidate_star.nodes.begin() + 1 , candidate_star.nodes.end());
         for (auto v : nodes) {
-            remove_star(candidate);
+            remove_star(candidate_star);
 
             bool is_p3 = star.nodes.size() == 3;
 
             if (!is_p3) {
                 assert(star.nodes.size() > 3);
-                candidate.nodes.erase(std::remove(candidate.nodes.begin(), candidate.nodes.end(), v), candidate.leaves.end());
-                add_star(candidate);
+                candidate_star.nodes.erase(std::remove(candidate_star.nodes.begin(), candidate_star.nodes.end(), v), candidate_star.leaves.end());
+                add_star(candidate_star);
             }
 
             std::map<std::pair<int, int>, std::vector<Candidate>> candidates_per_pair;
             if (is_p3) {
-                int a = candidate.nodes[0];
-                int b = candidate.nodes[1];
-                int c = candidate.nodes[2];
+                int a = candidate_star.nodes[0];
+                int b = candidate_star.nodes[1];
+                int c = candidate_star.nodes[2];
                 candidates_per_pair[{a, b}] = get_candidates(a, b);
                 candidates_per_pair[{a, c}] = get_candidates(a, c);
                 candidates_per_pair[{b, c}] = get_candidates(b, c);
             } else {
-                for (auto x : candidate.nodes) {
+                for (auto x : candidate_star.nodes) {
                     // assert v not in bound.g[x] or x == star[0]
                     candidates_per_pair[{v, x}] = get_candidates(v, x);
                 }
             }
 
             bool two_found = false;
-            for (auto [pair, candidates] : candidates_per_pair) {
+            for (const auto &[pair, candidates] : candidates_per_pair) {
                 assert(!two_found);
-
                 for (auto candidate : candidates) {
+                    assert(!two_found);
+                    add_candidate(candidate);
 
+                    for (const auto &[pair2, candidates2] : candidates_per_pair) {
+                        if (pair == pair2)
+                            continue;
+                        for (auto candidate2 : candidates2) {
+                            if (can_add_candidate(candidate2)) {
+                                two_found = true;
+                                add_candidate(candidate2);
+                            }
+                        }
+                    }
+                    if (two_found)
+                        break;
+                    remove_candidate(candidate);
                 }
+                if (two_found)
+                    break;
+            }
+
+            // Re-insert v
+            if (!two_found) {
+                // Replace by random candidate
+                std::vector<Candidate> all_candidates;
+                for (auto [pair, candidates] : candidates_per_pair)
+                    all_candidates.insert(all_candidates.end(), candidates.begin(), candidates.end());
+                if (!all_candidates.empty()) {
+                    std::uniform_real_distribution<float> dist(0, 1);
+                    auto idx_dist = std::uniform_int_distribution<size_t>(0, all_candidates.size() - 1);
+
+                    Candidate replacement = (dist(gen) < 0.8)
+                            ? *std::min_element(all_candidates.begin(), all_candidates.end(), [](const Candidate &a, const Candidate &b) {
+                            return a.shared_p3 < b.shared_p3;
+                                })
+                            : all_candidates[idx_dist(gen)];
+
+                    auto r_nodes = replacement.nodes;
+                    auto s_nodes = candidate_star.nodes;
+                    s_nodes.push_back(v);
+                    std::sort(r_nodes.begin(), r_nodes.end());
+                    std::sort(s_nodes.begin(), s_nodes.end());
+                    if (r_nodes == s_nodes) {
+                        candidate_star.nodes.push_back(v);
+                    }
+                } else {
+                    if (!is_p3) {
+                        remove_star(candidate_star);
+                        candidate_star.nodes.push_back(v);
+                    }
+                    add_star(candidate_star);
+                }
+            }
+            if (is_p3) {
+                break;
             }
         }
     }
