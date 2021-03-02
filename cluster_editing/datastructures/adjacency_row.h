@@ -5,6 +5,8 @@
 #include <vector>
 #include <cassert>
 
+#include "gmock/gmock.h"
+
 #include "graph_common.h"
 
 namespace cluster_editing::ds {
@@ -270,6 +272,23 @@ namespace cluster_editing::ds {
 
         [[nodiscard]] const_reference operator[](NodeID node) const { return test(node); }
 
+    private:
+        // Disabled NodeIterator for public use. See AdjacencyRowTest.Benchmark.
+
+        FRIEND_TEST(AdjacencyRowTest, CheckNodeIterator);
+
+        FRIEND_TEST(AdjacencyRowTest, IndexOutOfBounds);
+
+        FRIEND_TEST(AdjacencyRowTest, EmptyNodeIterator);
+
+        FRIEND_TEST(AdjacencyRowTest, NodeIterator);
+
+        FRIEND_TEST(AdjacencyRowTest, NodeRange);
+
+        FRIEND_TEST(AdjacencyRowTest, ForEach);
+
+        FRIEND_TEST(AdjacencyRowTest, Benchmark);
+
         [[nodiscard]] NodeIterator begin() const noexcept { return NodeIterator(m_blocks.data(), 0, m_num_nodes); }
 
         [[nodiscard]] NodeIterator end() const noexcept {
@@ -281,6 +300,8 @@ namespace cluster_editing::ds {
             assert(end_node <= m_num_nodes);
             return NodeRange(*this, start_node, end_node);
         }
+
+    public:
 
         [[nodiscard]] constexpr NodeID num_nodes() const noexcept { return m_num_nodes; }
 

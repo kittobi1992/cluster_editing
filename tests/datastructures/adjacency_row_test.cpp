@@ -1,5 +1,8 @@
 #include "gmock/gmock.h"
 
+#include <chrono>
+#include <random>
+
 #include "cluster_editing/datastructures/adjacency_row.h"
 
 using ::testing::Test;
@@ -372,10 +375,71 @@ namespace cluster_editing::ds {
             w_row.block(i) &= v_row.block(i) & ~u_forbidden_row.block(i) & ~v_forbidden_row.block(i);
         }
 
-        std::vector<NodeID> nodes(w_row.begin(), w_row.end());
+        std::vector<NodeID> nodes;
+        w_row.for_each([&](NodeID u) {
+            nodes.push_back(u);
+        });
 
         ASSERT_EQ(nodes.size(), 2);
         ASSERT_EQ(nodes[0], 1);
         ASSERT_EQ(nodes[1], 3);
+    }
+
+    TEST_F(AdjacencyRowTest, Benchmark) {
+        NodeID n = 300;
+        std::uniform_int_distribution<NodeID> dist(0, n - 1);
+        std::mt19937_64 gen(0);
+
+        int num_iter = 10000;
+
+        std::cout << "n\tdensity\tnum_iter\tNodeIterator [s]\tfor_each [s]\tindex operator [s]\n";
+
+        for (auto alpha : {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0}) {
+            AdjacencyRow row(n);
+
+            for (NodeID i = 0; i < n * alpha; ++i) {
+                row[dist(gen)] = true;
+            }
+
+            std::cout << n << "\t" << alpha << "\t" << num_iter << "\t";
+
+            {
+                NodeID sum = 0;
+                auto start = std::chrono::steady_clock::now();
+                for (int i = 0; i < num_iter; ++i) {
+                    for (auto u : row) {
+                        sum += u;
+                    }
+                }
+                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(
+                        std::chrono::steady_clock::now() - start).count() * 1e-6 << "\t";
+            }
+
+            {
+                NodeID sum = 0;
+                auto start = std::chrono::steady_clock::now();
+                for (int i = 0; i < num_iter; ++i) {
+                    row.for_each([&](auto u) {
+                        sum += u;
+                    });
+                }
+                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(
+                        std::chrono::steady_clock::now() - start).count() * 1e-6 << "\t";
+            }
+
+            {
+                NodeID sum = 0;
+                auto start = std::chrono::steady_clock::now();
+                for (int i = 0; i < num_iter; ++i) {
+                    for (NodeID u = 0; u < n; ++u) {
+                        if (row[u]) {
+                            sum += u;
+                        }
+                    }
+                }
+                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(
+                        std::chrono::steady_clock::now() - start).count() * 1e-6 << "\n";
+            }
+        }
     }
 } // namespace cluster_editing::ds
