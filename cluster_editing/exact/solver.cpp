@@ -73,7 +73,7 @@ Solution ExactSolver::solve_internal(Instance graph, int budget) {
         if(chrono::steady_clock::now()>time_limit) return {};
 
         //auto lower_bound = packing_lower_bound(graph.edges, budget-graph.spendCost);
-        auto lower_bound = packing_local_search_bound(graph, budget-graph.spendCost);
+        auto lower_bound = meta_lower_bound(graph, budget-graph.spendCost);
         if(lower_bound + graph.spendCost > budget) {
             numReducingNodes += changed;
             numPrunes++;
@@ -153,7 +153,7 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
     for (auto& comp : comps) {
 
         Solution s;
-        auto lower = packing_local_search_bound(comp, INF);
+        auto lower = meta_lower_bound(comp, INF);
         if(verbose) cout << "start solving CC of size " << size(comp.edges) << " first bound " << lower << endl;
 
         for (int budget = lower; !s.worked && s_comb.cost+budget<=budget_limit; ++budget) {

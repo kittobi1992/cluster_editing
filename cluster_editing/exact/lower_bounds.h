@@ -15,5 +15,6 @@ struct Triple {
 };
 
 int packing_local_search_bound(const Instance& inst, int limit);
+int meta_lower_bound(const Instance& inst, int limit);
 
 std::vector<Triple> getAPacking(const Instance& inst);
