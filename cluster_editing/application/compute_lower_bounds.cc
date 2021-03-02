@@ -4,6 +4,7 @@
 
 #include <cluster_editing/exact/instance.h>
 #include <cluster_editing/exact/lower_bounds.h>
+#include <cluster_editing/exact/star_bound.h>
 #include <cluster_editing/exact/reductions.h>
 #include <cluster_editing/exact/thomas.h>
 #include <cluster_editing/exact/solver.h>

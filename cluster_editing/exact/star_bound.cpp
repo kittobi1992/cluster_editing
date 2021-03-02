@@ -55,12 +55,31 @@ class StarBound {
     : g(g)
     , stars(g.size())
     , free_edges_g(g.size())
+    , p3_count(g.size(), vector<int>(g.size(), 0))
     {
         //TODO Make this weighted somehow?
         for (int u = 0; u < g.size(); ++u) {
             for (int v = 0; v < g.size(); ++v)
                 if (v != u && g[u][v] > 0)
                     free_edges_g[u].insert(v);
+        }
+
+        //TODO This is cubic and unweighted
+        for (int u = 0; u < g.size(); ++u) {
+            for (int v = 0; v < g.size(); ++v) {
+                if (v==u || g[u][v] < 0)
+                    continue;
+                for (int w = 0; w < g.size(); ++w) {
+                    if (w>=v || w==u || g[u][w] < 0 || g[v][w] > 0)
+                        continue;
+                    p3_count[u][v]++;
+                    p3_count[v][u]++;
+                    p3_count[v][w]++;
+                    p3_count[w][v]++;
+                    p3_count[u][w]++;
+                    p3_count[w][u]++;
+                }
+            }
         }
 
     }
@@ -115,9 +134,10 @@ class StarBound {
         for (int i = 1; i < star.nodes.size(); ++i) {
             int u = star.nodes[i];
             assert(g[u][star.center()] > 0);
-            for (int j = i+1; j < star.nodes.size(); ++j)
+            for (int j = i+1; j < star.nodes.size(); ++j) {
                 int v = star.nodes[j];
                 assert(g[u][v] < 0);
+            }
         }
 
         stars[star.center()].insert(star);
@@ -180,7 +200,79 @@ class StarBound {
         }
     }
 
-    std::vector<Candidate> get_candidates(int u, int v);
+    std::vector<Candidate> get_candidates(int u, int v) {
+        vector<Candidate> star_extensions;
+
+        vector<array<int, 3>> p3s;
+        if (g[u][v] > 0) {
+            for (int y : free_edges_g[v])
+                if (y != u && g[u][y] < 0 && used_pairs.find({u, y}) == used_pairs.end())
+                    p3s.push_back({v, u, y});
+            for (int y : free_edges_g[u])
+                if (y != v && g[v][y] < 0 && used_pairs.find({v, y}) == used_pairs.end())
+                    p3s.push_back({u, v, y});
+
+            for (auto [center, ext] : vector<pair<int, int>>({{u, v}, {v, u}})) {
+                for (auto star : stars[center]) {
+                    bool valid = true;
+                    for (int i = 1; i < star.nodes.size(); ++i) {
+                        int x = star.nodes[i];
+                        if (pair_used(ext, x) || g[ext][x] > 0) {
+                            valid = false;
+                            break;
+                        }
+                    }
+                    if (valid) {
+                        auto new_nodes = star.nodes;
+                        new_nodes.push_back(ext);
+                        int count = 0;
+                        for (auto x : star.nodes)
+                            count += p3_count[ext][x];
+                        star_extensions.push_back(Candidate{STAR_EXTENSION, new_nodes, count});
+                    }
+                }
+            }
+        } else if (g[u][v] < 0) { //TODO or <= 0?
+            for (auto y : free_edges_g[u])
+                if (free_edges_g[v].find(y) != free_edges_g[v].end())
+                    p3s.push_back({y, v, u});
+
+
+            for (auto [ext, existing] : vector<pair<int, int>>({{u, v}, {v, u}})) {
+                for (auto center : free_edges_g[ext]) {
+                    if (stars_for_edge.find({center, existing}) != stars_for_edge.end()) {
+                        auto star = stars_for_edge[{center, existing}];
+
+                        bool valid = true;
+                        for (int i = 1; i < star.nodes.size(); ++i) {
+                            int x = star.nodes[i];
+                            if (pair_used(ext, x) || g[ext][x] > 0) {
+                                valid = false;
+                                break;
+                            }
+                        }
+                        if (valid) {
+                            auto new_nodes = star.nodes;
+                            new_nodes.push_back(ext);
+                            int count = 0;
+                            for (auto x : star.nodes)
+                                count += p3_count[ext][x];
+                            star_extensions.push_back(Candidate{STAR_EXTENSION, new_nodes, count});
+                        }
+                    }
+                }
+            }
+        }
+
+        for (auto nodes : p3s) {
+            int count = 0;
+            auto [a, b, c] = nodes;
+            for (auto [x, y] : vector<pair<int, int >>{{a, b}, {a, c}, {b, c}})
+                count += p3_count[x][y];
+            star_extensions.push_back(Candidate{P3, {a,b,c}, count});
+        }
+        return star_extensions;
+    };
 
     void try_improve(Star star) {
         // TODO: implement star merging
@@ -194,7 +286,7 @@ class StarBound {
 
             if (!is_p3) {
                 assert(star.nodes.size() > 3);
-                candidate_star.nodes.erase(std::remove(candidate_star.nodes.begin(), candidate_star.nodes.end(), v), candidate_star.leaves.end());
+                candidate_star.nodes.erase(std::remove(candidate_star.nodes.begin(), candidate_star.nodes.end(), v), candidate_star.nodes.end());
                 add_star(candidate_star);
             }
 
