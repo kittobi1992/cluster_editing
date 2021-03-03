@@ -229,8 +229,11 @@ bool FMRefiner::refineImpl(Graph& graph) {
         }
         assert(gain_in_pq == gain_recalculated);
       }
+      #endif
+
     }
 
+#ifndef NDEBUG
     for (NodeID u : graph.nodes()) {
       edge_weight_to_clique.clear();
       for (const Neighbor& nb : graph.neighbors(u)) {
@@ -239,7 +242,6 @@ bool FMRefiner::refineImpl(Graph& graph) {
       assert(n[u].weight_to_current_clique == edge_weight_to_clique[graph.clique(u)]);
     }
 #endif
-
 
     // revert leftovers
     for (Move& m : moves) {
