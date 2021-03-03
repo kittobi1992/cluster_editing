@@ -386,60 +386,104 @@ namespace cluster_editing::ds {
     }
 
     TEST_F(AdjacencyRowTest, Benchmark) {
-        NodeID n = 300;
-        std::uniform_int_distribution<NodeID> dist(0, n - 1);
         std::mt19937_64 gen(0);
 
-        int num_iter = 10000;
+        int num_data = 100;
+        int num_repeats_per_data = 10;
 
-        std::cout << "n\tdensity\tnum_iter\tNodeIterator [s]\tfor_each [s]\tindex operator [s]\n";
+        std::ios cout_state(nullptr);
+        cout_state.copyfmt(std::cout);
+        std::cout << std::fixed << std::setw(11) << std::setprecision(6);
 
-        for (auto alpha : {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0}) {
-            AdjacencyRow row(n);
+        std::cout << "n\tdensity\tnum_data\tnum_repeats_per_data\tNodeIterator [s]\tfor_each [s]\tindex operator [s]\tedge vector [s]\n";
 
-            for (NodeID i = 0; i < n * alpha; ++i) {
-                row[dist(gen)] = true;
-            }
+        for (NodeID n : {100, 500, 1000, 10000}) {
+            std::uniform_int_distribution<NodeID> dist(0, n - 1);
+            for (auto density : {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0}) {
+                std::cout << n << "\t" << density << "\t" << num_data << "\t" << num_repeats_per_data << "\t";
 
-            std::cout << n << "\t" << alpha << "\t" << num_iter << "\t";
+                std::chrono::nanoseconds time1{0}, time2{0}, time3{0}, time4{0};
 
-            {
-                NodeID sum = 0;
-                auto start = std::chrono::steady_clock::now();
-                for (int i = 0; i < num_iter; ++i) {
-                    for (auto u : row) {
-                        sum += u;
+                for (int j = 0; j < num_data; ++j) {
+                    AdjacencyRow row(n);
+
+                    std::vector<NodeID> nodes(n);
+                    for (NodeID u = 0; u < n; ++u) {
+                        nodes[u] = u;
                     }
-                }
-                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(
-                        std::chrono::steady_clock::now() - start).count() * 1e-6 << "\t";
-            }
+                    std::shuffle(nodes.begin(), nodes.end(), gen);
 
-            {
-                NodeID sum = 0;
-                auto start = std::chrono::steady_clock::now();
-                for (int i = 0; i < num_iter; ++i) {
-                    row.for_each([&](auto u) {
-                        sum += u;
-                    });
-                }
-                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(
-                        std::chrono::steady_clock::now() - start).count() * 1e-6 << "\t";
-            }
+                    for (size_t i = 0; i < n * density; ++i) {
+                        row[nodes[i]] = true;
+                    }
 
-            {
-                NodeID sum = 0;
-                auto start = std::chrono::steady_clock::now();
-                for (int i = 0; i < num_iter; ++i) {
+                    std::vector<int> edges(n);
                     for (NodeID u = 0; u < n; ++u) {
                         if (row[u]) {
-                            sum += u;
+                            edges[u] = 1;
+                        } else {
+                            edges[u] = -1;
                         }
                     }
+
+                    NodeID sum1{0}, sum2{0}, sum3{0}, sum4{0};
+
+                    auto start1 = std::chrono::steady_clock::now();
+                    for (int i = 0; i < num_repeats_per_data; ++i) {
+                        for (auto u : row) {
+                            sum1 += u;
+                        }
+                    }
+                    time1 += std::chrono::duration_cast<std::chrono::nanoseconds>(
+                            std::chrono::steady_clock::now() - start1);
+
+                    auto start2 = std::chrono::steady_clock::now();
+                    for (int i = 0; i < num_repeats_per_data; ++i) {
+                        row.for_each([&](auto u) {
+                            sum2 += u;
+                        });
+                    }
+                    time2 += std::chrono::duration_cast<std::chrono::nanoseconds>(
+                            std::chrono::steady_clock::now() - start2);
+
+                    auto start3 = std::chrono::steady_clock::now();
+                    for (int i = 0; i < num_repeats_per_data; ++i) {
+                        for (NodeID u = 0; u < n; ++u) {
+                            if (row[u]) {
+                                sum3 += u;
+                            }
+                        }
+                    }
+                    time3 += std::chrono::duration_cast<std::chrono::nanoseconds>(
+                            std::chrono::steady_clock::now() - start3);
+
+
+                    auto start4 = std::chrono::steady_clock::now();
+                    for (int i = 0; i < num_repeats_per_data; ++i) {
+                        for (NodeID u = 0; u < n; ++u) {
+                            if (edges[u] > 0) {
+                                sum4 += u;
+                            }
+                        }
+                    }
+                    time4 += std::chrono::duration_cast<std::chrono::nanoseconds>(
+                            std::chrono::steady_clock::now() - start4);
+
+                    ASSERT_EQ(sum1, sum2);
+                    ASSERT_EQ(sum1, sum3);
+                    ASSERT_EQ(sum1, sum4);
+                    ASSERT_EQ(sum2, sum3);
+                    ASSERT_EQ(sum2, sum4);
+                    ASSERT_EQ(sum3, sum4);
                 }
-                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(
-                        std::chrono::steady_clock::now() - start).count() * 1e-6 << "\n";
+
+                std::cout << time1.count() * 1e-9 << "\t";
+                std::cout << time2.count() * 1e-9 << "\t";
+                std::cout << time3.count() * 1e-9 << "\t";
+                std::cout << time4.count() * 1e-9 << "\n";
             }
         }
+
+        std::cout.copyfmt(cout_state);
     }
 } // namespace cluster_editing::ds
