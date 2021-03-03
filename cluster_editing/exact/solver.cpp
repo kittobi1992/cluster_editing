@@ -97,7 +97,8 @@ Solution ExactSolver::solve_internal(Instance graph, int budget) {
 
         repeat = false;
         if(auto opt = forcedChoices(graph, budget); opt) graph = *opt, repeat=true, redForced++;
-        if(auto opt = simpleNeighbor(graph); opt) graph = *opt, repeat=true, redTwin++;
+        if(auto opt = simpleTwin(graph); opt) graph = *opt, repeat=true, redTwin++;
+        if(auto opt = complexTwin(graph,true); opt) graph = *opt, repeat=true, redTwin2++;
         if(auto opt = icxReductions(graph, budget); opt) graph = *opt, repeat=true, redICX++;
         // more reductions
         num_reduces++;
@@ -138,7 +139,7 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
         if(verbose) cout << "upper bound " << upper << endl;
         if(auto opt = thomas(inst); opt) inst = *opt; // TODO multiple thomas reductions
         if(auto opt = distance4Reduction(inst); opt) inst = *opt;
-        if(auto opt = simpleNeighbor(inst); opt) inst = *opt;
+        if(auto opt = simpleTwin(inst); opt) inst = *opt;
         //if(auto opt = forcedChoices(inst, upper); opt) inst = *opt;
     }
 
@@ -241,7 +242,8 @@ ostream &operator<<(ostream &os, const ExactSolver &rhs) {
     os << "branching nodes: " << rhs.branchingNodes << endl;
     os << "reductions:      " << rhs.numReducingNodes << endl;
     os << "\tforced:        " << rhs.redForced << endl;
-    os << "\ttwin:          " << rhs.redTwin << endl;
+    os << "\ttwin simple:   " << rhs.redTwin << endl;
+    os << "\ttwin complex:  " << rhs.redTwin2 << endl;
     os << "\ticx:           " << rhs.redICX << endl;
     os << "disconnects:     " << rhs.numDisconnects << endl;
     os << "prunes:          " << rhs.numPrunes << endl;

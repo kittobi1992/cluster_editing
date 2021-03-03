@@ -24,6 +24,7 @@ public:
     int numDisconnects = 0;
     int redForced = 0;
     int redTwin = 0;
+    int redTwin2 = 0;
     int redICX = 0;
     int numPrunes = 0; // unsolvable leaf
 

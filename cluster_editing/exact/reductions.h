@@ -24,4 +24,6 @@ std::optional<Instance> distance4Reduction(const Instance& inst);
 
 std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, bool verbose=false);
 
-std::optional<Instance> simpleNeighbor(const Instance& inst);
+std::optional<Instance> simpleTwin(const Instance& inst);
+
+std::optional<Instance> complexTwin(const Instance& inst, bool calc_dp);

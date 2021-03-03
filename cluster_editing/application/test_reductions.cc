@@ -45,10 +45,11 @@ int main(int argc, char *argv[]) {
         cout << "+-"[not_solved.count(i)];
         cout << "instance\t" << i << "\tn=\t" << size(inst.edges);
         auto upper = solve_heuristic(inst).cost;
-        if(auto opt = thomas(inst); opt) inst = *opt;
+        //if(auto opt = thomas(inst); opt) inst = *opt;
         //if(auto opt = distance4Reduction(inst); opt) inst = *opt;
-        if(auto opt = simpleNeighbor(inst); opt) inst = *opt;
-        if(auto opt = forcedChoices(inst, upper, false); opt) inst = *opt;
+        //if(auto opt = simpleTwin(inst); opt) inst = *opt;
+        if(auto opt = complexTwin(inst,true); opt) inst = *opt;
+        //if(auto opt = forcedChoices(inst, upper, false); opt) inst = *opt;
         if(inst.edges!=load_exact_instance(i).edges)
             cout << "\t\tn'=\t" << size(inst.edges) << "\tspent\t" << inst.spendCost << endl;
         else

@@ -288,9 +288,8 @@ std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, boo
         if(c==INF && res.edges[u][v]<0) res.spendCost -= res.edges[u][v];
         if(c==-INF&& res.edges[u][v]>0) res.spendCost += res.edges[u][v];
         res.edges[u][v] = res.edges[v][u] = c;
-        if(res.spendCost>upper_bound) {
-            return res;
-        }
+        if(res.spendCost>upper_bound)
+            return {}; // not solvable
     }
 
     mergeAllINF(res);
@@ -298,7 +297,7 @@ std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, boo
     return res;
 }
 
-std::optional<Instance> simpleNeighbor(const Instance &inst) {
+std::optional<Instance> simpleTwin(const Instance &inst) {
 
     int n = size(inst.edges);
     if(n<3) return {};
@@ -340,5 +339,108 @@ std::optional<Instance> simpleNeighbor(const Instance &inst) {
 
     mergeAllINF(res);
 
+    return res;
+}
+
+
+int max_over_subsetsDP(vector<pair<int,int>>& B, long long delta_u, long long delta_v) {
+
+    int range_x = 0;
+    int range_y = 0;
+    for(auto [x,y] : B) {
+        assert(min(x,y)!=-INF);
+        range_x += abs(x);
+        range_y += abs(y);
+    }
+    if(range_x>range_y) {
+        swap(delta_u, delta_v);
+        for(auto& [x,y] : B) swap(x,y);
+        swap(range_x, range_y);
+    }
+
+    vector last(2*range_x + 1, -INF);
+    last[range_x] = 0; // at index range_x is there point point 0 of the interval [-range, +range]
+    for(auto [x,y] : B) {
+
+        auto next = last; // OPTION 0: don't use pair
+        for(int i=0; i<size(last); ++i) {
+            if(last[i]==-INF) continue;
+            // valid values should never be out of x_range
+            assert(0<=i-x && i+x<size(last));
+            next[i+x] = max(next[i+x], last[i] - y); // OPTION 1: put in bucket 1
+            next[i-x] = max(next[i+x], last[i] + y); // OPTION 2: put in bucket 2
+        }
+
+        swap(next,last);
+    }
+
+    auto res = min(delta_u, delta_v);
+    for(int i=0; i<size(last); ++i) {
+        auto x = i-range_x;
+        auto y = last[i];
+        res = max(res, min(x+delta_u,y+delta_v));
+    }
+
+    return res;
+}
+
+std::optional<Instance> complexTwin(const Instance &inst, bool calc_dp) {
+    int n = size(inst.edges);
+    auto& g = inst.edges;
+
+    vector<pair<int,int>> perms;
+
+    for(int u=0; u<n; ++u) {
+        for(int v=u+1; v<n; ++v) {
+            if(g[u][v]<=0) continue;
+
+            bool hasINFs = false;
+            for(int w=0; w<n; ++w) {
+                if(g[u][w]==-INF && g[v][w]==-INF) continue;
+                hasINFs |= (g[u][w]==-INF || g[v][w]==-INF);
+            }
+            if(hasINFs) continue;
+
+            vector W(n,true);
+            W[u] = W[v] = false;
+            long long delta_u=0, delta_v=0; // 64 bit to sum up all those -INFs
+            for(int w=0; w<n; ++w) {
+                if(w==u || w==v) continue;
+                if(g[u][w]==-INF && g[v][w]==-INF) {
+                    W[w] = false;
+                    continue;
+                }
+                if((g[u][w]>0) != (g[v][w]>0)) { // w is in some exclusive neighborhood
+                    W[w] = false;
+                    delta_u += abs(g[u][w]);
+                    delta_v += abs(g[v][w]);
+                }
+            }
+
+            assert(delta_u<INF && delta_v<INF);
+            assert(delta_u>=0 && delta_v>=0);
+
+            // try early breaks
+            if(g[u][v]<min(delta_u, delta_v)) continue; // TODO <= ?
+            auto upper_bound = 2*delta_u + 2*delta_v;
+            for(int w=0; w<n; ++w)
+                if(W[w]) upper_bound += abs(g[u][w] - g[v][w]);
+            if(2*g[u][v]>=upper_bound) {
+                perms.emplace_back(u,v);
+                continue;
+            }
+
+            if(!calc_dp) continue;
+            vector<pair<int,int>> B;
+            for(int w=0; w<n; ++w) if(W[w]) B.emplace_back(g[u][w], g[v][w]);
+            auto val = max_over_subsetsDP(B, delta_u, delta_v);
+            if(g[u][v]>=val) perms.emplace_back(u,v);
+        }
+    }
+
+    if(empty(perms)) return {};
+    auto res = inst;
+    for(auto [u,v] : perms) res.edges[u][v] = INF;
+    mergeAllINF(res);
     return res;
 }
