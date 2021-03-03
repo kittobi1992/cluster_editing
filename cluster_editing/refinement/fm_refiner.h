@@ -56,8 +56,7 @@ private:
 
   bool refineImpl(Graph& graph) final ;
 
-  void moveVertex(Graph& graph, NodeID u, CliqueID to,
-          EdgeWeight weight_to_clique=std::numeric_limits<EdgeWeight>::max());
+  void moveVertex(Graph& graph, NodeID u, CliqueID to, bool manage_empty_cliques = true);
 
   Rating computeBestClique(Graph& graph, const NodeID u);
 
@@ -77,6 +76,7 @@ private:
   }
 
   void insertIntoTargetClique(NodeID u, Rating& r) {
+    if (r.clique == ISOLATE_CLIQUE) assert(r.weight_to_clique == 0);
     CliqueID target = r.clique;
     n[u].desired_target = target;
     n[u].weight_to_target_clique = r.weight_to_clique;
@@ -121,10 +121,10 @@ private:
   std::vector<CliqueID> _empty_cliques;
   ds::SparseMap<CliqueID, EdgeWeight> edge_weight_to_clique;
 
-  uint32_t move_round;
   std::vector<NodeData> n;
   std::vector<std::vector<NodeID>> target_cliques, current_cliques;
   mt_kahypar::ds::MinHeap<EdgeWeight, NodeID> pq;
   std::vector<Move> moves;
+
 };
 }  // namespace cluster_editing
