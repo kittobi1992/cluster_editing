@@ -31,7 +31,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
   EdgeWeight current_metric = start_metric;
   EdgeWeight round_delta = -1;
 
-  for ( int round = 0; round < _context.refinement.lp.maximum_lp_iterations && round_delta < 0; ++round ) {
+  for ( int round = 0; round < _context.refinement.maximum_fm_iterations && round_delta < 0; ++round ) {
     if (_context.general.verbose_output) LOG << "round" << (round+1);
 
     round_delta = 0;
@@ -115,7 +115,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
         }
       }
 
-      static constexpr uint32_t SKIP_THRESHOLD = 200;
+      static constexpr uint32_t SKIP_THRESHOLD = 20;
 
       const CliqueID actual_target = graph.clique(u);
 
@@ -135,7 +135,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
           // TODO could also sum up edge weight changes. if weight changes allow for target cluster to change (multiply by some treshold) --> recompute
           if (pq.contains(v) && ++n[v].num_skips > SKIP_THRESHOLD) {
             n[v].num_skips = 0;
-            LOG << "recalc" << V(v);
+            //LOG << "recalc" << V(v);
             Rating rv = computeBestClique(graph, v);
             pq.adjustKey(v, rv.delta);
             updateTargetClique(v, rv);
@@ -154,7 +154,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
         } else {
           if (++n[v].num_skips > SKIP_THRESHOLD) {
             n[v].num_skips = 0;
-            LOG << "recalc" << V(v);
+            //LOG << "recalc" << V(v);
             Rating rv = computeBestClique(graph, v);
             pq.adjustKey(v, rv.delta);
             updateTargetClique(v, rv);
