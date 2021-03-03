@@ -16,7 +16,7 @@ struct GeneralParameters {
   bool print_csv = false;
   int seed = 0;
   bool use_multilevel = false;
-  int num_repititions = 0;
+  int num_repetitions = 0;
 };
 
 std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);

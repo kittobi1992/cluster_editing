@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
   utils::Timer::instance().start_timer("solver", "Solver");
   std::vector<CliqueID> best_cliques(graph.numNodes(), INVALID_CLIQUE);
   size_t best_objective = std::numeric_limits<size_t>::max();
-  for ( int i = 0; i < context.general.num_repititions; ++i ) {
+  for (int i = 0; i < context.general.num_repetitions; ++i ) {
     graph.reset();
     if ( context.general.use_multilevel ) {
       multilevel::solve(graph, context);
