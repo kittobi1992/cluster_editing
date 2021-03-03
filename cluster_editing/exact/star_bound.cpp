@@ -2,6 +2,7 @@
 #include <cluster_editing/exact/star_bound.h>
 
 #include <cassert>
+#include <utility>
 #include <vector>
 #include <numeric>
 #include <algorithm>
@@ -17,7 +18,7 @@ class StarBound {
         std::vector<int> nodes;
 
         Star(std::vector<int> nodes)
-        : nodes(nodes)
+        : nodes(std::move(nodes))
         {
             make_canonical();
         }
@@ -290,7 +291,7 @@ public:
         return star_extensions;
     };
 
-    void try_improve(Star star) {
+    void try_improve(const Star& star) {
         // TODO: implement star merging
 
         Star candidate_star = star;
@@ -324,14 +325,14 @@ public:
             bool two_found = false;
             for (const auto &[pair, candidates] : candidates_per_pair) {
                 assert(!two_found);
-                for (auto candidate : candidates) {
+                for (const auto& candidate : candidates) {
                     assert(!two_found);
                     add_candidate(candidate);
 
                     for (const auto &[pair2, candidates2] : candidates_per_pair) {
                         if (pair == pair2)
                             continue;
-                        for (auto candidate2 : candidates2) {
+                        for (const auto& candidate2 : candidates2) {
                             if (can_add_candidate(candidate2)) {
                                 two_found = true;
                                 add_candidate(candidate2);
@@ -396,7 +397,7 @@ vector<int> degeneracyOrdering(map<int, vector<int>> g) {
     for (auto & [u, neighbors] : g) {
         auto d = deg[u] = size(neighbors);
         while (nodesByDeg.size() <= d)
-            nodesByDeg.push_back({});
+            nodesByDeg.emplace_back();
         nodesByDeg[d].insert(u);
     }
     for (int d = 0; d < nodesByDeg.size(); ++d) {
@@ -443,7 +444,7 @@ vector<vector<int>> coloring(map<int, vector<int>> g) {
             c++;
         if (c > maxColor) {
             maxColor = c;
-            ans.push_back({});
+            ans.emplace_back();
         }
         ans[c].push_back(u);
         color[u] = c;
@@ -465,7 +466,7 @@ int star_bound(const Instance& inst, int limit) {
             if (i==j) continue;
             neighbors += potential[i][j] > 0;
         }
-        node_sizes.push_back({neighbors, i});
+        node_sizes.emplace_back(neighbors, i);
     }
 
     sort(node_sizes.begin(), node_sizes.end(), greater<>());
@@ -491,6 +492,8 @@ int star_bound(const Instance& inst, int limit) {
             new_nodes.push_back(u);
             std::copy(star_leaves.begin(), star_leaves.end(), std::back_inserter(new_nodes));
             bound.add_star(new_nodes);
+            if (bound.bound > limit)
+                return bound.bound;
         }
     }
     int old_bound = 0;
@@ -503,7 +506,7 @@ int star_bound(const Instance& inst, int limit) {
 
         old_bound = bound.bound;
         //cout << bound.bound << endl;
-        for (auto star : bound.stars_in_random_order()) {
+        for (const auto& star : bound.stars_in_random_order()) {
             // Check if for some reason we have removed this star
             if (!bound.has_star(star))
                 continue;
