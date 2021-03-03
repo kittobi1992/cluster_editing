@@ -43,6 +43,8 @@ namespace cluster_editing {
              "Verbose main partitioning output")
             ("print-result-line", po::value<bool>(&context.general.print_result_line)->value_name("<bool>")->default_value(true),
              "Prints RESULT-line containing stats, timings and metrics")
+            ("csv", po::value<bool>(&context.general.print_csv)->value_name("<bool>")->default_value(false),
+             "Prints CSV output")
             ("seed", po::value<int>(&context.general.seed)->value_name("<int>"),
              "Random Seed");
     return options;
