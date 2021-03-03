@@ -8,6 +8,7 @@
 #include <random>
 #include <map>
 #include <set>
+#include <iostream>
 
 using namespace std;
 
@@ -18,11 +19,23 @@ class StarBound {
         Star(std::vector<int> nodes)
         : nodes(nodes)
         {
+            make_canonical();
+        }
+
+        Star()
+        : nodes()
+        { }
+
+        void make_canonical() {
             sort(nodes.begin()+1, nodes.end());
         }
 
         int center() const {
             return nodes[0];
+        }
+
+        bool operator<(const Star& rhs) const {
+            return nodes < rhs.nodes;
         }
     };
 
@@ -40,7 +53,6 @@ class StarBound {
     //Candidate = collections.namedtuple('Candidate', ['candidate_type',
     //        'nodes', 'shared_p3'])
 
-    int bound = 0;
     Edges g;
     std::set<std::pair<int, int>> used_pairs;
     std::vector<std::vector<bool>> used_by_bound;
@@ -50,6 +62,9 @@ class StarBound {
     std::vector<std::vector<int>> p3_count;
 
     std::mt19937_64 gen;
+
+public:
+    int bound = 0;
 
     StarBound(Edges g)
     : g(g)
@@ -109,7 +124,7 @@ class StarBound {
     bool can_add(const Star & star) {
         for (auto v1 : star.nodes)
             for (auto v2 : star.nodes)
-                if (used_pairs.find({v1, v2}) != used_pairs.end())
+                if (v1 != v2 && used_pairs.find({v1, v2}) != used_pairs.end())
                     return false;
         return true;
     };
@@ -146,7 +161,7 @@ class StarBound {
 
         for (int i = 1; i < star.nodes.size(); ++i) {
             int u = star.nodes[i];
-            stars_for_edge[{star.center(), u}] = star;
+            stars_for_edge[make_pair(star.center(), u)] = star;
         }
         for (auto u : star.nodes) {
             for (auto v : star.nodes) {
@@ -154,8 +169,9 @@ class StarBound {
                     continue;
                 assert(used_pairs.find({u, v}) == used_pairs.end());
                 used_pairs.insert({u, v});
-                if (g[u][v] > 0)
+                if (g[u][v] > 0) {
                     free_edges_g[u].erase(v);
+                }
             }
         }
     };
@@ -184,8 +200,8 @@ class StarBound {
         } else {
             auto existing_star = candidate.nodes;
             existing_star.pop_back();
-            remove_star(Star(candidate.nodes));
-            add_star(Star(existing_star));
+            remove_star(Star(existing_star));
+            add_star(Star(candidate.nodes));
         }
     }
 
@@ -217,7 +233,7 @@ class StarBound {
                     bool valid = true;
                     for (int i = 1; i < star.nodes.size(); ++i) {
                         int x = star.nodes[i];
-                        if (pair_used(ext, x) || g[ext][x] > 0) {
+                        if (pair_used(ext, x) || g[ext][x] >= 0) {
                             valid = false;
                             break;
                         }
@@ -246,7 +262,7 @@ class StarBound {
                         bool valid = true;
                         for (int i = 1; i < star.nodes.size(); ++i) {
                             int x = star.nodes[i];
-                            if (pair_used(ext, x) || g[ext][x] > 0) {
+                            if (pair_used(ext, x) || g[ext][x] >= 0) {
                                 valid = false;
                                 break;
                             }
@@ -282,10 +298,10 @@ class StarBound {
         for (auto v : nodes) {
             remove_star(candidate_star);
 
-            bool is_p3 = star.nodes.size() == 3;
+            bool is_p3 = candidate_star.nodes.size() == 3;
 
             if (!is_p3) {
-                assert(star.nodes.size() > 3);
+                assert(candidate_star.nodes.size() > 3);
                 candidate_star.nodes.erase(std::remove(candidate_star.nodes.begin(), candidate_star.nodes.end(), v), candidate_star.nodes.end());
                 add_star(candidate_star);
             }
@@ -300,7 +316,7 @@ class StarBound {
                 candidates_per_pair[{b, c}] = get_candidates(b, c);
             } else {
                 for (auto x : candidate_star.nodes) {
-                    // assert v not in bound.g[x] or x == star[0]
+                    assert(g[x][v] < 0 || x == star.center());
                     candidates_per_pair[{v, x}] = get_candidates(v, x);
                 }
             }
@@ -353,11 +369,14 @@ class StarBound {
                     std::sort(s_nodes.begin(), s_nodes.end());
                     if (r_nodes == s_nodes) {
                         candidate_star.nodes.push_back(v);
+                        candidate_star.make_canonical();
                     }
+                    add_candidate(replacement);
                 } else {
                     if (!is_p3) {
                         remove_star(candidate_star);
                         candidate_star.nodes.push_back(v);
+                        candidate_star.make_canonical();
                     }
                     add_star(candidate_star);
                 }
@@ -434,6 +453,69 @@ vector<vector<int>> coloring(map<int, vector<int>> g) {
 
 int star_bound(const Instance& inst, int limit) {
     auto potential = inst.edges;
+    auto bound = StarBound(potential);
+
+    auto n = size(potential);
+
+    // Calculate degrees
+    auto node_sizes = vector<pair<int, int>>();
+    for (int i = 0; i < n; ++i) {
+        int neighbors = 0;
+        for (int j = 0; j < n; ++j) {
+            if (i==j) continue;
+            neighbors += potential[i][j] > 0;
+        }
+        node_sizes.push_back({neighbors, i});
+    }
+
+    sort(node_sizes.begin(), node_sizes.end(), greater<>());
+
+    for (auto [_, u] : node_sizes) {
+        // Calc neighbor candidates
+        auto candidates = bound.free_neighbors(u);
+        // Build neighborhood graph
+        auto neighborgraph = map<int, vector<int>>();
+        for (auto cand1 : candidates) {
+            neighborgraph[cand1];
+            for (auto cand2 : candidates)
+                if (cand1 != cand2)
+                    if (bound.pair_used(cand1, cand2) || potential[cand1][cand2] >= 0) // > or >= ?
+                    neighborgraph[cand1].push_back(cand2);
+        }
+        // Build stars based on neighborhood coloring
+        auto stars = coloring(neighborgraph);
+        for (auto &star_leaves : stars) {
+            if (size(star_leaves) < 2)
+                continue;
+            auto new_nodes = vector<int>();
+            new_nodes.push_back(u);
+            std::copy(star_leaves.begin(), star_leaves.end(), std::back_inserter(new_nodes));
+            bound.add_star(new_nodes);
+        }
+    }
+    int old_bound = 0;
+    int num_unchanged = 0;
+    while (old_bound < bound.bound || num_unchanged < 5) {
+        if (old_bound < bound.bound)
+            num_unchanged = 0;
+        else
+            num_unchanged++;
+
+        old_bound = bound.bound;
+        //cout << bound.bound << endl;
+        for (auto star : bound.stars_in_random_order()) {
+            // Check if for some reason we have removed this star
+            if (!bound.has_star(star))
+                continue;
+
+            bound.try_improve(star);
+            if (bound.bound > limit)
+                return bound.bound;
+        }
+    }
+    return bound.bound;
+    /*
+    auto potential = inst.edges;
     auto n = size(potential);
 
     // Calculate degrees
@@ -497,5 +579,5 @@ int star_bound(const Instance& inst, int limit) {
 
     // TODO Local search
 
-    return bound;
+    return bound;*/
 }
