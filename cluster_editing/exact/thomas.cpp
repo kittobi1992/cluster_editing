@@ -13,12 +13,17 @@ using namespace std;
 Instance createSubinst(Instance &graph, vector<int> &cluster) {
     auto inst = Instance(size(graph.edges));
     for(auto& row : inst.edges) fill(begin(row), end(row), 0);
+    for(int i=0; i<size(inst.edges); ++i) inst.edges[i][i] = -1;
+    inst.orig = inst.edges;
     for (auto node: cluster) {
         for (int i = 0; i < size(graph.edges); ++i) {
-            inst.edges[node][i] = graph.edges[node][i];
-            inst.edges[i][node] = graph.edges[i][node];
+            inst.edges[i][node] = inst.edges[node][i] = graph.edges[i][node];
+            inst.orig[i][node] = inst.orig[node][i] = graph.orig[i][node];
         }
     }
+    for(int i=0; i<size(inst.edges); ++i)
+        for(int j=0; j<size(inst.edges); ++j)
+            assert(abs(inst.edges[i][j])==INF || inst.edges[i][j]==inst.orig[i][j]);
     return inst;
 }
 
@@ -52,12 +57,12 @@ void put_together(Instance &graph, vector<int> &cluster) {
 
     for (auto node: cluster) {
         for (int i = 0; i < size(graph.edges); ++i) {
-            if (in_cluster[i]) {
-                graph.edges[node][i] = 1;
-                graph.edges[i][node] = 1;
+            if (in_cluster[i] && i!=node) {
+                graph.edges[node][i] = graph.edges[i][node] = 1;
+                graph.orig[node][i] = graph.orig[i][node] = 1;
             } else {
-                graph.edges[node][i] = -1;
-                graph.edges[i][node] = -1;
+                graph.edges[node][i] = graph.edges[i][node] = -1;
+                graph.orig[node][i] = graph.orig[i][node] = -1;
             }
         }
     }
@@ -92,7 +97,7 @@ optional<Instance> thomas(Instance graph) {
         }
 
         auto subinstSize = getSize(subinst.edges, cluster);
-        if (subinstSize == size(graph.edges) || subinstSize > 25) { // magic number
+        if (subinstSize == size(graph.edges) || subinstSize > 50) { // magic number
             //cout << "skipping cluster because it's too large" << endl;
             continue;
         }

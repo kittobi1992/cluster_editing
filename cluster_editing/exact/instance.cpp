@@ -45,5 +45,6 @@ Instance load_exact_instance(int num) {
 
     Instance inst(n);
     inst.edges = res;
+    inst.orig = res;
     return inst;
 }

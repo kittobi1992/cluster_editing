@@ -158,3 +158,20 @@ TEST_P(SolverTest, canSolve) {
 
 auto testNameFunctor = [](const auto& info) { return "exact" + to_string(info.param); };
 INSTANTIATE_TEST_SUITE_P(SolveIn1s, SolverTest, testing::Range(1,200,2), testNameFunctor);
+
+
+TEST(CompleTwin, edgeCase) {
+    Instance inst(3);
+    inst.edges = {
+            {-1,1,-INF},
+            {1,-1,1},
+            {-INF,1,-1},
+    };
+    inst.orig = {
+            {-1,1,-1},
+            {1,-1,1},
+            {-1,1,-1},
+    };
+    if(auto opt=complexTwin(inst,true); opt)
+        ASSERT_LT(opt->spendCost, INF);
+}

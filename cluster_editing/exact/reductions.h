@@ -27,3 +27,5 @@ std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, boo
 std::optional<Instance> simpleTwin(const Instance& inst);
 
 std::optional<Instance> complexTwin(const Instance& inst, bool calc_dp);
+
+std::optional<Instance> mergeCliques(const Instance& inst);
