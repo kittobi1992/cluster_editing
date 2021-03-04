@@ -9,37 +9,69 @@
 #include <random>
 #include <map>
 #include <set>
+#include <unordered_set>
 #include <iostream>
 
 using namespace std;
 
-class StarBound {
-    struct Star {
-        std::vector<int> nodes;
+struct pair_hash
+{
+    template <class T1, class T2>
+    std::size_t operator() (const std::pair<T1, T2> &pair) const
+    {
+        return std::hash<T1>()(pair.first) ^ (std::hash<T2>()(pair.second) << 16);
+    }
+};
 
-        Star(std::vector<int> nodes)
-        : nodes(std::move(nodes))
+// TODO Put this back into StarBound namespace with hash function?
+struct Star {
+    std::vector<int> nodes;
+
+    Star(std::vector<int> nodes)
+            : nodes(std::move(nodes))
+    {
+        make_canonical();
+    }
+
+    Star()
+            : nodes()
+    { }
+
+    void make_canonical() {
+        sort(nodes.begin()+1, nodes.end());
+    }
+
+    int center() const {
+        return nodes[0];
+    }
+
+    bool operator<(const Star& rhs) const {
+        return nodes < rhs.nodes;
+    }
+
+    bool operator==(const Star& rhs) const {
+        return nodes == rhs.nodes;
+    }
+};
+
+namespace std
+{
+    template <>
+    struct hash<Star>
+    {
+        size_t operator()(const Star& star) const
         {
-            make_canonical();
-        }
-
-        Star()
-        : nodes()
-        { }
-
-        void make_canonical() {
-            sort(nodes.begin()+1, nodes.end());
-        }
-
-        int center() const {
-            return nodes[0];
-        }
-
-        bool operator<(const Star& rhs) const {
-            return nodes < rhs.nodes;
+            // Compute individual hash values for two data members and combine them using XOR and bit shifting
+            size_t ans = 0;
+            for (auto node : star.nodes)
+                ans = (ans << 1) ^ size_t(std::hash<int>{}(node));
+            return ans;
         }
     };
+}
 
+class StarBound {
+protected:
     enum CandidateType {
         P3,
         STAR_EXTENSION
@@ -55,11 +87,10 @@ class StarBound {
     //        'nodes', 'shared_p3'])
 
     Edges g;
-    std::set<std::pair<int, int>> used_pairs;
     std::vector<std::vector<bool>> used_by_bound;
-    std::vector<std::set<Star>> stars;
+    std::vector<std::unordered_set<Star>> stars;
     std::vector<std::set<int>> free_edges_g;
-    std::map<pair<int, int>, Star> stars_for_edge;
+    std::unordered_map<pair<int, int>, Star, pair_hash> stars_for_edge;
     std::vector<std::vector<int>> p3_count;
 
     std::mt19937_64 gen;
@@ -69,6 +100,7 @@ public:
 
     StarBound(Edges g)
     : g(g)
+    , used_by_bound(g.size(), vector<bool>(g.size(), false))
     , stars(g.size())
     , free_edges_g(g.size())
     , p3_count(g.size(), vector<int>(g.size(), 0))
@@ -100,15 +132,15 @@ public:
 
     }
 
-    std::set<int> free_neighbors(int u) {
+    std::set<int> free_neighbors(int u) const {
         return free_edges_g[u];
     };
 
-    bool pair_used(int u, int v) {
-        return used_pairs.find({u, v}) != used_pairs.end();
+    bool pair_used(int u, int v) const {
+        return used_by_bound[u][v];
     };
 
-    bool has_star(const Star & star) {
+    bool has_star(const Star & star) const {
         return stars[star.center()].find(star) != stars[star.center()].end();
     };
 
@@ -122,15 +154,15 @@ public:
 
     };
 
-    bool can_add(const Star & star) {
+    bool can_add(const Star & star) const {
         for (auto v1 : star.nodes)
             for (auto v2 : star.nodes)
-                if (v1 != v2 && used_pairs.find({v1, v2}) != used_pairs.end())
+                if (v1 != v2 && pair_used(v1, v2))
                     return false;
         return true;
     };
 
-    bool can_add_candidate(Candidate candidate) {
+    bool can_add_candidate(const Candidate & candidate) const {
         if (candidate.type == P3)
             return can_add(Star(candidate.nodes));
 
@@ -139,7 +171,7 @@ public:
         if (!has_star(star))
             return false;
         for (auto node : star.nodes) {
-            if (used_pairs.find({node, ext}) != used_pairs.end())
+            if (pair_used(node, ext))
                 return false;
         }
         return true;
@@ -168,8 +200,8 @@ public:
             for (auto v : star.nodes) {
                 if (u==v)
                     continue;
-                assert(used_pairs.find({u, v}) == used_pairs.end());
-                used_pairs.insert({u, v});
+                assert(!pair_used(u, v));
+                used_by_bound[u][v] = true;
                 if (g[u][v] > 0) {
                     free_edges_g[u].erase(v);
                 }
@@ -188,7 +220,7 @@ public:
             for (auto v : star.nodes) {
                 if (u == v)
                     continue;
-                used_pairs.erase({u, v});
+                used_by_bound[u][v] = false;
                 if (g[u][v] > 0)
                     free_edges_g[u].insert(v);
             }
@@ -217,16 +249,16 @@ public:
         }
     }
 
-    std::vector<Candidate> get_candidates(int u, int v) {
+    std::vector<Candidate> get_candidates(int u, int v) const {
         vector<Candidate> star_extensions;
 
         vector<array<int, 3>> p3s;
         if (g[u][v] > 0) {
             for (int y : free_edges_g[v])
-                if (y != u && g[u][y] < 0 && used_pairs.find({u, y}) == used_pairs.end())
+                if (y != u && g[u][y] < 0 && !pair_used(u, y))
                     p3s.push_back({v, u, y});
             for (int y : free_edges_g[u])
-                if (y != v && g[v][y] < 0 && used_pairs.find({v, y}) == used_pairs.end())
+                if (y != v && g[v][y] < 0 && !pair_used(v, y))
                     p3s.push_back({u, v, y});
 
             for (auto [center, ext] : vector<pair<int, int>>({{u, v}, {v, u}})) {
@@ -258,7 +290,7 @@ public:
             for (auto [ext, existing] : vector<pair<int, int>>({{u, v}, {v, u}})) {
                 for (auto center : free_edges_g[ext]) {
                     if (stars_for_edge.find({center, existing}) != stars_for_edge.end()) {
-                        auto star = stars_for_edge[{center, existing}];
+                        auto star = stars_for_edge.at({center, existing});
 
                         bool valid = true;
                         for (int i = 1; i < star.nodes.size(); ++i) {
