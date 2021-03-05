@@ -370,117 +370,213 @@ namespace cluster_editing::ds {
         }
 
 
-        AdjacencyRow w_row = u_row;
-        for (unsigned int i = 0; i < w_row.num_blocks(); ++i) {
-            w_row.block(i) &= v_row.block(i) & ~u_forbidden_row.block(i) & ~v_forbidden_row.block(i);
+        {
+            AdjacencyRow w_row = u_row;
+            for (unsigned int i = 0; i < w_row.num_blocks(); ++i) {
+                w_row.block(i) &= v_row.block(i) & ~u_forbidden_row.block(i) & ~v_forbidden_row.block(i);
+            }
+
+            std::vector<NodeID> nodes;
+            w_row.for_each([&](NodeID u) {
+                nodes.push_back(u);
+            });
+
+            ASSERT_EQ(nodes.size(), 2);
+            ASSERT_EQ(nodes[0], 1);
+            ASSERT_EQ(nodes[1], 3);
         }
 
-        std::vector<NodeID> nodes;
-        w_row.for_each([&](NodeID u) {
-            nodes.push_back(u);
-        });
+        {
+            const auto get_block = [&](auto i) {
+                return u_row.block(i) & v_row.block(i) & ~u_forbidden_row.block(i) & ~v_forbidden_row.block(i);
+            };
 
-        ASSERT_EQ(nodes.size(), 2);
-        ASSERT_EQ(nodes[0], 1);
-        ASSERT_EQ(nodes[1], 3);
+            std::vector<NodeID> nodes;
+            AdjacencyRow::for_each(u_row.num_blocks(), get_block, [&](NodeID u) {
+                nodes.push_back(u);
+            });
+
+            ASSERT_EQ(nodes.size(), 2);
+            ASSERT_EQ(nodes[0], 1);
+            ASSERT_EQ(nodes[1], 3);
+        }
     }
 
     TEST_F(AdjacencyRowTest, Benchmark) {
         std::mt19937_64 gen(0);
 
-        int num_data = 100;
-        int num_repeats_per_data = 10;
+        int num_data = 1000;
+        int num_repeats_per_data = 1;
 
         std::ios cout_state(nullptr);
         cout_state.copyfmt(std::cout);
-        std::cout << std::fixed << std::setw(11) << std::setprecision(6);
 
-        std::cout << "n\tdensity\tnum_data\tnum_repeats_per_data\tNodeIterator [s]\tfor_each [s]\tindex operator [s]\tedge vector [s]\n";
+        std::cout << "n\tdensity\tnum_data\tnum_repeats_per_data\t"
+                     "NodeIterator total [s]\t"
+                     "row for_each total [s]\t"
+                     "index operator total [s]\t"
+                     "edge vector total [s]\t"
+                     "block for_each total [s]\t"
+                     "NodeIterator per node [ns/node]\t"
+                     "row for_each per node [ns/node]\t"
+                     "index operator per node [ns/node]\t"
+                     "edge vector per node [ns/node]\t"
+                     "block for_each per node [ns/node]\t"
+                     "NodeIterator / best\t"
+                     "row for_each / best\t"
+                     "index operator / best\t"
+                     "edge vector / best\t"
+                     "block for_each / best\t\n";
+
+
+        auto gen_data = [](NodeID n, double density, std::mt19937_64 &gen) {
+            AdjacencyRow row(n);
+
+            std::vector<NodeID> nodes(n);
+            for (NodeID u = 0; u < n; ++u) {
+                nodes[u] = u;
+            }
+            std::shuffle(nodes.begin(), nodes.end(), gen);
+
+            for (size_t i = 0; i < n * density; ++i) {
+                row[nodes[i]] = true;
+            }
+
+            std::vector<int> edges(n);
+            for (NodeID u = 0; u < n; ++u) {
+                if (row[u]) {
+                    edges[u] = 1;
+                } else {
+                    edges[u] = -1;
+                }
+            }
+            return std::make_tuple(row, edges);
+        };
 
         for (NodeID n : {100, 500, 1000, 10000}) {
             std::uniform_int_distribution<NodeID> dist(0, n - 1);
             for (auto density : {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0}) {
-                std::cout << n << "\t" << density << "\t" << num_data << "\t" << num_repeats_per_data << "\t";
-
-                std::chrono::nanoseconds time1{0}, time2{0}, time3{0}, time4{0};
+                std::array<std::chrono::nanoseconds, 5> times{};
+                std::array<size_t, 5> counts{};
 
                 for (int j = 0; j < num_data; ++j) {
+                    // pre-allocated row to work on
                     AdjacencyRow row(n);
+                    // sqrt(density) so that the intersection has approximately the wanted density.
+                    auto data1 = gen_data(n, std::sqrt(density), gen);
+                    auto data2 = gen_data(n, std::sqrt(density), gen);
+                    const auto row1 = std::move(std::get<0>(data1));
+                    const auto edges1 = std::move(std::get<1>(data1));
+                    const auto row2 = std::move(std::get<0>(data2));
+                    const auto edges2 = std::move(std::get<1>(data2));
 
-                    std::vector<NodeID> nodes(n);
-                    for (NodeID u = 0; u < n; ++u) {
-                        nodes[u] = u;
-                    }
-                    std::shuffle(nodes.begin(), nodes.end(), gen);
+                    std::array<NodeID, 5> sums{};
 
-                    for (size_t i = 0; i < n * density; ++i) {
-                        row[nodes[i]] = true;
-                    }
-
-                    std::vector<int> edges(n);
-                    for (NodeID u = 0; u < n; ++u) {
-                        if (row[u]) {
-                            edges[u] = 1;
-                        } else {
-                            edges[u] = -1;
-                        }
-                    }
-
-                    NodeID sum1{0}, sum2{0}, sum3{0}, sum4{0};
-
-                    auto start1 = std::chrono::steady_clock::now();
-                    for (int i = 0; i < num_repeats_per_data; ++i) {
-                        for (auto u : row) {
-                            sum1 += u;
-                        }
-                    }
-                    time1 += std::chrono::duration_cast<std::chrono::nanoseconds>(
-                            std::chrono::steady_clock::now() - start1);
-
-                    auto start2 = std::chrono::steady_clock::now();
-                    for (int i = 0; i < num_repeats_per_data; ++i) {
-                        row.for_each([&](auto u) {
-                            sum2 += u;
-                        });
-                    }
-                    time2 += std::chrono::duration_cast<std::chrono::nanoseconds>(
-                            std::chrono::steady_clock::now() - start2);
-
-                    auto start3 = std::chrono::steady_clock::now();
-                    for (int i = 0; i < num_repeats_per_data; ++i) {
-                        for (NodeID u = 0; u < n; ++u) {
-                            if (row[u]) {
-                                sum3 += u;
+                    {
+                        auto start = std::chrono::steady_clock::now();
+                        for (int i = 0; i < num_repeats_per_data; ++i) {
+                            row = row1;
+                            row &= row2;
+                            for (auto u : row) {
+                                sums[0] += u;
+                                ++counts[0];
                             }
                         }
+                        auto stop = std::chrono::steady_clock::now();
+                        times[0] += std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
                     }
-                    time3 += std::chrono::duration_cast<std::chrono::nanoseconds>(
-                            std::chrono::steady_clock::now() - start3);
 
 
-                    auto start4 = std::chrono::steady_clock::now();
-                    for (int i = 0; i < num_repeats_per_data; ++i) {
-                        for (NodeID u = 0; u < n; ++u) {
-                            if (edges[u] > 0) {
-                                sum4 += u;
+                    {
+                        auto start = std::chrono::steady_clock::now();
+                        for (int i = 0; i < num_repeats_per_data; ++i) {
+                            row = row1;
+                            row &= row2;
+                            row.for_each([&](auto u) {
+                                sums[1] += u;
+                                ++counts[1];
+                            });
+                        }
+                        auto stop = std::chrono::steady_clock::now();
+                        times[1] += std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+                    }
+
+
+                    {
+                        auto start = std::chrono::steady_clock::now();
+                        for (int i = 0; i < num_repeats_per_data; ++i) {
+                            for (NodeID u = 0; u < n; ++u) {
+                                if (row1[u] & row2[u]) {
+                                    sums[2] += u;
+                                    ++counts[2];
+                                }
                             }
                         }
+                        auto stop = std::chrono::steady_clock::now();
+                        times[2] += std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
                     }
-                    time4 += std::chrono::duration_cast<std::chrono::nanoseconds>(
-                            std::chrono::steady_clock::now() - start4);
 
-                    ASSERT_EQ(sum1, sum2);
-                    ASSERT_EQ(sum1, sum3);
-                    ASSERT_EQ(sum1, sum4);
-                    ASSERT_EQ(sum2, sum3);
-                    ASSERT_EQ(sum2, sum4);
-                    ASSERT_EQ(sum3, sum4);
+
+                    {
+                        auto start = std::chrono::steady_clock::now();
+                        for (int i = 0; i < num_repeats_per_data; ++i) {
+                            for (NodeID u = 0; u < n; ++u) {
+                                if (edges1[u] > 0 && edges2[u] > 0) {
+                                    sums[3] += u;
+                                    ++counts[3];
+                                }
+                            }
+                        }
+                        auto stop = std::chrono::steady_clock::now();
+                        times[3] += std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+                    }
+
+
+                    {
+                        auto start = std::chrono::steady_clock::now();
+                        for (int i = 0; i < num_repeats_per_data; ++i) {
+                            const auto get_block = [&](auto i) { return row1.block(i) & row2.block(i); };
+                            AdjacencyRow::for_each(
+                                    row1.num_blocks(), get_block,
+                                    [&](auto u) {
+                                        sums[4] += u;
+                                        ++counts[4];
+                                    });
+                        }
+                        auto stop = std::chrono::steady_clock::now();
+                        times[4] += std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+                    }
+
+
+                    for (auto sum : sums) {
+                        ASSERT_EQ(sums[0], sum);
+                    }
                 }
 
-                std::cout << time1.count() * 1e-9 << "\t";
-                std::cout << time2.count() * 1e-9 << "\t";
-                std::cout << time3.count() * 1e-9 << "\t";
-                std::cout << time4.count() * 1e-9 << "\n";
+                std::cout << std::setw(6) << n << "\t";
+                std::cout << std::setw(4) << std::setprecision(1) << std::fixed << density << "\t";
+                std::cout << std::setw(4) << num_data << "\t";
+                std::cout << std::setw(3) << num_repeats_per_data << "\t";
+
+                for (auto t : times) {
+                    std::cout << std::setw(8) << std::setprecision(6) << std::fixed;
+                    std::cout << t.count() * 1e-9 << "\t";
+                }
+
+                for (size_t i = 0; i < times.size(); ++i) {
+                    std::cout << std::setw(8) << std::setprecision(2) << std::fixed;
+                    std::cout << (double) times[i].count() / counts[i] << "\t";
+                }
+
+                double min = std::min(
+                        {times[0].count(), times[1].count(), times[2].count(), times[3].count(), times[4].count()});
+                for (auto t : times) {
+                    std::cout << std::setw(8) << std::setprecision(4) << std::fixed;
+                    std::cout << t.count() / min << "\t";
+                }
+                std::cout << "\n";
+
+                std::cout.copyfmt(cout_state);
             }
         }
 
