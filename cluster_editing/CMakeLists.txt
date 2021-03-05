@@ -4,6 +4,7 @@ add_subdirectory(io)
 add_subdirectory(coarsening)
 add_subdirectory(refinement)
 add_subdirectory(utils)
+add_subdirectory(evolutionary)
 
 add_subdirectory(exact)
 

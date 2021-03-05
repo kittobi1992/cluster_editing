@@ -8,5 +8,7 @@ namespace cluster_editing {
 
 using Graph = ds::Graph;
 using HighResClockTimepoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
+using Edit = std::pair<NodeID, NodeID>;
+
 
 } // namespace cluster_editing

@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "cluster_editing/macros.h"
 #include "cluster_editing/datastructures/graph_factory.h"
@@ -13,15 +14,15 @@ namespace cluster_editing::io {
 
 using AdjacencyList = std::vector<std::vector<NodeID>>;
 
-void readHeader(std::ifstream& file,
+void readHeader(std::istream& in_stream,
                 NodeID& num_nodes,
                 EdgeID& num_edges) {
   std::string line;
-  std::getline(file, line);
+  std::getline(in_stream, line);
 
   // Skip comments
   while ( line[0] == 'c' )  {
-    std::getline(file, line);
+    std::getline(in_stream, line);
   }
 
   ASSERT(line[0] == 'p');
@@ -30,14 +31,14 @@ void readHeader(std::ifstream& file,
   sstream >> skip >> skip >> num_nodes >> num_edges;
 }
 
-void readEdges(std::ifstream& file,
+void readEdges(std::istream& in_stream,
                const EdgeID num_edges,
                AdjacencyList& adj_list) {
   std::string line;
   for ( EdgeID i = 0; i < num_edges; ++i ) {
-    std::getline(file, line);
+    std::getline(in_stream, line);
     while (line[0] == 'c') {
-      std::getline(file, line);
+      std::getline(in_stream, line);
     }
 
     std::istringstream line_stream(line);
@@ -71,6 +72,16 @@ Graph readGraphFile(const std::string& filename) {
     ERROR("File" << filename << "does not exist!");
   }
 
+  return ds::GraphFactory::construct(adj_list);
+}
+
+Graph readGraphFromStandardInput() {
+  std::ios_base::sync_with_stdio(false);
+  NodeID n; EdgeID m;
+  readHeader(std::cin, n, m);
+  AdjacencyList adj_list(n);
+  readEdges(std::cin, m, adj_list);
+  std::ios_base::sync_with_stdio(true);
   return ds::GraphFactory::construct(adj_list);
 }
 

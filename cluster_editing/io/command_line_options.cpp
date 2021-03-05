@@ -124,16 +124,19 @@ namespace cluster_editing {
       .add(refinement_options);
 
     po::variables_map cmd_vm;
-    po::store(po::parse_command_line(argc, argv, cmd_line_options), cmd_vm);
 
-    // placing vm.count("help") here prevents required attributes raising an
-    // error if only help was supplied
-    if (cmd_vm.count("help") != 0 || argc == 1) {
-      std::cout << cmd_line_options << std::endl;
-      exit(0);
+    if (argc != -1 && argv != nullptr) {
+      po::store(po::parse_command_line(argc, argv, cmd_line_options), cmd_vm);
+
+      // placing vm.count("help") here prevents required attributes raising an
+      // error if only help was supplied
+      if (cmd_vm.count("help") != 0 || argc == 1) {
+        std::cout << cmd_line_options << std::endl;
+        exit(0);
+      }
+
+      po::notify(cmd_vm);
     }
-
-    po::notify(cmd_vm);
 
     std::ifstream file(context.general.config_file.c_str());
     if (!file) {

@@ -14,6 +14,7 @@ struct GeneralParameters {
   bool verbose_output = true;
   bool print_result_line = false;
   bool print_csv = false;
+  bool print_edits = false;
   int seed = 0;
   bool use_multilevel = false;
   int num_repetitions = 0;

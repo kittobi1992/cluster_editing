@@ -8,4 +8,6 @@ namespace cluster_editing::io {
 
 Graph readGraphFile(const std::string& filename);
 
+Graph readGraphFromStandardInput();
+
 } // namespace cluster_editing::io

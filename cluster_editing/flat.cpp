@@ -1,9 +1,6 @@
-#include <cluster_editing/refinement/fm_refiner.h>
 #include "flat.h"
-
-#include "cluster_editing/macros.h"
 #include "cluster_editing/refinement/lp_refiner.h"
-#include "cluster_editing/utils/timer.h"
+#include "cluster_editing/refinement/fm_refiner.h"
 #include "cluster_editing/io/output.h"
 
 namespace cluster_editing {
