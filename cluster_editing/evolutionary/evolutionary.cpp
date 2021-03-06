@@ -7,6 +7,8 @@
 namespace cluster_editing::evolutionary {
 
 void EvolutionaryAlgorithm::refine() {
+  // TODO try different parameters here
+
   if (shared_context.refinement.use_lp_refiner) {
     lp_refiner.initialize(graph);
     lp_refiner.refine(graph);
@@ -144,7 +146,6 @@ std::pair<size_t, double> EvolutionaryAlgorithm::rand_index(const CliqueAssignme
 }
 
 void EvolutionaryAlgorithm::generate_initial_population() {
-  // TODO try different parameters
   for (size_t i = 0; i < max_pop_size; ++i) {
     graph.reset();
     refine();
@@ -166,7 +167,6 @@ void EvolutionaryAlgorithm::evolution_step() {
     graph.reset();
   }
 
-  // TODO randomize refinement parameters
   refine();
   add_current_solution();
 }
