@@ -40,7 +40,18 @@ void heavy_non_edge_rule(vector<vector<int> > &graph, int u, int v) {
   @return:  none
 */
 void heavy_edge_single_end_rule(vector<vector<int> > &graph, int u, int v) {
+  int sum = 0;
+  for (int w = 0; w < graph.size(); w++) {
+    // Don't count either uu or uv
+    if (w == u or w == v)
+      continue;
 
+    sum += abs(graph[u][w]);
+  }
+
+  if (graph[u][v] >= sum) {
+    cout << "MERGE: (" << u << ", " << v << ")" << endl;
+  }
 }
 
 
@@ -57,7 +68,18 @@ void heavy_edge_single_end_rule(vector<vector<int> > &graph, int u, int v) {
   @return:  none
 */
 void heavy_edge_both_end_rule(vector<vector<int> > &graph, int u, int v) {
+  int sum_u = 0;
+  int sum_v = 0
+  for (int w = 0; w < graph.size(); w++) {
+    if (w != v)
+      sum_u += graph[u][w];
+    if (w != u)
+      sum_v += graph[v][w];
+  }
 
+  if (graph[u][v] >= sum_u + sum_v) {
+    cout << "MERGE: (" << u << ", " << v << ")" << endl;
+  }
 }
 
 int main(int argc,  char **argv) {
