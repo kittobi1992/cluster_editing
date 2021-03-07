@@ -97,26 +97,14 @@ void print(std::vector<std::vector<int> > matrix) {
 int main(int argc,  char **argv) {
   std::cout << "Implementing data reduction rules..." << std::endl;
 
-  // std::vector<std::vector<int> > test_gr(5, std::vector<int>(5, 0));
-  // for (int i = 0 ; i < test_gr.size(); i++) {
-  //   for (int j = 0; j < test_gr[i].size(); j++) {
-  //     if ((i + j) % 2 == 1) {
-  //       test_gr[i][j] = 1;
-  //     }
-  //   }
-  // }
-  // print(test_gr);
-  // cout << endl;
-  //
-  //
-  // cout << "\nRule 1:" << endl;
-  // heavy_non_edge_rule(test_gr, 0, 1);
-  //
-  // cout << "\nRule 2:" << endl;
-  // heavy_edge_single_end_rule(test_gr, 0, 1);
-  //
-  // cout << "\nRule 3:" << endl;
-  // heavy_edge_single_end_rule(test_gr, 0, 1);
+  cout << "\nRule 1:" << endl;
+  heavy_non_edge_rule(test_gr, 5, 0, 1);
+
+  cout << "\nRule 2:" << endl;
+  heavy_edge_single_end_rule(test_gr, 5, 0, 1);
+
+  cout << "\nRule 3:" << endl;
+  heavy_edge_single_end_rule(test_gr, 5, 0, 1);
 
   return 0;
 }
