@@ -6,6 +6,7 @@ using namespace std;
 
 double INF = numeric_limits<double>::infinity();
 
+template <size_t rows, size_t cols>
 
 /*
   Rule 1: heavy non edge rule
@@ -17,9 +18,9 @@ double INF = numeric_limits<double>::infinity();
             v - second vertex in the edge
   @return:  none
 */
-void heavy_non_edge_rule(vector<vector<int> > &graph, int u, int v) {
+void heavy_non_edge_rule(int **graph, size_t size, int u, int v) {
   int sum = 0;
-  for (int w = 0; w < graph[u].size(); w++) {
+  for (int w = 0; w < size; w++) {
     sum += graph[u][w];
   }
 
@@ -40,9 +41,9 @@ void heavy_non_edge_rule(vector<vector<int> > &graph, int u, int v) {
             v - second vertex in the edge
   @return:  none
 */
-void heavy_edge_single_end_rule(vector<vector<int> > &graph, int u, int v) {
+void heavy_edge_single_end_rule(int **graph, size_t size, int u, int v) {
   int sum = 0;
-  for (int w = 0; w < graph.size(); w++) {
+  for (int w = 0; w < size; w++) {
     // Don't count either uu or uv
     if (w == u or w == v)
       continue;
@@ -68,10 +69,10 @@ void heavy_edge_single_end_rule(vector<vector<int> > &graph, int u, int v) {
             v - second vertex in the edge
   @return:  none
 */
-void heavy_edge_both_end_rule(vector<vector<int> > &graph, int u, int v) {
+void heavy_edge_both_end_rule(int **graph, size_t size, int u, int v) {
   int sum_u = 0;
   int sum_v = 0;
-  for (int w = 0; w < graph.size(); w++) {
+  for (int w = 0; w < size; w++) {
     if (w != v)
       sum_u += graph[u][w];
     if (w != u)
@@ -96,26 +97,26 @@ void print(std::vector<std::vector<int> > matrix) {
 int main(int argc,  char **argv) {
   std::cout << "Implementing data reduction rules..." << std::endl;
 
-  std::vector<std::vector<int> > test_gr(5, std::vector<int>(5, 0));
-  for (int i = 0 ; i < test_gr.size(); i++) {
-    for (int j = 0; j < test_gr[i].size(); j++) {
-      if ((i + j) % 2 == 1) {
-        test_gr[i][j] = 1;
-      }
-    }
-  }
-  print(test_gr);
-  cout << endl;
-
-
-  cout << "\nRule 1:" << endl;
-  heavy_non_edge_rule(test_gr, 0, 1);
-
-  cout << "\nRule 2:" << endl;
-  heavy_edge_single_end_rule(test_gr, 0, 1);
-
-  cout << "\nRule 3:" << endl;
-  heavy_edge_single_end_rule(test_gr, 0, 1);
+  // std::vector<std::vector<int> > test_gr(5, std::vector<int>(5, 0));
+  // for (int i = 0 ; i < test_gr.size(); i++) {
+  //   for (int j = 0; j < test_gr[i].size(); j++) {
+  //     if ((i + j) % 2 == 1) {
+  //       test_gr[i][j] = 1;
+  //     }
+  //   }
+  // }
+  // print(test_gr);
+  // cout << endl;
+  //
+  //
+  // cout << "\nRule 1:" << endl;
+  // heavy_non_edge_rule(test_gr, 0, 1);
+  //
+  // cout << "\nRule 2:" << endl;
+  // heavy_edge_single_end_rule(test_gr, 0, 1);
+  //
+  // cout << "\nRule 3:" << endl;
+  // heavy_edge_single_end_rule(test_gr, 0, 1);
 
   return 0;
 }
