@@ -124,9 +124,6 @@ vector<vector<int> > makeAdjacencyMatrix(string fin) {
 
     // cout << n << e << endl;
 
-    // int Adj[n+1][n+1];
-    // Adj = new int*[n];
-
     for (int i = 0; i < n; i++) {
       // Adj[i] = new int[n];
       for (int j = 0; j < n; j++) {
