@@ -10,7 +10,17 @@ int n = 0;
 
 double INF = numeric_limits<double>::infinity();
 
-// template <size_t rows, size_t cols>
+void print(int **Adj, size_t size) {
+  // Traverse the Adj[][]
+  for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+
+          // Print the value at Adj[i][j]
+          printf("%d ", Adj[i][j]);
+      }
+      printf("\n");
+  }
+}
 
 /*
   Rule 1: heavy non edge rule
@@ -29,7 +39,7 @@ void heavy_non_edge_rule(int **graph, size_t size, int u, int v) {
   }
 
   if (abs(graph[u][v]) >= sum) {
-    cout << "FORBIDDEN: (" << u << ", " << v << ")" << endl;
+    cout << "FORBIDDEN: (" << u+1 << ", " << v+1 << ")" << endl;
     // graph[u][v] = -INF;
   }
 }
@@ -56,7 +66,7 @@ void heavy_edge_single_end_rule(int **graph, size_t size, int u, int v) {
   }
 
   if (graph[u][v] >= sum) {
-    cout << "MERGE: (" << u << ", " << v << ")" << endl;
+    cout << "MERGE: (" << u+1 << ", " << v+1 << ")" << endl;
   }
 }
 
@@ -84,26 +94,18 @@ void heavy_edge_both_end_rule(int **graph, size_t size, int u, int v) {
   }
 
   if (graph[u][v] >= sum_u + sum_v) {
-    cout << "MERGE: (" << u << ", " << v << ")" << endl;
+    cout << "MERGE: (" << u+1 << ", " << v+1 << ")" << endl;
   }
 }
 
-void print(std::vector<std::vector<int> > matrix) {
-  for (int i = 0 ; i < matrix.size(); i++) {
-    cout << "[";
-    for (int j = 0; j < matrix[i].size(); j++) {
-      cout << matrix[i][j] << " ";
-    }
-    cout << "]" << endl;
-  }
-}
+
 
 int** makeAdjacencyMatrix() {
   string line;
   ifstream inputfile("graphs/exact001.gr");
   int** Adj = 0;
 
-  if (inputfile.is_open()) { 
+  if (inputfile.is_open()) {
     getline(inputfile, line);
 
     string edges = line.substr(line.find_last_of(" ") + 1);
@@ -113,14 +115,14 @@ int** makeAdjacencyMatrix() {
     n = stoi(vertices);
     int e = stoi(edges);
 
-    cout << n << e << endl;
+    // cout << n << e << endl;
 
     // int Adj[n+1][n+1];
     Adj = new int*[n];
 
-    for (int i = 0; i < n + 1; i++) {
+    for (int i = 0; i < n; i++) {
       Adj[i] = new int[n];
-      for (int j = 0; j < n + 1; j++) {
+      for (int j = 0; j < n; j++) {
         Adj[i][j] = 0;
       }
     }
@@ -128,7 +130,7 @@ int** makeAdjacencyMatrix() {
     while (getline(inputfile, line)) {
       int v1 = stoi(line.substr(0, line.find(" "))) - 1;
       int v2 = stoi(line.substr(line.find(" ") + 1)) - 1;
-      cout << v1 << " " << v2 << endl;
+      // cout << v1 << " " << v2 << endl;
       Adj[v1][v2] = 1;
       Adj[v2][v1] = 1;
 
@@ -142,16 +144,8 @@ int** makeAdjacencyMatrix() {
 int main(int argc,  char **argv) {
   std::cout << "Implementing data reduction rules..." << std::endl;
   int** Adj = makeAdjacencyMatrix();
-  
-  // Traverse the Adj[][] 
-  for (int i = 1; i < n + 1; i++) { 
-      for (int j = 1; j < n + 1; j++) { 
 
-          // Print the value at Adj[i][j] 
-          printf("%d ", Adj[i][j]); 
-      } 
-      printf("\n"); 
-  } 
+  print(Adj, n);
 
   cout << "\nRule 1:" << endl;
   heavy_non_edge_rule(Adj, n, 0, 1);
