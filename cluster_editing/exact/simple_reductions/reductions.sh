@@ -3,4 +3,4 @@
 # Compile the cpp converter
 g++ -o reductions reductions.cpp
 
-./reductions
+./reductions graphs/exact001.gr

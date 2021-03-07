@@ -40,7 +40,8 @@ void heavy_non_edge_rule(int **graph, size_t size, int u, int v) {
 
   if (abs(graph[u][v]) >= sum) {
     cout << "FORBIDDEN: (" << u+1 << ", " << v+1 << ")" << endl;
-    // graph[u][v] = -INF;
+    graph[u][v] = -INF;
+    graph[v][u] = -INF;
   }
 }
 
@@ -100,9 +101,9 @@ void heavy_edge_both_end_rule(int **graph, size_t size, int u, int v) {
 
 
 
-int** makeAdjacencyMatrix() {
+int** makeAdjacencyMatrix(string fin) {
   string line;
-  ifstream inputfile("graphs/exact001.gr");
+  ifstream inputfile(fin);
   int** Adj = 0;
 
   if (inputfile.is_open()) {
@@ -142,13 +143,18 @@ int** makeAdjacencyMatrix() {
 
 
 int main(int argc,  char **argv) {
-  std::cout << "Implementing data reduction rules..." << std::endl;
-  int** Adj = makeAdjacencyMatrix();
+  string fin = argv[1];
+
+  std::cout << "Implementing data reduction rules: " << fin << std::endl;
+  int** Adj = makeAdjacencyMatrix(fin);
 
   print(Adj, n);
 
   cout << "\nRule 1:" << endl;
   heavy_non_edge_rule(Adj, n, 0, 1);
+
+  print(Adj, n);
+
 
   cout << "\nRule 2:" << endl;
   heavy_edge_single_end_rule(Adj, n, 0, 1);
