@@ -10,16 +10,31 @@ int n = 0;
 
 double INF = numeric_limits<double>::infinity();
 
-void print(vector<vector<int> > Adj) {
-  // Traverse the Adj[][]
-  for (int i = 0; i < Adj.size(); i++) {
-      for (int j = 0; j < Adj[i].size(); j++) {
+void print(vector<vector<int> > adj) {
+  // Traverse the adj[][]
+  for (int i = 0; i < adj.size(); i++) {
+      for (int j = 0; j < adj[i].size(); j++) {
 
-          // Print the value at Adj[i][j]
-          printf("%d ", Adj[i][j]);
+          // Print the value at adj[i][j]
+          printf("%d ", adj[i][j]);
       }
       printf("\n");
   }
+}
+
+void merge_vertices(vector<vector<int> > &adj, int u, int v) {
+  // Combines the neighbors so they all onnect to u
+  for (int idx = 0; idx < adj.size(); idx++) {
+    if (adj[v][idx]) {
+      adj[u][idx] = 1;
+      adj[idx][u] = 1;
+    }
+  }
+
+  // Remove v from both
+  adj.erase(adj.begin()+v);
+  for (int idx = 0; idx < adj.size(); idx++)
+    adj[idx].erase(adj[idx].begin()+v);
 }
 
 /*
@@ -27,21 +42,21 @@ void print(vector<vector<int> > Adj) {
     Set an edge to FORBIDDEN (weight -INF) if the degree of the node is greadter \
     than the weight between it and the other side of the edge in question
 
-  @params:  graph - reference to the adjacency matrix of the graph
+  @params:  adj - reference to the adjacency matrix of the graph
             u - first vertex in the edge
             v - second vertex in the edge
   @return:  none
 */
-void heavy_non_edge_rule(vector<vector<int> > &graph, int u, int v) {
+void heavy_non_edge_rule(vector<vector<int> > &adj, int u, int v) {
   int sum = 0;
-  for (int w = 0; w < graph.size(); w++) {
-    sum += graph[u][w];
+  for (int w = 0; w < adj.size(); w++) {
+    sum += adj[u][w];
   }
 
-  if (abs(graph[u][v]) >= sum) {
+  if (abs(adj[u][v]) >= sum) {
     cout << "FORBIDDEN: (" << u+1 << ", " << v+1 << ")" << endl;
-    graph[u][v] = -INF;
-    graph[v][u] = -INF;
+    adj[u][v] = -INF;
+    adj[v][u] = -INF;
   }
 }
 
@@ -51,22 +66,22 @@ void heavy_non_edge_rule(vector<vector<int> > &graph, int u, int v) {
     MERGE vertices u and v if the weight of the edge is >= to the sum of abs of the
     edges between u and every node in V\{u, v}
 
-  @params:  graph - reference to the adjacency matrix of the graph
+  @params:  adj - reference to the adjacency matrix of the graph
             u - first vertex in the edge
             v - second vertex in the edge
   @return:  none
 */
-void heavy_edge_single_end_rule(vector<vector<int> > &graph, int u, int v) {
+void heavy_edge_single_end_rule(vector<vector<int> > &adj, int u, int v) {
   int sum = 0;
-  for (int w = 0; w < graph.size(); w++) {
+  for (int w = 0; w < adj.size(); w++) {
     // Don't count either uu or uv
     if (w == u or w == v)
       continue;
 
-    sum += abs(graph[u][w]);
+    sum += abs(adj[u][w]);
   }
 
-  if (graph[u][v] >= sum) {
+  if (adj[u][v] >= sum) {
     cout << "MERGE: (" << u+1 << ", " << v+1 << ")" << endl;
   }
 }
@@ -79,22 +94,22 @@ void heavy_edge_single_end_rule(vector<vector<int> > &graph, int u, int v) {
     between v and N(v)\{u}
 
 
-  @params:  graph - reference to the adjacency matrix of the graph
+  @params:  adj - reference to the adjacency matrix of the graph
             u - first vertex in the edge
             v - second vertex in the edge
   @return:  none
 */
-void heavy_edge_both_end_rule(vector<vector<int> > &graph, int u, int v) {
+void heavy_edge_both_end_rule(vector<vector<int> > &adj, int u, int v) {
   int sum_u = 0;
   int sum_v = 0;
-  for (int w = 0; w < graph.size(); w++) {
+  for (int w = 0; w < adj.size(); w++) {
     if (w != v)
-      sum_u += graph[u][w];
+      sum_u += adj[u][w];
     if (w != u)
-      sum_v += graph[v][w];
+      sum_v += adj[v][w];
   }
 
-  if (graph[u][v] >= sum_u + sum_v) {
+  if (adj[u][v] >= sum_u + sum_v) {
     cout << "MERGE: (" << u+1 << ", " << v+1 << ")" << endl;
   }
 }
@@ -105,7 +120,7 @@ vector<vector<int> > makeAdjacencyMatrix(string fin) {
   string line;
   ifstream inputfile(fin);
 
-  vector<vector<int> > Adj;
+  vector<vector<int> > adj;
 
   if (inputfile.is_open()) {
     getline(inputfile, line);
@@ -119,15 +134,15 @@ vector<vector<int> > makeAdjacencyMatrix(string fin) {
 
     vector<int> temp(n, 0);
     for (int i = 0; i < n; i++) {
-      Adj.push_back(temp);
+      adj.push_back(temp);
     }
 
     // cout << n << e << endl;
 
     for (int i = 0; i < n; i++) {
-      // Adj[i] = new int[n];
+      // adj[i] = new int[n];
       for (int j = 0; j < n; j++) {
-        Adj[i][j] = 0;
+        adj[i][j] = 0;
       }
     }
 
@@ -135,13 +150,13 @@ vector<vector<int> > makeAdjacencyMatrix(string fin) {
       int v1 = stoi(line.substr(0, line.find(" "))) - 1;
       int v2 = stoi(line.substr(line.find(" ") + 1)) - 1;
       // cout << v1 << " " << v2 << endl;
-      Adj[v1][v2] = 1;
-      Adj[v2][v1] = 1;
+      adj[v1][v2] = 1;
+      adj[v2][v1] = 1;
 
     }
     inputfile.close();
   }
-  return Adj;
+  return adj;
 }
 
 
@@ -149,20 +164,25 @@ int main(int argc,  char **argv) {
   string fin = argv[1];
 
   std::cout << "Implementing data reduction rules: " << fin << std::endl;
-  vector<vector<int> > Adj = makeAdjacencyMatrix(fin);
+  vector<vector<int> > adj = makeAdjacencyMatrix(fin);
 
-  print(Adj);
+  print(adj);
 
   cout << "\nRule 1:" << endl;
-  heavy_non_edge_rule(Adj, 0, 1);
+  // heavy_non_edge_rule(adj, 0, 1);
 
-  print(Adj);
+  print(adj);
 
   cout << "\nRule 2:" << endl;
-  heavy_edge_single_end_rule(Adj, 0, 1);
+  heavy_edge_single_end_rule(adj, 0, 1);
 
   cout << "\nRule 3:" << endl;
-  heavy_edge_single_end_rule(Adj, 0, 1);
+  heavy_edge_single_end_rule(adj, 0, 1);
+
+  print(adj);
+  cout << endl;
+  merge_vertices(adj, 8, 9);
+  print(adj);
 
   return 0;
 }
