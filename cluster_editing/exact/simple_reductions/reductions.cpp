@@ -10,10 +10,10 @@ int n = 0;
 
 double INF = numeric_limits<double>::infinity();
 
-void print(int **Adj, size_t size) {
+void print(vector<vector<int> > Adj) {
   // Traverse the Adj[][]
-  for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++) {
+  for (int i = 0; i < Adj.size(); i++) {
+      for (int j = 0; j < Adj[i].size(); j++) {
 
           // Print the value at Adj[i][j]
           printf("%d ", Adj[i][j]);
@@ -32,9 +32,9 @@ void print(int **Adj, size_t size) {
             v - second vertex in the edge
   @return:  none
 */
-void heavy_non_edge_rule(int **graph, size_t size, int u, int v) {
+void heavy_non_edge_rule(vector<vector<int> > &graph, int u, int v) {
   int sum = 0;
-  for (int w = 0; w < size; w++) {
+  for (int w = 0; w < graph.size(); w++) {
     sum += graph[u][w];
   }
 
@@ -56,9 +56,9 @@ void heavy_non_edge_rule(int **graph, size_t size, int u, int v) {
             v - second vertex in the edge
   @return:  none
 */
-void heavy_edge_single_end_rule(int **graph, size_t size, int u, int v) {
+void heavy_edge_single_end_rule(vector<vector<int> > &graph, int u, int v) {
   int sum = 0;
-  for (int w = 0; w < size; w++) {
+  for (int w = 0; w < graph.size(); w++) {
     // Don't count either uu or uv
     if (w == u or w == v)
       continue;
@@ -84,10 +84,10 @@ void heavy_edge_single_end_rule(int **graph, size_t size, int u, int v) {
             v - second vertex in the edge
   @return:  none
 */
-void heavy_edge_both_end_rule(int **graph, size_t size, int u, int v) {
+void heavy_edge_both_end_rule(vector<vector<int> > &graph, int u, int v) {
   int sum_u = 0;
   int sum_v = 0;
-  for (int w = 0; w < size; w++) {
+  for (int w = 0; w < graph.size(); w++) {
     if (w != v)
       sum_u += graph[u][w];
     if (w != u)
@@ -101,10 +101,11 @@ void heavy_edge_both_end_rule(int **graph, size_t size, int u, int v) {
 
 
 
-int** makeAdjacencyMatrix(string fin) {
+vector<vector<int> > makeAdjacencyMatrix(string fin) {
   string line;
   ifstream inputfile(fin);
-  int** Adj = 0;
+
+  vector<vector<int> > Adj;
 
   if (inputfile.is_open()) {
     getline(inputfile, line);
@@ -116,13 +117,18 @@ int** makeAdjacencyMatrix(string fin) {
     n = stoi(vertices);
     int e = stoi(edges);
 
+    vector<int> temp(n, 0);
+    for (int i = 0; i < n; i++) {
+      Adj.push_back(temp);
+    }
+
     // cout << n << e << endl;
 
     // int Adj[n+1][n+1];
-    Adj = new int*[n];
+    // Adj = new int*[n];
 
     for (int i = 0; i < n; i++) {
-      Adj[i] = new int[n];
+      // Adj[i] = new int[n];
       for (int j = 0; j < n; j++) {
         Adj[i][j] = 0;
       }
@@ -146,21 +152,20 @@ int main(int argc,  char **argv) {
   string fin = argv[1];
 
   std::cout << "Implementing data reduction rules: " << fin << std::endl;
-  int** Adj = makeAdjacencyMatrix(fin);
+  vector<vector<int> > Adj = makeAdjacencyMatrix(fin);
 
-  print(Adj, n);
+  print(Adj);
 
   cout << "\nRule 1:" << endl;
-  heavy_non_edge_rule(Adj, n, 0, 1);
+  heavy_non_edge_rule(Adj, 0, 1);
 
-  print(Adj, n);
-
+  print(Adj);
 
   cout << "\nRule 2:" << endl;
-  heavy_edge_single_end_rule(Adj, n, 0, 1);
+  heavy_edge_single_end_rule(Adj, 0, 1);
 
   cout << "\nRule 3:" << endl;
-  heavy_edge_single_end_rule(Adj, n, 0, 1);
+  heavy_edge_single_end_rule(Adj, 0, 1);
 
   return 0;
 }
