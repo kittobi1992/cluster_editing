@@ -16,18 +16,36 @@ void print(vector<vector<int> > adj) {
       for (int j = 0; j < adj[i].size(); j++) {
 
           // Print the value at adj[i][j]
-          printf("%d ", adj[i][j]);
+          if (adj[i][j] <= -1000000)
+            cout << ". ";
+          else
+            printf("%d ", adj[i][j]);
       }
       printf("\n");
   }
 }
 
+/*
+  Merge
+    MERGE two vertices together
+
+  TODO:
+    How to merge when they have weights? do we need to consider this?
+*/
 void merge_vertices(vector<vector<int> > &adj, int u, int v) {
   // Combines the neighbors so they all onnect to u
   for (int idx = 0; idx < adj.size(); idx++) {
-    if (adj[v][idx]) {
-      adj[u][idx] = 1;
-      adj[idx][u] = 1;
+    if (adj[v][idx] != 0) {
+
+      // The else statement is the normal merge, this is trying to deal with seg faults
+      // from we think adding negative infinities together.
+      if (!(adj[v][idx] == -INF || adj[u][idx] == -INF || adj[idx][u] == -INF)) {
+        adj[u][idx] = -INF;
+        adj[idx][u] = -INF;
+      } else {
+        adj[u][idx] += adj[v][idx];
+        adj[idx][u] += adj[v][idx];
+      }
     }
   }
 
@@ -47,17 +65,24 @@ void merge_vertices(vector<vector<int> > &adj, int u, int v) {
             v - second vertex in the edge
   @return:  none
 */
-void heavy_non_edge_rule(vector<vector<int> > &adj, int u, int v) {
+bool heavy_non_edge_rule(vector<vector<int> > &adj, int u, int v) {
+  if (adj.size() < u || adj.size() < v) return false;
+  if (u == -INF || v == -INF) return false;
+  if (u == v) return false;
+
   int sum = 0;
   for (int w = 0; w < adj.size(); w++) {
     sum += adj[u][w];
   }
 
   if (abs(adj[u][v]) >= sum) {
-    cout << "FORBIDDEN: (" << u+1 << ", " << v+1 << ")" << endl;
+    // cout << "FORBIDDEN: (" << u+1 << ", " << v+1 << ")" << endl;
     adj[u][v] = -INF;
     adj[v][u] = -INF;
+    return true;
   }
+
+  return false;
 }
 
 
@@ -71,7 +96,11 @@ void heavy_non_edge_rule(vector<vector<int> > &adj, int u, int v) {
             v - second vertex in the edge
   @return:  none
 */
-void heavy_edge_single_end_rule(vector<vector<int> > &adj, int u, int v) {
+bool heavy_edge_single_end_rule(vector<vector<int> > &adj, int u, int v) {
+  if (adj.size() < u || adj.size() < v) return false;
+  if (u == -INF || v == -INF) return false;
+  if (u == v) return false;
+
   int sum = 0;
   for (int w = 0; w < adj.size(); w++) {
     // Don't count either uu or uv
@@ -82,8 +111,12 @@ void heavy_edge_single_end_rule(vector<vector<int> > &adj, int u, int v) {
   }
 
   if (adj[u][v] >= sum) {
-    cout << "MERGE: (" << u+1 << ", " << v+1 << ")" << endl;
+    // cout << "MERGE: (" << u << ", " << v << ")" << endl;
+    merge_vertices(adj, u, v);
+    return true;
   }
+
+  return false;
 }
 
 
@@ -99,7 +132,11 @@ void heavy_edge_single_end_rule(vector<vector<int> > &adj, int u, int v) {
             v - second vertex in the edge
   @return:  none
 */
-void heavy_edge_both_end_rule(vector<vector<int> > &adj, int u, int v) {
+bool heavy_edge_both_end_rule(vector<vector<int> > &adj, int u, int v) {
+  if (adj.size() < u || adj.size() < v) return false;
+  if (u == -INF || v == -INF) return false;
+  if (u == v) return false;
+
   int sum_u = 0;
   int sum_v = 0;
   for (int w = 0; w < adj.size(); w++) {
@@ -110,10 +147,13 @@ void heavy_edge_both_end_rule(vector<vector<int> > &adj, int u, int v) {
   }
 
   if (adj[u][v] >= sum_u + sum_v) {
-    cout << "MERGE: (" << u+1 << ", " << v+1 << ")" << endl;
+    // cout << "MERGE: (" << u << ", " << v << ")" << endl;
+    merge_vertices(adj, u, v);
+    return true;
   }
-}
 
+  return false;
+}
 
 
 vector<vector<int> > makeAdjacencyMatrix(string fin) {
@@ -163,26 +203,42 @@ vector<vector<int> > makeAdjacencyMatrix(string fin) {
 int main(int argc,  char **argv) {
   string fin = argv[1];
 
-  std::cout << "Implementing data reduction rules: " << fin << std::endl;
+  // std::cout << "Implementing data reduction rules: " << fin << std::endl;
   vector<vector<int> > adj = makeAdjacencyMatrix(fin);
 
   print(adj);
 
-  cout << "\nRule 1:" << endl;
-  // heavy_non_edge_rule(adj, 0, 1);
+  // Apply Rule 1 to every pair of vertices
+  for (int u = 0; u < adj.size(); u++) {
+    for (int v = 0; v < adj[u].size(); v++) {
+      heavy_non_edge_rule(adj, u, v);
+    }
+  }
 
-  print(adj);
+  // print(adj);
+  cout << endl << "Rule 2" << endl;
 
-  cout << "\nRule 2:" << endl;
-  heavy_edge_single_end_rule(adj, 0, 1);
+  // Apply Rule 2 to every pair of vertices
+  for (int u = 0; u < adj.size(); u++) {
+    for (int v = 0; v < adj[u].size(); v++) {
+      while(heavy_edge_single_end_rule(adj, u, v))
+        // continue;
+        print(adj);
+    }
+  }
 
-  cout << "\nRule 3:" << endl;
-  heavy_edge_single_end_rule(adj, 0, 1);
+  cout << endl << "Rule 3" << endl;
 
-  print(adj);
-  cout << endl;
-  merge_vertices(adj, 8, 9);
-  print(adj);
+  // Apply Rule 3 to every pair of vertices
+  for (int u = 0; u < adj.size(); u++) {
+    for (int v = 0; v < adj[u].size(); v++) {
+      while(heavy_edge_both_end_rule(adj, u, v))
+        // continue;
+        print(adj);
+    }
+  }
+
+  cout << fin << ", " << n << ", " << adj.size() << endl;
 
   return 0;
 }

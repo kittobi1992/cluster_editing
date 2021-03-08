@@ -3,4 +3,8 @@
 # Compile the cpp converter
 g++ -o reductions reductions.cpp
 
-./reductions graphs/exact001.gr
+#for f in graphs/*.gr; do
+#  ./reductions $f
+#done
+
+./reductions graphs/exact061.gr
