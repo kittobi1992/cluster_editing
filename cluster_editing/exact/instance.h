@@ -9,6 +9,7 @@ using IDMap = std::vector<std::vector<int>>; // for every node in current graph,
 const int INF = 1e9;
 
 struct Instance {
+    Edges orig;
   Edges edges;
   IDMap idmap;
 
@@ -19,6 +20,7 @@ struct Instance {
 
   Instance(int n) : edges(n, std::vector<int>(n,-1)), idmap(n) {
     for(int i=0; i<n; ++i) idmap[i] = {i};
+    orig = edges;
   }
 };
 

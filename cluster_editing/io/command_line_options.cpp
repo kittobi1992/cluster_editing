@@ -43,6 +43,8 @@ namespace cluster_editing {
              "Verbose main partitioning output")
             ("print-result-line", po::value<bool>(&context.general.print_result_line)->value_name("<bool>")->default_value(true),
              "Prints RESULT-line containing stats, timings and metrics")
+            ("csv", po::value<bool>(&context.general.print_csv)->value_name("<bool>")->default_value(false),
+             "Prints CSV output")
             ("seed", po::value<int>(&context.general.seed)->value_name("<int>"),
              "Random Seed");
     return options;
@@ -78,9 +80,13 @@ namespace cluster_editing {
     po::options_description options("Refinement Options", num_columns);
     options.add_options()
             ("r-use-lp-refiner", po::value<bool>(&context.refinement.use_lp_refiner)->value_name("<bool>")->default_value(false),
-             "If true, than label propagation is used to improve quality.")
+             "If true, then label propagation is used to improve quality.")
+            ("r-use-fm-refiner", po::value<bool>(&context.refinement.use_fm_refiner)->value_name("<bool>")->default_value(false),
+             "If true, then FM is used to improve quality.")
             ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
              "Maximum iterations made by the label propagation refiner")
+            ("r-maximum-fm-iterations", po::value<int>(&context.refinement.maximum_fm_iterations)->value_name("<int>"),
+             "Maximum iterations made by the FM refiner")
             ("r-activate-all-cliques-after-rounds", po::value<int>(&context.refinement.lp.activate_all_cliques_after_rounds)->value_name("<int>"),
              "Each #activate_all_cliques_after_rounds iterations, label propagation refiner reactivates all nodes again.")
             ("r-random-shuffle-each-round", po::value<bool>(&context.refinement.lp.random_shuffle_each_round)->value_name("<bool>")->default_value(false),

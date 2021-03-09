@@ -17,13 +17,13 @@ int main(int argc, char *argv[]) {
         auto inst = load_exact_instance(i);
         auto heuristic_cost = solve_heuristic(inst).cost;
         cout << "instance " << i << " of size " << size(inst.edges) << endl;
-        cout << "Lower (p3) " << packing_local_search_bound(inst, INF) << endl;
-        cout << "Lower (star) " << star_bound(inst, INF) << endl;
-        cout << "Upper " << heuristic_cost << endl;
+        cout << "Lower " << packing_local_search_bound(inst, INF) << endl;
+        auto upper = solve_heuristic(inst).cost;
+        cout << "Upper " << upper << endl;
         if(auto opt = thomas(inst); opt) inst = *opt; // TODO multiple thomas reductions
         if(auto opt = distance4Reduction(inst); opt) inst = *opt;
-        if(auto opt = simpleNeighbor(inst); opt) inst = *opt;
-        if(auto opt = forcedChoices(inst, heuristic_cost, true); opt) inst = *opt;
+        if(auto opt = simpleTwin(inst); opt) inst = *opt;
+        if(auto opt = forcedChoices(inst, upper, true); opt) inst = *opt;
         cout << "After Reductions n=" << size(inst.edges) << endl;
         auto lower = packing_local_search_bound(inst, INF);
         cout << "Spent         " << inst.spendCost << endl;

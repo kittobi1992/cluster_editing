@@ -21,11 +21,11 @@ void solve(Graph& graph, const Context& context) {
     lp_refiner.refine(graph);
   }
 
-  /*
-  FMRefiner fm_refiner(graph, context);
-  fm_refiner.initialize(graph);
-  fm_refiner.refine(graph);
-  */
+  if ( context.refinement.use_fm_refiner ) {
+    FMRefiner fm_refiner(graph, context);
+    fm_refiner.initialize(graph);
+    fm_refiner.refine(graph);
+  }
 
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds(end - start);

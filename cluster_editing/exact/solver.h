@@ -24,13 +24,11 @@ public:
     int numDisconnects = 0;
     int redForced = 0;
     int redTwin = 0;
+    int redTwin2 = 0;
     int redICX = 0;
     int numPrunes = 0; // unsolvable leaf
 
-    void reset_stats();
     std::chrono::steady_clock::time_point time_limit = std::chrono::steady_clock::time_point::max();
-private:
-    Solution solve_unconnected(Instance graph, int budget);
     Solution solve_internal(Instance graph, int budget);
 };
 

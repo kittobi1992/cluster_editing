@@ -39,8 +39,7 @@ int main(int argc, char* argv[]) {
 
   // Multilevel Solver
   utils::Timer::instance().start_timer("solver", "Solver");
-  std::vector<CliqueID> best_cliques(
-    graph.numNodes(), INVALID_CLIQUE);
+  std::vector<CliqueID> best_cliques(graph.numNodes(), INVALID_CLIQUE);
   size_t best_objective = std::numeric_limits<size_t>::max();
   for ( int i = 0; i < context.general.num_repititions; ++i ) {
     graph.reset();
@@ -51,9 +50,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Check if solution is better than best solution found so far
-    const size_t current_objective =
-      metrics::edge_deletions(graph) +
-      metrics::edge_insertions(graph);
+    const size_t current_objective = metrics::edits(graph);
     if ( current_objective < best_objective ) {
       if ( context.general.verbose_output ) {
         LOG << GREEN << "Improved best solution from"
@@ -87,6 +84,11 @@ int main(int argc, char* argv[]) {
   // Print RESULT line
   if ( context.general.print_result_line ) {
     io::printResultLine(graph, context, elapsed_seconds);
+  }
+
+  if ( context.general.print_csv ) {
+    std::cout << context.general.graph_filename.substr(context.general.graph_filename.find_last_of('/') + 1)
+              << "," << metrics::edits(graph) << "," << elapsed_seconds.count() << std::endl;
   }
 
   return 0;

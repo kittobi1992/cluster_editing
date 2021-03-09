@@ -5,6 +5,8 @@
 #include <vector>
 #include <cassert>
 
+#include "gmock/gmock.h"
+
 #include "graph_common.h"
 
 namespace cluster_editing::ds {
@@ -270,6 +272,23 @@ namespace cluster_editing::ds {
 
         [[nodiscard]] const_reference operator[](NodeID node) const { return test(node); }
 
+    private:
+        // Disabled NodeIterator for public use. See AdjacencyRowTest.Benchmark.
+
+        FRIEND_TEST(AdjacencyRowTest, CheckNodeIterator);
+
+        FRIEND_TEST(AdjacencyRowTest, IndexOutOfBounds);
+
+        FRIEND_TEST(AdjacencyRowTest, EmptyNodeIterator);
+
+        FRIEND_TEST(AdjacencyRowTest, NodeIterator);
+
+        FRIEND_TEST(AdjacencyRowTest, NodeRange);
+
+        FRIEND_TEST(AdjacencyRowTest, ForEach);
+
+        FRIEND_TEST(AdjacencyRowTest, Benchmark);
+
         [[nodiscard]] NodeIterator begin() const noexcept { return NodeIterator(m_blocks.data(), 0, m_num_nodes); }
 
         [[nodiscard]] NodeIterator end() const noexcept {
@@ -281,6 +300,8 @@ namespace cluster_editing::ds {
             assert(end_node <= m_num_nodes);
             return NodeRange(*this, start_node, end_node);
         }
+
+    public:
 
         [[nodiscard]] constexpr NodeID num_nodes() const noexcept { return m_num_nodes; }
 
@@ -298,17 +319,25 @@ namespace cluster_editing::ds {
 
         void zero_unused_bits() noexcept;
 
-        template<class F>
-        void for_each(F f) const noexcept {
-            for (block_index_type i = 0; i < num_blocks(); i++) {
-                auto block = m_blocks[i];
+        template<class B, class F>
+        constexpr static void for_each(block_index_type num_blocks, B get_block, F f) {
+            static_assert(std::is_invocable_r_v<block_type, B, block_index_type>);
+            static_assert(std::is_invocable_r_v<void, F, NodeID>);
+
+            for (block_index_type i = 0; i < num_blocks; i++) {
+                auto block = get_block(i);
                 while (block) {
-                    block_width_type bit_pos = detail::ctz(block);
+                    const block_width_type bit_pos = detail::ctz(block);
                     block ^= (block_type(1) << bit_pos);
-                    NodeID v = i * bits_per_block + bit_pos;
+                    const NodeID v = i * bits_per_block + bit_pos;
                     f(v);
                 }
             }
+        }
+
+        template<class F>
+        constexpr void for_each(F f) const {
+            return for_each(num_blocks(), [&](auto i) { return m_blocks[i]; }, f);
         }
 
     private:

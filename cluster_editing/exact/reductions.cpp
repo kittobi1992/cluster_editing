@@ -48,8 +48,10 @@ vector<Instance> constructConnectedComponents(const Instance& graph) {
     Instance component(nodesPerComp[c].size());
     for (int u = 0; u < nodesPerComp[c].size(); ++u) {
       component.idmap[u] = graph.idmap[nodesPerComp[c][u]];
-      for (int v = 0; v < nodesPerComp[c].size(); ++v)
-        component.edges[u][v] = graph.edges[nodesPerComp[c][u]][nodesPerComp[c][v]];
+      for (int v = 0; v < nodesPerComp[c].size(); ++v) {
+          component.edges[u][v] = graph.edges[nodesPerComp[c][u]][nodesPerComp[c][v]];
+          component.orig[u][v] = graph.orig[nodesPerComp[c][u]][nodesPerComp[c][v]];
+      }
     }
 
     comps.push_back(component);
@@ -62,6 +64,10 @@ vector<Instance> constructConnectedComponents(const Instance& graph) {
 Instance merge(const Instance& inst, int u, int v) {
   int n = size(inst.edges);
 
+  for(int i=0; i<n; ++i)
+      for(int j=0; j<n; ++j)
+          assert(abs(inst.edges[i][j])==INF || inst.edges[i][j]==inst.orig[i][j]);
+
   int mergeCost = 0;
   if(inst.edges[u][v]<0) // we must insert the edge if it did not exist yet
     mergeCost += abs(inst.edges[u][v]);
@@ -71,6 +77,7 @@ Instance merge(const Instance& inst, int u, int v) {
   // all above v has index -1
   if(u>v) swap(u,v); // u<v
   Edges merged(n-1, vector<int>(n-1, -1));
+    Edges merged_orig(n-1, vector<int>(n-1, -1));
   auto newid = [v](int node) { return node - (node>v); };
 
   // keep all edges not not involving u or v
@@ -79,6 +86,7 @@ Instance merge(const Instance& inst, int u, int v) {
       if(i==u || i==v) continue;
       if(j==u || j==v) continue;
       merged[newid(i)][newid(j)] = inst.edges[i][j];
+        merged_orig[newid(i)][newid(j)] = inst.orig[i][j];
     }
   }
 
@@ -88,7 +96,9 @@ Instance merge(const Instance& inst, int u, int v) {
       // merge (u,w) and (v,w) into (u',w)
       auto uw = inst.edges[u][w];
       auto vw = inst.edges[v][w];
-      if(min(uw,vw)==-INF && max(uw,vw)==INF) return {}; // in this case the instance is not solvable
+      merged_orig[newid(w)][u] = merged_orig[u][newid(w)] = inst.orig[u][w] + inst.orig[v][w];
+      if(min(uw,vw)==-INF && max(uw,vw)==INF)
+          return {}; // in this case the instance is not solvable
       auto newval = uw+vw;
       if(min(uw,vw)==-INF) newval = -INF;
       if(max(uw,vw)==INF) newval = INF;
@@ -109,6 +119,13 @@ Instance merge(const Instance& inst, int u, int v) {
 
   Instance result{merged, mergedmap};
   result.spendCost = inst.spendCost + mergeCost;
+  result.orig = merged_orig;
+
+  // debug checks
+  for(int i=0; i<n-1; ++i)
+      for(int j=0; j<n-1; ++j)
+          assert(abs(result.edges[i][j])==INF || result.edges[i][j] == result.orig[i][j]);
+
   return result;
 }
 
@@ -288,9 +305,8 @@ std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, boo
         if(c==INF && res.edges[u][v]<0) res.spendCost -= res.edges[u][v];
         if(c==-INF&& res.edges[u][v]>0) res.spendCost += res.edges[u][v];
         res.edges[u][v] = res.edges[v][u] = c;
-        if(res.spendCost>upper_bound) {
-            return res;
-        }
+        if(res.spendCost>upper_bound)
+            return {}; // not solvable
     }
 
     mergeAllINF(res);
@@ -298,7 +314,7 @@ std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, boo
     return res;
 }
 
-std::optional<Instance> simpleNeighbor(const Instance &inst) {
+std::optional<Instance> simpleTwin(const Instance &inst) {
 
     int n = size(inst.edges);
     if(n<3) return {};
@@ -340,5 +356,131 @@ std::optional<Instance> simpleNeighbor(const Instance &inst) {
 
     mergeAllINF(res);
 
+    return res;
+}
+
+
+int max_over_subsetsDP(vector<tuple<int,int,int>>& B, long long delta_u, long long delta_v) {
+
+    int range_x = 0;
+    for(auto [x,y,f] : B) {
+        assert(min(x,y)!=-INF);
+        range_x += abs(x);
+    }
+
+    vector last(2*range_x + 1, -INF);
+    last[range_x] = 0; // at index range_x is there point point 0 of the interval [-range, +range]
+    for(auto [x,y,f] : B) {
+
+        auto next = last; // OPTION 0: don't use pair
+        for(int i=0; i<size(last); ++i) {
+            if(last[i]==-INF) continue;
+            // valid values should never be out of x_range
+            assert(0<=i-x && i+x<size(last));
+            if(f!=1) next[i+x] = max(next[i+x], last[i] - y); // OPTION 1: put in bucket 1
+            if(f!=2) next[i-x] = max(next[i+x], last[i] + y); // OPTION 2: put in bucket 2
+        }
+
+        swap(next,last);
+    }
+
+    auto res = min(delta_u, delta_v);
+    for(int i=0; i<size(last); ++i) {
+        auto x = i-range_x;
+        auto y = last[i];
+        res = max(res, min(x+delta_u,y+delta_v));
+    }
+
+    return res;
+}
+
+std::optional<Instance> complexTwin(const Instance &inst, bool calc_dp) {
+    if(size(inst.edges)<2) return {};
+    int n = size(inst.edges);
+    auto& g = inst.edges;
+    auto& o = inst.orig;
+
+    vector<pair<int,int>> perms;
+
+    bool usedEq = false;
+    for(int u=0; u<n; ++u) {
+        for(int v=u+1; v<n; ++v) {
+            if(g[u][v]<=0) continue;
+
+            vector W(n,false);
+            long long delta_u=0, delta_v=0; // 64 bit to sum up all those -INFs
+            for(int w=0; w<n; ++w) {
+                if(w==u || w==v) continue;
+                if(g[u][w]==-INF && g[v][w]==-INF) continue;
+                if(min(g[u][w],g[v][w])>-INF && (g[u][w]>0) != (g[v][w]>0)) { // no -INFs in play and w is in some exclusive neighborhood
+                    delta_u += abs(g[u][w]);
+                    delta_v += abs(g[v][w]);
+                    continue;
+                }
+                W[w] = true; // either -INFs in play or (+,+) or (-,-)
+            }
+
+            assert(delta_u<INF && delta_v<INF);
+            assert(delta_u>=0 && delta_v>=0);
+
+            // try early breaks
+            if(g[u][v]<min(delta_u, delta_v)) continue;
+            auto upper_bound = 2*delta_u + 2*delta_v;
+            for(int w=0; w<n; ++w)
+                if(W[w]) upper_bound += abs(o[u][w] - o[v][w]);
+            if(2*g[u][v]>upper_bound) {
+                perms.emplace_back(u,v);
+                continue;
+            } else if(2*g[u][v]==upper_bound && !usedEq) {
+                perms.emplace_back(u,v);
+                usedEq = true;
+            }
+
+            if(!calc_dp) continue;
+            vector<tuple<int,int,int>> B; // uw, vw, forbiddenBag
+            for(int w=0; w<n; ++w) if(W[w]) {
+                int forbidden = -1;
+                if(g[u][w]==-INF) forbidden = 1;
+                if(g[v][w]==-INF) forbidden = 2;
+                assert(max(g[u][w],g[v][w])>-INF);
+                B.emplace_back(o[u][w], o[v][w], forbidden); // use original here!
+            }
+            auto val = max_over_subsetsDP(B, delta_u, delta_v);
+            if(g[u][v]>val)
+                perms.emplace_back(u,v);
+            else if(g[u][v]==val && !usedEq) {
+                perms.emplace_back(u,v);
+                usedEq = true;
+            }
+        }
+    }
+
+    if(empty(perms)) return {};
+    auto res = inst;
+    for(auto [u,v] : perms) res.edges[u][v] = INF;
+    mergeAllINF(res);
+    return res;
+}
+
+std::optional<Instance> mergeCliques(const Instance &inst) {
+    int n = size(inst.edges);
+    auto compId = connectedComponents(inst.edges);
+    int num = 1+ *max_element(begin(compId), end(compId));
+    vector isClique(num, true);
+    vector compSize(num, 0);
+    for(int c : compId) compSize[c]++;
+    for(int v=0; v<n; ++v)
+        for(int u=v+1; u<n; ++u)
+            if(compId[v]==compId[u] && inst.edges[v][u]<0)
+                isClique[compId[v]] = false;
+    bool canMerge = false;
+    for(int c=0; c<num; ++c) canMerge |= (isClique[c] && compSize[c]>1);
+    if(!canMerge) return {};
+    auto res = inst;
+    for(int v=0; v<n; ++v)
+        for(int u=v+1; u<n; ++u)
+            if(compId[v]==compId[u] && isClique[compId[v]])
+                res.edges[v][u] = INF;
+    mergeAllINF(res);
     return res;
 }
