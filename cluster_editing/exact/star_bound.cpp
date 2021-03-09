@@ -34,12 +34,17 @@ struct pair_hash {
 struct Star {
     std::vector<int> nodes;
 
-    explicit Star(std::vector<int> nodes) : nodes(std::move(nodes)) {
+    explicit Star(std::vector<int> p_nodes) : nodes(std::move(p_nodes)) {
+        assert(nodes.size() >= 3);
         make_canonical();
     }
 
     void make_canonical() {
         sort(nodes.begin() + 1, nodes.end());
+    }
+
+    bool is_canonical() {
+        return nodes.size() >= 3 && is_sorted(nodes.begin() + 1, nodes.end());
     }
 
     [[nodiscard]] int center() const {
@@ -76,6 +81,11 @@ protected:
 
 
     struct Candidate {
+        Candidate(CandidateType p_type, std::vector<int> p_nodes, int p_shared_p3) :
+                type(p_type), nodes(std::move(p_nodes)), shared_p3(p_shared_p3) {
+            assert(!nodes.empty());
+        }
+
         CandidateType type;
         std::vector<int> nodes;
         int shared_p3;
@@ -126,14 +136,17 @@ public:
     }
 
     std::set<int> free_neighbors(int u) const {
+        assert(0 <= u && u < (int) size(g));
         return free_edges_g[u];
     };
 
     bool pair_used(int u, int v) const {
+        assert(0 <= u && u < (int) size(g) && 0 <= v && v < (int) size(g));
         return used_by_bound[u][v];
     };
 
     bool has_star(const Star &star) const {
+        assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(g); }));
         const auto &entry = stars[star.center()];
         return entry.find(star) != entry.end();
     };
@@ -157,6 +170,8 @@ public:
     };
 
     bool can_add_candidate(const Candidate &candidate) const {
+        assert(std::all_of(candidate.nodes.begin(), candidate.nodes.end(),
+                           [&](int u) { return 0 <= u && u < (int) size(g); }));
         if (candidate.type == P3)
             return can_add(Star(candidate.nodes));
 
@@ -172,6 +187,7 @@ public:
     };
 
     void add_star(const Star &star) {
+        assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(g); }));
         assert(star.nodes.size() > 2);
         for (size_t i = 1; i < star.nodes.size(); ++i) {
             int u = star.nodes[i];
@@ -204,12 +220,22 @@ public:
     };
 
     void remove_star(const Star &star) {
+#ifndef NDEBUG
+        assert(!star.nodes.empty());
+        assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(g); }));
+        auto star_copy = star;
+#endif
         stars[star.center()].erase(star);
+        assert(star ==
+               star_copy); // Make sure that the input parameter star is not a reference into stars[star.center()].
         bound -= static_cast<int>(star.nodes.size() - 2);
         for (size_t i = 1; i < star.nodes.size(); ++i) {
             int u = star.nodes[i];
             stars_for_edge.erase({star.center(), u});
         }
+        assert(star ==
+               star_copy); // Make sure that the input parameter star is not a reference into some stars_for_edge[...].
+        assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(g); }));
         for (auto u : star.nodes) {
             for (auto v : star.nodes) {
                 if (u == v)
@@ -222,6 +248,8 @@ public:
     };
 
     void add_candidate(const Candidate &candidate) {
+        assert(std::all_of(candidate.nodes.begin(), candidate.nodes.end(),
+                           [&](int u) { return 0 <= u && u < (int) size(g); }));
         if (candidate.type == CandidateType::P3) {
             add_star(Star(candidate.nodes));
         } else {
@@ -233,6 +261,8 @@ public:
     }
 
     void remove_candidate(const Candidate &candidate) {
+        assert(std::all_of(candidate.nodes.begin(), candidate.nodes.end(),
+                           [&](int u) { return 0 <= u && u < (int) size(g); }));
         if (candidate.type == CandidateType::P3) {
             remove_star(Star(candidate.nodes));
         } else {
@@ -244,6 +274,7 @@ public:
     }
 
     std::vector<Candidate> get_candidates(int u, int v) const {
+        assert(0 <= u && u < (int) size(g) && 0 <= v && v < (int) size(g));
         vector<Candidate> star_extensions;
 
         vector<array<int, 3>> p3s;
@@ -271,7 +302,7 @@ public:
                         int count = 0;
                         for (auto x : star.nodes)
                             count += p3_count[ext][x];
-                        star_extensions.push_back(Candidate{STAR_EXTENSION, new_nodes, count});
+                        star_extensions.emplace_back(STAR_EXTENSION, std::move(new_nodes), count);
                     }
                 }
             }
@@ -300,7 +331,9 @@ public:
                             int count = 0;
                             for (auto x : star.nodes)
                                 count += p3_count[ext][x];
-                            star_extensions.push_back(Candidate{STAR_EXTENSION, new_nodes, count});
+                            assert(std::all_of(new_nodes.begin(), new_nodes.end(),
+                                               [&](int u) { return 0 <= u && u < (int) size(g); }));
+                            star_extensions.emplace_back(STAR_EXTENSION, std::move(new_nodes), count);
                         }
                     }
                 }
@@ -312,7 +345,10 @@ public:
             auto[a, b, c] = nodes;
             for (auto[x, y] : {pair{a, b}, {a, c}, {b, c}})
                 count += p3_count[x][y];
-            star_extensions.push_back(Candidate{P3, {a, b, c}, count});
+            assert(0 <= a && a < (int) size(g));
+            assert(0 <= b && b < (int) size(g));
+            assert(0 <= c && c < (int) size(g));
+            star_extensions.emplace_back(P3, std::vector{a, b, c}, count);
         }
         return star_extensions;
     };
@@ -320,7 +356,8 @@ public:
     void try_improve(const Star &star) {
 
         // First attempt: merge with another star
-        for (const auto &star2 : stars[star.center()]) {
+        auto star2s = stars[star.center()]; // Must be a copy so that remove_star(star2) does not invalidate star2
+        for (const auto &star2 : star2s) {
             if (star == star2) {
                 continue;
             }
@@ -344,6 +381,7 @@ public:
                 remove_star(star);
                 remove_star(star2);
                 Star new_star(star);
+                assert(!star2.nodes.empty());
                 new_star.nodes.insert(new_star.nodes.end(), star2.nodes.begin() + 1, star2.nodes.end());
                 new_star.make_canonical();
                 add_star(new_star);
@@ -538,7 +576,6 @@ int star_bound(const Instance &inst, int limit) {
         // Build neighborhood graph
         auto neighborgraph = map<int, vector<int>>();
         for (auto cand1 : candidates) {
-            neighborgraph[cand1];
             for (auto cand2 : candidates)
                 if (cand1 != cand2)
                     if (bound.pair_used(cand1, cand2) || potential[cand1][cand2] >= 0) // > or >= ?
