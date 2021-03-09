@@ -187,6 +187,8 @@ public:
     };
 
     void add_star(const Star &star) {
+        // `insert` might invalidates iterators to `stars[...]` and `stars_for_edge[...]`
+        // `erase` might invalidate iterators to `free_edges_g[...]`
         assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(g); }));
         assert(star.nodes.size() > 2);
         for (size_t i = 1; i < star.nodes.size(); ++i) {
@@ -220,22 +222,27 @@ public:
     };
 
     void remove_star(const Star &star) {
+        // `erase` might invalidates iterators to `stars[...]` and `stars_for_edge[...]`
+        // `insert` might invalidate iterators to `free_edges_g[...]`
 #ifndef NDEBUG
         assert(!star.nodes.empty());
         assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(g); }));
         auto star_copy = star;
 #endif
         stars[star.center()].erase(star);
-        assert(star ==
-               star_copy); // Make sure that the input parameter star is not a reference into stars[star.center()].
+
+        // Make sure that the input parameter star is not a reference into stars[star.center()].
+        assert(star == star_copy);
+
         bound -= static_cast<int>(star.nodes.size() - 2);
         for (size_t i = 1; i < star.nodes.size(); ++i) {
             int u = star.nodes[i];
             stars_for_edge.erase({star.center(), u});
         }
-        assert(star ==
-               star_copy); // Make sure that the input parameter star is not a reference into some stars_for_edge[...].
-        assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(g); }));
+
+        // Make sure that the input parameter star is not a reference into some stars_for_edge[...].
+        assert(star == star_copy);
+
         for (auto u : star.nodes) {
             for (auto v : star.nodes) {
                 if (u == v)
