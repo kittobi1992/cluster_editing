@@ -241,10 +241,9 @@ void EvolutionaryAlgorithm::mutation() {
       if (insertion_happened) num_cliques++;
       graph.setClique(u, it->second);
     }
-    assert(num_cliques < graph.numNodes());
+    assert(num_cliques <= graph.numNodes());
   };
 
-  // maybe do each with a certain probability?
   auto& prng = rnd.getGenerator();
   static constexpr size_t num_options = 4;
   std::bernoulli_distribution toss(1.0 / (num_options - 1.0));   // n * (1 / n-1) expected perturbations
