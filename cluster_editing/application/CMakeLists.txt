@@ -37,7 +37,7 @@ set_property(TARGET test_reductions PROPERTY CXX_STANDARD_REQUIRED ON)
 
 add_executable(evolutionary evolutionary.cc)
 target_link_libraries(evolutionary ${Boost_LIBRARIES})
-set_property(TARGET test_reductions PROPERTY CXX_STANDARD 17)
-set_property(TARGET test_reductions PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET evolutionary PROPERTY CXX_STANDARD 17)
+set_property(TARGET evolutionary PROPERTY CXX_STANDARD_REQUIRED ON)
 
 set(TARGETS_WANTING_ALL_SOURCES ${TARGETS_WANTING_ALL_SOURCES} ClusterEditing evolutionary DrawGraph exact time_all compute_lower_bounds test_reductions PARENT_SCOPE)

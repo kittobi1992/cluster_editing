@@ -72,6 +72,10 @@ class Randomize {
     return _float_dist(_gen, std::uniform_real_distribution<float>::param_type(low, high));
   }
 
+  double getRandomDouble(double low, double high) {
+    return std::uniform_real_distribution<double>(low, high)(_gen);
+  }
+
   float getNormalDistributedFloat(float mean, float std_dev) {
     return _norm_dist(_gen, std::normal_distribution<float>::param_type(mean, std_dev));
   }

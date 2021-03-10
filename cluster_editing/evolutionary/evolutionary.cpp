@@ -22,16 +22,13 @@ void EvolutionaryAlgorithm::refine() {
 
 void EvolutionaryAlgorithm::intersect_cliques(const CliqueAssignment& cliques1, const CliqueAssignment& cliques2) {
   CliqueID z = *std::max_element(cliques1.begin(), cliques1.end()) + 1;
-  for (NodeID u : graph.nodes()) {
-    clique_intersection[u] = cliques2[u] * z + cliques1[u];
-  }
-
   CliqueID fresh = 0;
   compactification_map.clear();
-  for (CliqueID& cu : clique_intersection) {
+  for (NodeID u : graph.nodes()) {
+    CliqueID cu = cliques2[u] * z + cliques1[u];
     auto [it, insertion_happened] = compactification_map.try_emplace(cu, fresh);
     if (insertion_happened) fresh++;
-    cu = it->second;
+    clique_intersection[u] = it->second;
   }
 }
 
@@ -154,11 +151,11 @@ void EvolutionaryAlgorithm::generate_initial_population() {
 }
 
 void EvolutionaryAlgorithm::evolution_step() {
-  static constexpr float recombine_probability = 0.7f;
-  static constexpr float mutation_probability = 0.15f;
-  static constexpr float from_scratch_probability = 0.15f;
-  assert(recombine_probability + mutation_probability + from_scratch_probability == 1.0f);
-  float toss = utils::Randomize::instance().getRandomFloat(0.0f, 1.0f);
+  static constexpr double recombine_probability = 0.7;
+  static constexpr double mutation_probability = 0.15;
+  static constexpr double from_scratch_probability = 0.15;
+  assert(recombine_probability + mutation_probability + from_scratch_probability == 1.0);
+  double toss = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
   if (toss < recombine_probability) {
     recombine();
   } else if (toss < recombine_probability + mutation_probability) {
@@ -185,7 +182,6 @@ void EvolutionaryAlgorithm::add_current_solution() {
     if (population.size() < max_pop_size) {
       population.emplace_back(std::move(sol));
     } else {
-
       size_t replace = population.size();
       size_t min_agreement = graph.numNodes()*graph.numNodes();
       double min_ari = 2.0;
@@ -208,6 +204,7 @@ void EvolutionaryAlgorithm::add_current_solution() {
 
 void EvolutionaryAlgorithm::mutation() {
   size_t sol_pos;
+  auto& rnd = utils::Randomize::instance();
   if (population.empty()) {
     graph.reset();
     return;
@@ -215,7 +212,6 @@ void EvolutionaryAlgorithm::mutation() {
     sol_pos = 0;
   } else {
     // randomly selected, ro2 tournament
-    auto& rnd = utils::Randomize::instance();
     size_t i1 = rnd.getRandomInt(0, population.size() - 1);
     size_t i2 = rnd.getRandomInt(0, population.size() - 2);
     if (i1 == i2) {
@@ -229,11 +225,94 @@ void EvolutionaryAlgorithm::mutation() {
     }
   }
 
-  // TODO perturbation
-
   const CliqueAssignment& c = population[sol_pos].cliques;
   for (NodeID u : graph.nodes()) {
     graph.setClique(u, c[u]);
+  }
+
+  // TODO store whether solution in population was already compactified?
+  CliqueID num_cliques = 0;
+
+  auto compactify = [&] {
+    num_cliques = 0;
+    compactification_map.clear();
+    for (NodeID u : graph.nodes()) {
+      auto [it, insertion_happened] = compactification_map.try_emplace(graph.clique(u), num_cliques);
+      if (insertion_happened) num_cliques++;
+      graph.setClique(u, it->second);
+    }
+    assert(num_cliques < graph.numNodes());
+  };
+
+  // maybe do each with a certain probability?
+  auto& prng = rnd.getGenerator();
+  static constexpr size_t num_options = 4;
+  std::bernoulli_distribution toss(1.0 / (num_options - 1.0));   // n * (1 / n-1) expected perturbations
+  std::array<bool, num_options> options { false };
+  bool any = false;
+  for (bool& o : options) {
+    o = toss(prng);
+    any |= o;
+  }
+  if (!any) {
+    options[std::uniform_int_distribution<int>(0, num_options - 1)(prng)] = true;
+  }
+
+  compactify();
+
+  if (options[0]) { // split_clique_into_sampled_pieces
+    CliqueID clique_to_split = rnd.getRandomInt(0, num_cliques - 1);
+    std::vector<NodeID> nodes_in_clique;
+    for (NodeID u : graph.nodes()) {
+      if (graph.clique(u) == clique_to_split) {
+        nodes_in_clique.push_back(u);
+      }
+    }
+    if (nodes_in_clique.size() > 1) {
+      size_t ub = std::ceil(std::sqrt(nodes_in_clique.size()));
+      size_t num_splits = rnd.getRandomInt(2, ub);
+      for (NodeID u : nodes_in_clique) {
+        graph.setClique(u, num_cliques + rnd.getRandomInt(0, num_splits - 1));
+      }
+      num_cliques += num_splits;
+    }
+  }
+
+  if (options[1]) { // isolate_clique
+    CliqueID clique_to_split = rnd.getRandomInt(0, num_cliques - 1);
+    for (NodeID u : graph.nodes()) {
+      if (graph.clique(u) == clique_to_split) {
+        graph.setClique(u, num_cliques++);
+      }
+    }
+  }
+
+  if (options[2]) { // perform random moves
+    size_t num_moves =  std::min(50.0, std::floor(std::sqrt(graph.numNodes())))
+                        + std::ceil(rnd.getNormalDistributedFloat(0, 8.0));
+    for (size_t i = 0; i < num_moves; ++i) {
+      NodeID u = rnd.getRandomInt(0, graph.numNodes());   // don't care about duplicates
+      CliqueID target = rnd.getRandomInt(0, num_cliques);
+      if (target == num_cliques) {
+        // isolate
+        num_cliques++;
+      }
+      graph.setClique(u, target);
+    }
+  }
+
+  if (options[3]) { // isolate_random_nodes
+    size_t num_moves =  std::min(50.0, std::floor(std::sqrt(graph.numNodes())))
+                        + std::ceil(rnd.getNormalDistributedFloat(0, 8.0));
+    for (size_t i = 0; i < num_moves; ++i) {
+      NodeID u = rnd.getRandomInt(0, graph.numNodes());
+      graph.setClique(u, num_cliques++);
+    }
+  }
+
+  if (num_cliques > graph.numNodes()) {
+    LOG << "had to compactify after perturbation";
+    compactify();
   }
 }
 
