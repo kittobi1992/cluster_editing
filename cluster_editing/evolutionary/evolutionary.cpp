@@ -342,8 +342,8 @@ void EvolutionaryAlgorithm::mutation() {
     for (bool option : options) {
       std::cout << std::boolalpha << option << " ";
     }
-     */
     std::cout << std::endl;
+     */
     compactify();
   }
 }

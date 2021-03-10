@@ -9,6 +9,8 @@ namespace cluster_editing {
 void FMRefiner::initializeImpl(Graph& graph) {
   _moved_vertices = 0;
   _clique_weight.assign(graph.numNodes(), 0);
+  moves.clear();
+  pq.clear();
   for (NodeID u : graph.nodes()) {
     current_cliques[u].clear();
     target_cliques[u].clear();
@@ -34,8 +36,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
   EdgeWeight round_delta = -1;
 
   for (size_t round = 0; round < _context.refinement.maximum_fm_iterations && round_delta < 0; ++round) {
-    //if (_context.general.verbose_output)
-      LOG << "round" << (round+1);
+    if (_context.general.verbose_output) LOG << "round" << (round+1);
 
     round_delta = 0;
     EdgeWeight best_delta = 0;
@@ -75,6 +76,8 @@ bool FMRefiner::refineImpl(Graph& graph) {
         continue;
       }
 
+      //LOG << "move" << V(u) << V(from) << V(to);
+
       moveVertex(graph, u, to);
       round_delta += rating.delta;
       if (round_delta < best_delta) {
@@ -88,7 +91,6 @@ bool FMRefiner::refineImpl(Graph& graph) {
       assert(from != graph.clique(u));
 
       ASSERT(current_metric + round_delta == metrics::edits(graph), "Rating is wrong. Expected:" << metrics::edits(graph) << "but is" << (current_metric + round_delta));
-
 
       const NodeWeight wu = graph.nodeWeight(u);
 
@@ -249,6 +251,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
     // revert leftovers
     for (Move& m : moves) {
       CliqueID from = graph.clique(m.node), to = m.from;
+      assert(from != to);
       for (const Neighbor& nb : graph.neighbors(m.node)) {
         const NodeID v = nb.target;
         if (graph.clique(v) == from) {
