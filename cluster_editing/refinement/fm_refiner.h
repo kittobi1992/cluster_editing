@@ -36,7 +36,6 @@ private:
 public:
   explicit FMRefiner(const Graph& graph, const Context& context) :
       _context(context),
-      _nodes(),
       _clique_weight(graph.numNodes()),
       _empty_cliques(),
       edge_weight_to_clique(graph.numNodes()),
@@ -96,6 +95,7 @@ private:
   void insertIntoCurrentClique(NodeID u, CliqueID to, EdgeWeight weight_to_clique) {
     n[u].weight_to_current_clique = weight_to_clique;
     n[u].index_in_current_clique = current_cliques[to].size();
+    assert(std::find(current_cliques[to].begin(), current_cliques[to].end(), u) == current_cliques[to].end());
     current_cliques[to].push_back(u);
   }
 
@@ -116,7 +116,6 @@ private:
 
   const Context& _context;
   size_t _moved_vertices;
-  std::vector<NodeID> _nodes;
   std::vector<NodeWeight> _clique_weight;
   std::vector<CliqueID> _empty_cliques;
   ds::SparseMap<CliqueID, EdgeWeight> edge_weight_to_clique;

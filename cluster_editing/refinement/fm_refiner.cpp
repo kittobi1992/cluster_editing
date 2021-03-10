@@ -9,14 +9,16 @@ namespace cluster_editing {
 void FMRefiner::initializeImpl(Graph& graph) {
   _moved_vertices = 0;
   _clique_weight.assign(graph.numNodes(), 0);
+  for (NodeID u : graph.nodes()) {
+    current_cliques[u].clear();
+    target_cliques[u].clear();
+    n[u] = NodeData();
+  }
 
-  _nodes.clear();
-  for ( const NodeID& u : graph.nodes() ) {
+  for (NodeID u : graph.nodes()) {
     _clique_weight[graph.clique(u)] += graph.nodeWeight(u);
-
     EdgeWeight weight = 0;
     const CliqueID clique = graph.clique(u);
-    // TODO accelerate case with singleton init?
     for (const Neighbor& nb : graph.neighbors(u)) {
       if (graph.clique(nb.target) == clique) {
         weight += graph.edgeWeight(nb.id);
