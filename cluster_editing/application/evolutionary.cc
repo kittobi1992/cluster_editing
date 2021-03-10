@@ -25,6 +25,7 @@ int main(int argc, char* argv[]) {
   size_t max_evo_steps = 1000;
   size_t steps = 0;
   while (steps++ < max_evo_steps && elapsed_time.count() < time_limit) {
+    LOG << V(steps);
     evo.evolution_step();
     elapsed_time = std::chrono::steady_clock::now() - start;
   }

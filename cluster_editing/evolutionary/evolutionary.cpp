@@ -7,15 +7,39 @@
 namespace cluster_editing::evolutionary {
 
 void EvolutionaryAlgorithm::refine() {
-  // TODO try different parameters here
+  auto& rnd = utils::Randomize::instance();
+  auto& prng = rnd.getGenerator();
 
-  if (shared_context.refinement.use_lp_refiner) {
+  bool use_lp = true;
+  bool use_fm = std::bernoulli_distribution(0.05)(prng);    // with 5% probability, run FM
+  //use_fm = false;
+  if (use_fm) {
+    // disable LP with 5% prob, if FM is used
+    use_lp = std::bernoulli_distribution(0.95)(prng);
+  }
+
+  if (use_lp) {
+    auto& lp_opt = shared_context.refinement.lp;
+    auto old_lp_opt = lp_opt; // make copy
+
+    lp_opt.maximum_lp_iterations = 10000;
+    lp_opt.node_order = NodeOrdering::random_shuffle;
+    lp_opt.random_shuffle_each_round = true;
+    lp_opt.activate_all_cliques_after_rounds = 5;
+
     lp_refiner.initialize(graph);
     lp_refiner.refine(graph);
+
+    lp_opt = old_lp_opt;
   }
-  if (shared_context.refinement.use_fm_refiner) {
+  if (use_fm) {
+    size_t old_fm_iters = shared_context.refinement.maximum_fm_iterations;
+    shared_context.refinement.maximum_fm_iterations = 5 + std::geometric_distribution<size_t>(0.3)(prng);
+
     fm_refiner.initialize(graph);
     fm_refiner.refine(graph);
+
+    shared_context.refinement.maximum_fm_iterations = old_fm_iters;
   }
 }
 
@@ -157,10 +181,13 @@ void EvolutionaryAlgorithm::evolution_step() {
   assert(recombine_probability + mutation_probability + from_scratch_probability == 1.0);
   double toss = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
   if (toss < recombine_probability) {
+    LOG << "recombine";
     recombine();
   } else if (toss < recombine_probability + mutation_probability) {
+    LOG << "mutate";
     mutation();
   } else {
+    LOG << "scratch";
     graph.reset();
   }
 
@@ -287,8 +314,8 @@ void EvolutionaryAlgorithm::mutation() {
   }
 
   if (options[2]) { // perform random moves
-    size_t num_moves =  std::min(50.0, std::floor(std::sqrt(graph.numNodes())))
-                        + std::ceil(rnd.getNormalDistributedFloat(0, 8.0));
+    size_t sqrt_n = std::ceil(std::sqrt(graph.numNodes()));
+    size_t num_moves =  std::min(100, rnd.getRandomInt(sqrt_n, 2*sqrt_n));
     for (size_t i = 0; i < num_moves; ++i) {
       NodeID u = rnd.getRandomInt(0, graph.numNodes());   // don't care about duplicates
       CliqueID target = rnd.getRandomInt(0, num_cliques);
@@ -301,8 +328,8 @@ void EvolutionaryAlgorithm::mutation() {
   }
 
   if (options[3]) { // isolate_random_nodes
-    size_t num_moves =  std::min(50.0, std::floor(std::sqrt(graph.numNodes())))
-                        + std::ceil(rnd.getNormalDistributedFloat(0, 8.0));
+    size_t sqrt_n = std::ceil(std::sqrt(graph.numNodes()));
+    size_t num_moves =  std::min(100, rnd.getRandomInt(sqrt_n, 2*sqrt_n));
     for (size_t i = 0; i < num_moves; ++i) {
       NodeID u = rnd.getRandomInt(0, graph.numNodes());
       graph.setClique(u, num_cliques++);
@@ -310,7 +337,13 @@ void EvolutionaryAlgorithm::mutation() {
   }
 
   if (num_cliques > graph.numNodes()) {
+    /*
     LOG << "had to compactify after perturbation";
+    for (bool option : options) {
+      std::cout << std::boolalpha << option << " ";
+    }
+     */
+    std::cout << std::endl;
     compactify();
   }
 }

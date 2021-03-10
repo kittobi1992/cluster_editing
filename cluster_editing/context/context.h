@@ -40,7 +40,7 @@ std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParam
 struct RefinementParameters {
   bool use_lp_refiner = false;
   bool use_fm_refiner = false;
-  int maximum_fm_iterations = std::numeric_limits<int>::max();
+  size_t maximum_fm_iterations = std::numeric_limits<int>::max();
   LabelPropagationRefinerParameters lp;
 };
 

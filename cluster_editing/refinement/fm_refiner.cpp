@@ -31,8 +31,9 @@ bool FMRefiner::refineImpl(Graph& graph) {
   EdgeWeight current_metric = start_metric;
   EdgeWeight round_delta = -1;
 
-  for ( int round = 0; round < _context.refinement.maximum_fm_iterations && round_delta < 0; ++round ) {
-    if (_context.general.verbose_output) LOG << "round" << (round+1);
+  for (size_t round = 0; round < _context.refinement.maximum_fm_iterations && round_delta < 0; ++round) {
+    //if (_context.general.verbose_output)
+      LOG << "round" << (round+1);
 
     round_delta = 0;
     EdgeWeight best_delta = 0;
@@ -269,9 +270,6 @@ bool FMRefiner::refineImpl(Graph& graph) {
       assert(n[u].weight_to_current_clique == edge_weight_to_clique[graph.clique(u)]);
     }
 #endif
-
-    DBG << "Pass Nr." << (round + 1) << "improved metric from"
-      << start_metric << "to" << current_metric;
   }
 
   return current_metric < start_metric;
