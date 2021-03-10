@@ -95,7 +95,6 @@ private:
   void insertIntoCurrentClique(NodeID u, CliqueID to, EdgeWeight weight_to_clique) {
     n[u].weight_to_current_clique = weight_to_clique;
     n[u].index_in_current_clique = current_cliques[to].size();
-    assert(std::find(current_cliques[to].begin(), current_cliques[to].end(), u) == current_cliques[to].end());
     current_cliques[to].push_back(u);
   }
 

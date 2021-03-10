@@ -2,6 +2,7 @@
 
 #include "cluster_editing/refinement/lp_refiner.h"
 #include "cluster_editing/refinement/fm_refiner.h"
+#include "cluster_editing/metrics.h"
 
 #include <unordered_map>
 
@@ -90,6 +91,8 @@ private:
   CliqueAssignment clique_intersection;
 
   std::vector<size_t> intersection_size, c1_size, c2_size;
+
+  metrics::MetricCalculator metric_calc;
 };
 
 }

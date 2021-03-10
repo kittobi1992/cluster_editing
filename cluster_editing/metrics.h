@@ -45,4 +45,31 @@ inline EdgeWeight edits(const Graph& graph) {
 	return edge_deletions(graph) + edge_insertions(graph);
 }
 
+class MetricCalculator {
+public:
+  size_t unweighted_edit_cost(const Graph& graph) {
+    size_t internal_edges = 0, edits = 0;
+    cluster_sizes.assign(graph.numNodes(), 0);
+    for (NodeID u : graph.nodes()) {
+      const CliqueID u_id = graph.clique(u);
+      cluster_sizes[u_id]++;
+      for (const Neighbor& n : graph.neighbors(u) ) {
+        const NodeID v = n.target;
+        const CliqueID v_id = graph.clique(v);
+        internal_edges += static_cast<size_t>(u_id == v_id && u < v);
+        edits += static_cast<size_t>(u_id < v_id);
+      }
+    }
+
+    for (NodeID u : graph.nodes()) {
+      edits += cluster_sizes[u] * (cluster_sizes[u] - 1) / 2; // insertions
+    }
+    edits -= internal_edges;
+
+    return edits;
+  }
+private:
+  std::vector<NodeID> cluster_sizes;
+};
+
 } // namespace metrics

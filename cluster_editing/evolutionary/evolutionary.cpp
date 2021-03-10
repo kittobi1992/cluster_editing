@@ -181,13 +181,13 @@ void EvolutionaryAlgorithm::evolution_step() {
   assert(recombine_probability + mutation_probability + from_scratch_probability == 1.0);
   double toss = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
   if (toss < recombine_probability) {
-    LOG << "recombine";
+    //LOG << "recombine";
     recombine();
   } else if (toss < recombine_probability + mutation_probability) {
-    LOG << "mutate";
+    //LOG << "mutate";
     mutation();
   } else {
-    LOG << "scratch";
+    //LOG << "scratch";
     graph.reset();
   }
 
@@ -196,7 +196,9 @@ void EvolutionaryAlgorithm::evolution_step() {
 }
 
 void EvolutionaryAlgorithm::add_current_solution() {
-  size_t cost = metrics::edits(graph);
+  //size_t cost = metrics::edits(graph);
+  size_t cost = metric_calc.unweighted_edit_cost(graph);
+  assert(cost == metrics::edits(graph));
 
   if (population.size() < max_pop_size || cost < worst().cost) {
     Solution sol;

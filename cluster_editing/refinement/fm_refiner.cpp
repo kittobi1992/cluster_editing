@@ -31,9 +31,12 @@ void FMRefiner::initializeImpl(Graph& graph) {
 }
 
 bool FMRefiner::refineImpl(Graph& graph) {
+#ifndef NDEBUG
   EdgeWeight start_metric = metrics::edits(graph);
   EdgeWeight current_metric = start_metric;
+#endif
   EdgeWeight round_delta = -1;
+  bool made_any_improvement = false;
 
   for (size_t round = 0; round < _context.refinement.maximum_fm_iterations && round_delta < 0; ++round) {
     if (_context.general.verbose_output) LOG << "round" << (round+1);
@@ -263,11 +266,12 @@ bool FMRefiner::refineImpl(Graph& graph) {
       moveVertex(graph, m.node, to, false);
     }
     moves.clear();
+    made_any_improvement |= best_delta < 0;
 
+#ifndef NDEBUG
     current_metric += best_delta;
     assert(current_metric == metrics::edits(graph));
 
-#ifndef NDEBUG
     for (NodeID u : graph.nodes()) {
       edge_weight_to_clique.clear();
       for (const Neighbor& nb : graph.neighbors(u)) {
@@ -278,7 +282,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
 #endif
   }
 
-  return current_metric < start_metric;
+  return made_any_improvement;
 }
 
 void FMRefiner::moveVertex(Graph& graph, NodeID u, CliqueID to, bool manage_empty_cliques) {
