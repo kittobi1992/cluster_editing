@@ -262,6 +262,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
       }
       moveVertex(graph, m.node, to, false);
     }
+    moves.clear();
 
     current_metric += best_delta;
     assert(current_metric == metrics::edits(graph));
