@@ -51,6 +51,19 @@ struct Star {
         return nodes[0];
     }
 
+    template<class It>
+    class Range {
+        It m_begin, m_end;
+    public:
+        Range(It begin, It end) : m_begin(begin), m_end(end) {}
+
+        [[nodiscard]] auto begin() const { return m_begin; }
+
+        [[nodiscard]] auto end() const { return m_end; }
+    };
+
+    [[nodiscard]] auto leaves() const { return Range(nodes.begin() + 1, nodes.end()); }
+
     bool operator<(const Star &rhs) const {
         return nodes < rhs.nodes;
     }
@@ -147,8 +160,7 @@ public:
 
     bool has_star(const Star &star) const {
         assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(g); }));
-        const auto &entry = stars[star.center()];
-        return entry.find(star) != entry.end();
+        return stars[star.center()].find(star) != stars[star.center()].end();
     };
 
     std::vector<Star> stars_in_random_order() {
@@ -179,14 +191,10 @@ public:
         auto ext = candidate.nodes.back();
         if (!has_star(star))
             return false;
-        for (auto node : star.nodes) {
-            if (pair_used(node, ext))
-                return false;
-        }
-        return true;
+        return std::all_of(star.nodes.begin(), star.nodes.end(), [&](int node) { return !pair_used(node, ext); });
     };
 
-    void add_star(const Star &star) {
+    void add_star(Star star) {
         // `insert` might invalidates iterators to `stars[...]` and `stars_for_edge[...]`
         // `erase` might invalidate iterators to `free_edges_g[...]`
         assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(g); }));
@@ -204,8 +212,7 @@ public:
         bound += static_cast<int>(star.nodes.size() - 2);
 
 
-        for (size_t i = 1; i < star.nodes.size(); ++i) {
-            int u = star.nodes[i];
+        for (auto u : star.leaves()) {
             stars_for_edge.insert({{star.center(), u}, star});
         }
         for (auto u : star.nodes) {
@@ -221,27 +228,17 @@ public:
         }
     };
 
-    void remove_star(const Star &star) {
+    void remove_star(Star star) {
         // `erase` might invalidates iterators to `stars[...]` and `stars_for_edge[...]`
         // `insert` might invalidate iterators to `free_edges_g[...]`
-#ifndef NDEBUG
-        assert(!star.nodes.empty());
-        assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(g); }));
-        auto star_copy = star;
-#endif
-        stars[star.center()].erase(star);
 
-        // Make sure that the input parameter star is not a reference into stars[star.center()].
-        assert(star == star_copy);
+        stars[star.center()].erase(star);
 
         bound -= static_cast<int>(star.nodes.size() - 2);
         for (size_t i = 1; i < star.nodes.size(); ++i) {
             int u = star.nodes[i];
             stars_for_edge.erase({star.center(), u});
         }
-
-        // Make sure that the input parameter star is not a reference into some stars_for_edge[...].
-        assert(star == star_copy);
 
         for (auto u : star.nodes) {
             for (auto v : star.nodes) {
@@ -293,16 +290,13 @@ public:
                 if (y != v && g[v][y] < 0 && !pair_used(v, y))
                     p3s.push_back({u, v, y});
 
-            for (auto[center, ext] : {pair{u, v}, {v, u}}) {
+            for (auto p : {pair{u, v}, {v, u}}) {
+                auto center = p.first;
+                auto ext = p.second;
                 for (const auto &star : stars[center]) {
-                    bool valid = true;
-                    for (size_t i = 1; i < star.nodes.size(); ++i) {
-                        int x = star.nodes[i];
-                        if (pair_used(ext, x) || g[ext][x] >= 0) {
-                            valid = false;
-                            break;
-                        }
-                    }
+                    auto valid = std::all_of(star.leaves().begin(), star.leaves().end(), [&](auto x) {
+                        return !(pair_used(ext, x) || g[ext][x] >= 0);
+                    });
                     if (valid) {
                         auto new_nodes = star.nodes;
                         new_nodes.push_back(ext);
@@ -319,19 +313,16 @@ public:
                     p3s.push_back({y, v, u});
 
 
-            for (auto[ext, existing] : {pair{u, v}, {v, u}}) {
+            for (auto p : {pair{u, v}, {v, u}}) {
+                auto ext = p.first;
+                auto existing = p.second;
                 for (auto center : free_edges_g[ext]) {
                     if (auto star_it = stars_for_edge.find({center, existing}); star_it != stars_for_edge.end()) {
                         const auto&[_, star] = *star_it;
 
-                        bool valid = true;
-                        for (size_t i = 1; i < star.nodes.size(); ++i) {
-                            int x = star.nodes[i];
-                            if (pair_used(ext, x) || g[ext][x] >= 0) {
-                                valid = false;
-                                break;
-                            }
-                        }
+                        bool valid = std::all_of(star.leaves().begin(), star.leaves().end(), [&](int x) {
+                            return !(pair_used(ext, x) || g[ext][x] >= 0);
+                        });
                         if (valid) {
                             auto new_nodes = star.nodes;
                             new_nodes.push_back(ext);
@@ -363,18 +354,15 @@ public:
     void try_improve(const Star &star) {
 
         // First attempt: merge with another star
-        auto star2s = stars[star.center()]; // Must be a copy so that remove_star(star2) does not invalidate star2
+        // Must be a copy because remove_star(star2) might invalidate iterators to stars[star.center()]
+        auto star2s = stars[star.center()];
         for (const auto &star2 : star2s) {
             if (star == star2) {
                 continue;
             }
             bool all_unused_non_edges = true;
-            for (auto u : star.nodes) {
-                if (u == star.center())
-                    continue;
-                for (auto v : star2.nodes) {
-                    if (v == star2.center())
-                        continue;
+            for (auto u : star.leaves()) {
+                for (auto v : star2.leaves()) {
                     // if bound.pair_used(u, v) or v in bound.g[u]:
                     if (pair_used(u, v) || (g[u][v] >= 0)) { // NOTE: > 0?
                         all_unused_non_edges = false;
@@ -389,7 +377,7 @@ public:
                 remove_star(star2);
                 Star new_star(star);
                 assert(!star2.nodes.empty());
-                new_star.nodes.insert(new_star.nodes.end(), star2.nodes.begin() + 1, star2.nodes.end());
+                new_star.nodes.insert(new_star.nodes.end(), star2.leaves().begin(), star2.leaves().end());
                 new_star.make_canonical();
                 add_star(new_star);
                 return;
@@ -397,7 +385,7 @@ public:
         }
 
         Star candidate_star = star;
-        std::vector<int> nodes(candidate_star.nodes.begin() + 1, candidate_star.nodes.end());
+        std::vector<int> nodes(candidate_star.leaves().begin(), candidate_star.leaves().end());
         for (auto v : nodes) {
             remove_star(candidate_star);
 
@@ -453,8 +441,10 @@ public:
             if (!two_found) {
                 // Replace by random candidate
                 std::vector<Candidate> all_candidates;
-                for (const auto &[pair, candidates] : candidates_per_pair)
-                    all_candidates.insert(all_candidates.end(), candidates.begin(), candidates.end());
+                for (auto &[pair, candidates] : candidates_per_pair) {
+                    std::move(candidates.begin(), candidates.end(), back_inserter(all_candidates));
+                    candidates.clear();
+                }
                 if (!all_candidates.empty()) {
                     auto uni_dist = std::uniform_real_distribution<float>(0, 1);
                     auto idx_dist = std::uniform_int_distribution<size_t>(0, all_candidates.size() - 1);
@@ -593,8 +583,7 @@ int star_bound(const Instance &inst, int limit) {
         for (const auto &star_leaves : stars) {
             if (size(star_leaves) < 2)
                 continue;
-            auto new_nodes = vector<int>();
-            new_nodes.push_back(u);
+            vector new_nodes = {u};
             std::copy(star_leaves.begin(), star_leaves.end(), std::back_inserter(new_nodes));
             bound.add_star(Star(new_nodes));
             if (bound.bound > limit)
