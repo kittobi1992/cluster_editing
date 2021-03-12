@@ -106,11 +106,12 @@ protected:
     //Candidate = collections.namedtuple('Candidate', ['candidate_type',
     //        'nodes', 'shared_p3'])
 
-    Edges g;
-    std::vector<std::vector<bool>> used_by_bound;
+    Edges potential;
+    std::vector<std::vector<bool>> potential_is_zero;
     std::vector<std::unordered_set<Star>> stars;
     std::vector<std::set<int>> free_edges_g;
-    std::unordered_map<pair<int, int>, Star, pair_hash> stars_for_edge;
+    std::unordered_map<pair<int, int>, std::set<Star>, pair_hash> stars_for_edge;
+    std::unordered_map<Star, int> stars_in_bound;
     std::vector<std::vector<int>> p3_count;
 
     std::mt19937_64 gen;
@@ -119,7 +120,7 @@ public:
     int bound = 0;
 
     explicit StarBound(Edges g)
-            : g(g), used_by_bound(g.size(), vector<bool>(g.size(), false)), stars(g.size()), free_edges_g(g.size()),
+            : potential(g), potential_is_zero(g.size(), vector<bool>(g.size(), false)), stars(g.size()), free_edges_g(g.size()),
               p3_count(g.size(), vector<int>(g.size(), 0)) {
         //TODO Make this weighted somehow?
         for (size_t u = 0; u < g.size(); ++u) {
@@ -148,18 +149,53 @@ public:
 
     }
 
+    static bool is_consistent(const Edges &potential, std::vector<std::vector<bool>> potential_is_zero, std::vector<std::set<int>> free_edges_g) {
+
+    }
+
+    int calc_costs(const Star& star) const {
+        int weight = INF;
+        if (star.nodes.size() <= 2)
+            return 0;
+
+        for (size_t i = 1; i < star.nodes.size(); ++i) {
+            int u = star.nodes[i];
+            if (potential[star.center()][u] <= 0)
+                return 0;
+            weight = min(weight, potential[star.center()][u]);
+
+            for (size_t j = i+1; j < star.nodes.size(); ++j) {
+                int v = star.nodes[j];
+                if (potential[u][v] >= 0)
+                    return 0;
+                weight = min(weight, -potential[u][v]);
+            }
+        }
+
+        assert(weight > 0);
+        return weight;
+    }
+
+    bool has_positive_potential(int u, int v) const {
+        return potential[u][v] > 0;
+    };
+
+    bool has_negative_potential(int u, int v) const {
+        return potential[u][v] < 0;
+    };
+
     std::set<int> free_neighbors(int u) const {
-        assert(0 <= u && u < (int) size(g));
+        assert(0 <= u && u < (int) size(potential));
         return free_edges_g[u];
     };
 
     bool pair_used(int u, int v) const {
-        assert(0 <= u && u < (int) size(g) && 0 <= v && v < (int) size(g));
-        return used_by_bound[u][v];
+        assert(0 <= u && u < (int) size(potential) && 0 <= v && v < (int) size(potential));
+        return potential_is_zero[u][v];
     };
 
     bool has_star(const Star &star) const {
-        assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(g); }));
+        assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(potential); }));
         return stars[star.center()].find(star) != stars[star.center()].end();
     };
 
@@ -183,7 +219,7 @@ public:
 
     bool can_add_candidate(const Candidate &candidate) const {
         assert(std::all_of(candidate.nodes.begin(), candidate.nodes.end(),
-                           [&](int u) { return 0 <= u && u < (int) size(g); }));
+                           [&](int u) { return 0 <= u && u < (int) size(potential); }));
         if (candidate.type == P3)
             return can_add(Star(candidate.nodes));
 
@@ -194,100 +230,176 @@ public:
         return std::all_of(star.nodes.begin(), star.nodes.end(), [&](int node) { return !pair_used(node, ext); });
     };
 
-    void add_star(Star star) {
-        // `insert` might invalidates iterators to `stars[...]` and `stars_for_edge[...]`
-        // `erase` might invalidate iterators to `free_edges_g[...]`
-        assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(g); }));
+
+    int apply_star_to_potential(Star star, int weight) {
+#ifndef NDEBUG
+        assert(weight > 0);
         assert(star.nodes.size() > 2);
-        for (size_t i = 1; i < star.nodes.size(); ++i) {
+        for (int i = 1; i < star.nodes.size(); ++i) {
             int u = star.nodes[i];
-            assert(g[u][star.center()] > 0);
-            for (size_t j = i + 1; j < star.nodes.size(); ++j) {
+            assert(has_positive_potential(u, star.center()));
+            for (int j = i+1; j < star.nodes.size(); ++j) {
                 int v = star.nodes[j];
-                assert(g[u][v] < 0);
+                assert(has_negative_potential(u, v));
+            }
+        }
+#endif
+
+        bound += ((int)star.nodes.size() - 2) * weight;
+
+
+        /*for (int i = 1; i < star.nodes.size(); ++i) {
+            int u = star.nodes[i];
+            stars_for_edge[make_pair(star.center(), u)] = star;
+        }*/
+        for (auto u : star.nodes) {
+            for (auto v : star.nodes) {
+                if (u==v)
+                    continue;
+                if (u == star.center() || v == star.center()) {
+                    assert(has_positive_potential(u, v));
+                    potential[u][v] -= weight;
+                    assert(potential[u][v] >= 0);
+                    if (potential[u][v] == 0) {
+                        potential_is_zero[u][v] = true;
+                        free_edges_g[u].erase(v);
+                    }
+                }
+                else {
+                    assert(has_negative_potential(u, v));
+                    potential[u][v] += weight;
+                    assert(potential[u][v] <= 0);
+                    if (potential[u][v] == 0) {
+                        potential_is_zero[u][v] = true;
+                    }
+                }
             }
         }
 
-        stars[star.center()].insert(star);
-        bound += static_cast<int>(star.nodes.size() - 2);
+        return ((int)star.nodes.size() - 2) * weight;
+    };
 
-
-        for (auto u : star.leaves()) {
-            stars_for_edge.insert({{star.center(), u}, star});
-        }
+    int unapply_star_to_potential(Star star, int weight) {
+        assert(weight > 0);
+        bound -= ((int)star.nodes.size() - 2) * weight;
         for (auto u : star.nodes) {
             for (auto v : star.nodes) {
                 if (u == v)
                     continue;
-                assert(!pair_used(u, v));
-                used_by_bound[u][v] = true;
-                if (g[u][v] > 0) {
-                    free_edges_g[u].erase(v);
+                if (u == star.center() || v == star.center()) {
+                    if (potential[u][v] == 0) {
+                        potential_is_zero[u][v] = false;
+                        free_edges_g[u].insert(v);
+                    }
+                    assert(potential[u][v] >= 0);
+                    potential[u][v] += weight;
+                    assert(potential[u][v] > 0);
+
+                }
+                else {
+                    assert(potential[u][v] <= 0);
+                    if (potential[u][v] == 0) {
+                        potential_is_zero[u][v] = false;
+                    }
+                    potential[u][v] -= weight;
+                    assert(potential[u][v] < 0);
                 }
             }
         }
+        return -(star.nodes.size() - 2) * weight;
     };
 
-    void remove_star(Star star) {
+    [[nodiscard]] int add_star(Star star, int weight = -1) {
+        // `insert` might invalidates iterators to `stars[...]` and `stars_for_edge[...]`
+        // `erase` might invalidate iterators to `free_edges_g[...]`
+#ifndef NDEBUG
+        assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < (int) size(potential); }));
+        assert(star.nodes.size() > 2);
+        for (size_t i = 1; i < star.nodes.size(); ++i) {
+            int u = star.nodes[i];
+            assert(potential[u][star.center()] > 0);
+            for (size_t j = i + 1; j < star.nodes.size(); ++j) {
+                int v = star.nodes[j];
+                assert(potential[u][v] < 0);
+            }
+        }
+#endif
+
+        if (weight == -1)
+            weight = calc_costs(star);
+        assert(weight > 0);
+        apply_star_to_potential(star, weight);
+        stars[star.center()].insert(star);
+
+        for (auto u : star.leaves()) {
+            stars_for_edge[{star.center(), u}].insert(star);
+        }
+
+        stars_in_bound[star] += weight;
+        return weight;
+    };
+
+    void remove_star(Star star, int weight) {
         // `erase` might invalidates iterators to `stars[...]` and `stars_for_edge[...]`
         // `insert` might invalidate iterators to `free_edges_g[...]`
 
+        assert(weight > 0);
+
+        unapply_star_to_potential(star, weight);
+        stars_in_bound[star] -= weight;
+
+        // Only touch other data structures if star is now fully removed
+        if (stars_in_bound[star] > 0) {
+            return;
+        }
+
+        stars_in_bound.erase(star);
         stars[star.center()].erase(star);
 
-        bound -= static_cast<int>(star.nodes.size() - 2);
+        //bound -= static_cast<int>(star.nodes.size() - 2);
         for (size_t i = 1; i < star.nodes.size(); ++i) {
             int u = star.nodes[i];
             stars_for_edge.erase({star.center(), u});
         }
-
-        for (auto u : star.nodes) {
-            for (auto v : star.nodes) {
-                if (u == v)
-                    continue;
-                used_by_bound[u][v] = false;
-                if (g[u][v] > 0)
-                    free_edges_g[u].insert(v);
-            }
-        }
     };
 
-    void add_candidate(const Candidate &candidate) {
+    [[nodiscard]] int add_candidate(const Candidate &candidate) {
         assert(std::all_of(candidate.nodes.begin(), candidate.nodes.end(),
-                           [&](int u) { return 0 <= u && u < (int) size(g); }));
+                           [&](int u) { return 0 <= u && u < (int) size(potential); }));
         if (candidate.type == CandidateType::P3) {
-            add_star(Star(candidate.nodes));
+            return add_star(Star(candidate.nodes));
         } else {
             auto existing_star = candidate.nodes;
             existing_star.pop_back();
-            remove_star(Star(existing_star));
-            add_star(Star(candidate.nodes));
+            remove_star(Star(existing_star), 1);
+            return add_star(Star(candidate.nodes));
         }
     }
 
-    void remove_candidate(const Candidate &candidate) {
+    void remove_candidate(const Candidate &candidate, int weight) {
         assert(std::all_of(candidate.nodes.begin(), candidate.nodes.end(),
-                           [&](int u) { return 0 <= u && u < (int) size(g); }));
+                           [&](int u) { return 0 <= u && u < (int) size(potential); }));
         if (candidate.type == CandidateType::P3) {
-            remove_star(Star(candidate.nodes));
+            remove_star(Star(candidate.nodes), weight);
         } else {
             auto existing_star = candidate.nodes;
             existing_star.pop_back();
-            remove_star(Star(candidate.nodes));
-            add_star(Star(existing_star));
+            remove_star(Star(candidate.nodes), weight);
+            add_star(Star(existing_star), 1);
         }
     }
 
     std::vector<Candidate> get_candidates(int u, int v) const {
-        assert(0 <= u && u < (int) size(g) && 0 <= v && v < (int) size(g));
+        assert(0 <= u && u < (int) size(potential) && 0 <= v && v < (int) size(potential));
         vector<Candidate> star_extensions;
 
         vector<array<int, 3>> p3s;
-        if (g[u][v] > 0) {
+        if (potential[u][v] > 0) {
             for (int y : free_edges_g[v])
-                if (y != u && g[u][y] < 0 && !pair_used(u, y))
+                if (y != u && potential[u][y] < 0 && !pair_used(u, y))
                     p3s.push_back({v, u, y});
             for (int y : free_edges_g[u])
-                if (y != v && g[v][y] < 0 && !pair_used(v, y))
+                if (y != v && potential[v][y] < 0 && !pair_used(v, y))
                     p3s.push_back({u, v, y});
 
             for (auto p : {pair{u, v}, {v, u}}) {
@@ -295,7 +407,7 @@ public:
                 auto ext = p.second;
                 for (const auto &star : stars[center]) {
                     auto valid = std::all_of(star.leaves().begin(), star.leaves().end(), [&](auto x) {
-                        return !(pair_used(ext, x) || g[ext][x] >= 0);
+                        return !(pair_used(ext, x) || potential[ext][x] >= 0);
                     });
                     if (valid) {
                         auto new_nodes = star.nodes;
@@ -303,11 +415,11 @@ public:
                         int count = 0;
                         for (auto x : star.nodes)
                             count += p3_count[ext][x];
-                        star_extensions.emplace_back(STAR_EXTENSION, std::move(new_nodes), count);
+                        // star_extensions.emplace_back(STAR_EXTENSION, std::move(new_nodes), count);
                     }
                 }
             }
-        } else if (g[u][v] < 0) { //TODO or <= 0?
+        } else if (potential[u][v] < 0) { //TODO or <= 0?
             for (auto y : free_edges_g[u])
                 if (free_edges_g[v].find(y) != free_edges_g[v].end())
                     p3s.push_back({y, v, u});
@@ -317,21 +429,23 @@ public:
                 auto ext = p.first;
                 auto existing = p.second;
                 for (auto center : free_edges_g[ext]) {
-                    if (auto star_it = stars_for_edge.find({center, existing}); star_it != stars_for_edge.end()) {
-                        const auto&[_, star] = *star_it;
+                    if (auto stars_it = stars_for_edge.find({center, existing}); stars_it != stars_for_edge.end()) {
+                        const auto&[_, stars] = *stars_it;
 
-                        bool valid = std::all_of(star.leaves().begin(), star.leaves().end(), [&](int x) {
-                            return !(pair_used(ext, x) || g[ext][x] >= 0);
-                        });
-                        if (valid) {
-                            auto new_nodes = star.nodes;
-                            new_nodes.push_back(ext);
-                            int count = 0;
-                            for (auto x : star.nodes)
-                                count += p3_count[ext][x];
-                            assert(std::all_of(new_nodes.begin(), new_nodes.end(),
-                                               [&](int u) { return 0 <= u && u < (int) size(g); }));
-                            star_extensions.emplace_back(STAR_EXTENSION, std::move(new_nodes), count);
+                        for (const auto &star : stars) { // TODO: Check if that's the correct generalization for multiple stars per edge
+                            bool valid = std::all_of(star.leaves().begin(), star.leaves().end(), [&](int x) {
+                                return !(pair_used(ext, x) || potential[ext][x] >= 0);
+                            });
+                            if (valid) {
+                                auto new_nodes = star.nodes;
+                                new_nodes.push_back(ext);
+                                int count = 0;
+                                for (auto x : star.nodes)
+                                    count += p3_count[ext][x];
+                                assert(std::all_of(new_nodes.begin(), new_nodes.end(),
+                                                   [&](int u) { return 0 <= u && u < (int) size(potential); }));
+                                // star_extensions.emplace_back(STAR_EXTENSION, std::move(new_nodes), count);
+                            }
                         }
                     }
                 }
@@ -343,9 +457,12 @@ public:
             auto[a, b, c] = nodes;
             for (auto[x, y] : {pair{a, b}, {a, c}, {b, c}})
                 count += p3_count[x][y];
-            assert(0 <= a && a < (int) size(g));
-            assert(0 <= b && b < (int) size(g));
-            assert(0 <= c && c < (int) size(g));
+            assert(0 <= a && a < (int) size(potential));
+            assert(0 <= b && b < (int) size(potential));
+            assert(0 <= c && c < (int) size(potential));
+            assert(potential[a][b] > 0);
+            assert(potential[a][c] > 0);
+            assert(potential[b][c] < 0);
             star_extensions.emplace_back(P3, std::vector{a, b, c}, count);
         }
         return star_extensions;
@@ -355,6 +472,7 @@ public:
 
         // First attempt: merge with another star
         // Must be a copy because remove_star(star2) might invalidate iterators to stars[star.center()]
+        /*
         auto star2s = stars[star.center()];
         for (const auto &star2 : star2s) {
             if (star == star2) {
@@ -364,7 +482,7 @@ public:
             for (auto u : star.leaves()) {
                 for (auto v : star2.leaves()) {
                     // if bound.pair_used(u, v) or v in bound.g[u]:
-                    if (pair_used(u, v) || (g[u][v] >= 0)) { // NOTE: > 0?
+                    if (pair_used(u, v) || (potential[u][v] >= 0)) { // NOTE: > 0?
                         all_unused_non_edges = false;
                         break;
                     }
@@ -373,8 +491,8 @@ public:
                     break;
             }
             if (all_unused_non_edges) {
-                remove_star(star);
-                remove_star(star2);
+                remove_star(star, 1);
+                remove_star(star2, 1);
                 Star new_star(star);
                 assert(!star2.nodes.empty());
                 new_star.nodes.insert(new_star.nodes.end(), star2.leaves().begin(), star2.leaves().end());
@@ -383,11 +501,12 @@ public:
                 return;
             }
         }
+         */
 
         Star candidate_star = star;
         std::vector<int> nodes(candidate_star.leaves().begin(), candidate_star.leaves().end());
         for (auto v : nodes) {
-            remove_star(candidate_star);
+            remove_star(candidate_star, 1);
 
             bool is_p3 = candidate_star.nodes.size() == 3;
 
@@ -395,7 +514,7 @@ public:
                 assert(candidate_star.nodes.size() > 3);
                 candidate_star.nodes.erase(std::remove(candidate_star.nodes.begin(), candidate_star.nodes.end(), v),
                                            candidate_star.nodes.end());
-                add_star(candidate_star);
+                add_star(candidate_star, 1);
             }
 
             vector<pair<pair<int, int>, vector<Candidate>>> candidates_per_pair;
@@ -407,7 +526,7 @@ public:
                     candidates_per_pair.emplace_back(pair{x, y}, get_candidates(x, y));
             } else {
                 for (auto x : candidate_star.nodes) {
-                    assert(g[x][v] < 0 || x == star.center());
+                    assert(potential[x][v] < 0 || x == star.center());
                     candidates_per_pair.emplace_back(pair{v, x}, get_candidates(v, x));
                 }
             }
@@ -417,7 +536,7 @@ public:
                 assert(!two_found);
                 for (const auto &candidate : candidates) {
                     assert(!two_found);
-                    add_candidate(candidate);
+                    int weight = add_candidate(candidate);
 
                     for (const auto &[pair2, candidates2] : candidates_per_pair) {
                         if (pair == pair2)
@@ -431,7 +550,7 @@ public:
                     }
                     if (two_found)
                         break;
-                    remove_candidate(candidate);
+                    remove_candidate(candidate, weight);
                 }
                 if (two_found)
                     break;
@@ -468,11 +587,11 @@ public:
                     add_candidate(replacement);
                 } else {
                     if (!is_p3) {
-                        remove_star(candidate_star);
+                        remove_star(candidate_star, 1);
                         candidate_star.nodes.push_back(v);
                         candidate_star.make_canonical();
                     }
-                    add_star(candidate_star);
+                    add_star(candidate_star, 1);
                 }
             }
             if (is_p3) {
@@ -600,7 +719,8 @@ int star_bound(const Instance &inst, int limit) {
 
         old_bound = bound.bound;
         //cout << bound.bound << endl;
-        for (const auto &star : bound.stars_in_random_order()) {
+        auto stars = bound.stars_in_random_order();
+        for (const auto &star : stars) {
             // Check if for some reason we have removed this star
             if (!bound.has_star(star))
                 continue;
