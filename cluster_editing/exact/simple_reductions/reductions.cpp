@@ -25,6 +25,12 @@ void print(vector<vector<int> > adj) {
   }
 }
 
+
+vector<vector<int> > computeCriticalClique(vector<vector<int> > &adj, int u, int v) {
+  return NULL; 
+}
+
+
 /*
   Merge
     MERGE two vertices together
@@ -36,16 +42,18 @@ void merge_vertices(vector<vector<int> > &adj, int u, int v) {
   // Combines the neighbors so they all onnect to u
   for (int idx = 0; idx < adj.size(); idx++) {
     if (adj[v][idx] != 0) {
+      adj[u][idx] += adj[v][idx];
+      adj[idx][u] += adj[v][idx];
 
-      // The else statement is the normal merge, this is trying to deal with seg faults
-      // from we think adding negative infinities together.
-      if (!(adj[v][idx] == -INF || adj[u][idx] == -INF || adj[idx][u] == -INF)) {
-        adj[u][idx] = -INF;
-        adj[idx][u] = -INF;
-      } else {
-        adj[u][idx] += adj[v][idx];
-        adj[idx][u] += adj[v][idx];
-      }
+      // // The else statement is the normal merge, this is trying to deal with seg faults
+      // // from we think adding negative infinity
+      // if (!(adj[v][idx] == -INF || adj[u][idx] == -INF || adj[idx][u] == -INF)) {
+      //   adj[u][idx] = -INF;
+      //   adj[idx][u] = -INF;
+      // } else {
+      //   adj[u][idx] += adj[v][idx];
+      //   adj[idx][u] += adj[v][idx];
+      // }
     }
   }
 
@@ -206,9 +214,9 @@ int main(int argc,  char **argv) {
   // std::cout << "Implementing data reduction rules: " << fin << std::endl;
   vector<vector<int> > adj = makeAdjacencyMatrix(fin);
 
-  print(adj);
+  // print(adj);
 
-  // Apply Rule 1 to every pair of vertices
+  // // Apply Rule 1 to every pair of vertices
   for (int u = 0; u < adj.size(); u++) {
     for (int v = 0; v < adj[u].size(); v++) {
       heavy_non_edge_rule(adj, u, v);
@@ -216,25 +224,25 @@ int main(int argc,  char **argv) {
   }
 
   // print(adj);
-  cout << endl << "Rule 2" << endl;
+  // cout << endl << "Rule 2" << endl;
 
   // Apply Rule 2 to every pair of vertices
   for (int u = 0; u < adj.size(); u++) {
     for (int v = 0; v < adj[u].size(); v++) {
       while(heavy_edge_single_end_rule(adj, u, v))
-        // continue;
-        print(adj);
+        continue;
+        // print(adj);
     }
   }
 
-  cout << endl << "Rule 3" << endl;
+  // cout << endl << "Rule 3" << endl;
 
   // Apply Rule 3 to every pair of vertices
   for (int u = 0; u < adj.size(); u++) {
     for (int v = 0; v < adj[u].size(); v++) {
       while(heavy_edge_both_end_rule(adj, u, v))
-        // continue;
-        print(adj);
+        continue;
+        // print(adj);
     }
   }
 

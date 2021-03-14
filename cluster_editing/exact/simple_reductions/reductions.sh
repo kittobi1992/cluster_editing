@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# Compile the cpp converter
-g++ -o reductions reductions.cpp
+g++ -o reductions reductions.cpp -D_GLIBCXX_DEBUG
 
-#for f in graphs/*.gr; do
+# for f in graphs/*.gr; do
 #  ./reductions $f
-#done
+# done
 
 ./reductions graphs/exact061.gr
