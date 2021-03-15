@@ -2,7 +2,8 @@
 #include <algorithm>
 #include <iostream>
 #include <set>
-#include <cassert>
+#include <fstream>
+#include <iomanip>
 
 #include <cluster_editing/exact/instance.h>
 #include <cluster_editing/exact/lower_bounds.h>
@@ -67,26 +68,45 @@ int real_inst_size(const Instance& inst) {
 
 int main(int argc, char *argv[]) {
 
+    bool write_log_csv = true;
+    ofstream log_file("reduction_results.csv");
+    if(write_log_csv) log_file << "can_solve,instance,n,size after reductions,upper-lower,time\n";
+
     int total_size = 0;
+    int total_left = 0;
+    double total_time = 0;
     for(int i=1; i<200; i+=2) {
         auto inst = load_exact_instance(i);
+        int old_n = size(inst.edges);
         cout << "+-"[not_solved.count(i)];
         cout << "instance\t" << i << "\tn=\t" << size(inst.edges);
+        auto t1 = chrono::steady_clock::now();
         auto upper = solve_heuristic(inst).cost;
         if(auto opt = thomas(inst); opt) inst = *opt;
         if(auto opt = distance4Reduction(inst); opt) inst = *opt;
         if(auto opt = simpleTwin(inst); opt) inst = *opt;
         while(reduce(inst,upper));
+        auto t2 = chrono::steady_clock::now();
 
-        if(inst.edges!=load_exact_instance(i).edges) {
-            auto left = upper - inst.spendCost - packing_local_search_bound(inst, INF);
-            cout << "\t\tn'=\t" << real_inst_size(inst) << "\tleft\t" << left << "\tspent\t" << inst.spendCost << endl;
-        } else
-            cout << endl;
-        total_size += real_inst_size(inst);
+        auto left = upper - inst.spendCost - packing_local_search_bound(inst, INF);
+        auto real_size = real_inst_size(inst);
+        auto time = chrono::duration_cast<chrono::duration<double>>(t2-t1).count();
+        total_left += left;
+        total_size += real_size;
+        total_time += time;
+        cout << "\t\tn'=\t" << real_size << "\tleft\t" << left << "\ttime\t" << time << endl;
+        if(write_log_csv) log_file
+                    << "+-"[not_solved.count(i)]
+                    << ',' << i
+                    << ',' << old_n
+                    << ',' << real_size
+                    << ',' << left
+                    << ',' << fixed << setprecision(4) << time << endl;
     }
 
-    cout << "Total remaining size: " << total_size << endl;
+    cout << "Total remaining size:   " << total_size << endl;
+    cout << "Total upper-lower diff: " << total_left << endl;
+    cout << "Total time:             " << total_time << endl;
 
     return 0;
 }

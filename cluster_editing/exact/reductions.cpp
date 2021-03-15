@@ -378,7 +378,7 @@ int max_over_subsetsDP(vector<tuple<int,int,int>>& B, long long delta_u, long lo
             // valid values should never be out of x_range
             assert(0<=i-x && i+x<size(last));
             if(f!=1) next[i+x] = max(next[i+x], last[i] - y); // OPTION 1: put in bucket 1
-            if(f!=2) next[i-x] = max(next[i+x], last[i] + y); // OPTION 2: put in bucket 2
+            if(f!=2) next[i-x] = max(next[i-x], last[i] + y); // OPTION 2: put in bucket 2
         }
 
         swap(next,last);
@@ -431,9 +431,6 @@ std::optional<Instance> complexTwin(const Instance &inst, bool calc_dp) {
             if(2*g[u][v]>upper_bound) {
                 perms.emplace_back(u,v);
                 continue;
-            } else if(2*g[u][v]==upper_bound && !usedEq) {
-                perms.emplace_back(u,v);
-                usedEq = true;
             }
 
             if(!calc_dp) continue;
@@ -446,6 +443,7 @@ std::optional<Instance> complexTwin(const Instance &inst, bool calc_dp) {
                 B.emplace_back(o[u][w], o[v][w], forbidden); // use original here!
             }
             auto val = max_over_subsetsDP(B, delta_u, delta_v);
+            assert(2*val <= upper_bound);
             if(g[u][v]>val)
                 perms.emplace_back(u,v);
             else if(g[u][v]==val && !usedEq) {
@@ -457,7 +455,7 @@ std::optional<Instance> complexTwin(const Instance &inst, bool calc_dp) {
 
     if(empty(perms)) return {};
     auto res = inst;
-    for(auto [u,v] : perms) res.edges[u][v] = INF;
+    for(auto [u,v] : perms) res.edges[u][v] = res.edges[v][u] = INF;
     mergeAllINF(res);
     return res;
 }
