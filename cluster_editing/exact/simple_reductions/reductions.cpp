@@ -26,8 +26,51 @@ void print(vector<vector<int> > adj) {
 }
 
 
-vector<vector<int> > computeCriticalClique(vector<vector<int> > &adj, int u, int v) {
-  return NULL; 
+bool computeCriticalClique(vector<vector<int> > adj, vector<vector<int> > &newAdj, int u, int v) {
+  // vector<int> u_neighbors = adj[u];
+  // vector<int> v_neighbors = adj[v];
+  // vector<int> emptyRow (adj[u].size(), 0);
+  // vector<vector<int> > newAdj (adj.size(), emptyRow);
+
+  if (u > v) return false;
+
+  // cout << u << " " << v << endl << endl;
+
+  // for (int i = 0; i < adj.size(); i++) {
+  //   for (int j = 0; j < adj[u].size(); j++) {
+  //     if (i == j)
+  //       adj[i][j] = 1;
+  //   }
+  // }
+
+  bool hasNeighbors = false;
+  for (int idx = 0; idx < adj[u].size(); idx++) {
+    if (adj[u][idx] == 1 || adj[v][idx] == 1)
+      hasNeighbors = true;
+
+    if (adj[u][idx] != adj[idx][v] && u != idx && v != idx) {
+      // cout << "(" << u << ", " << v << ")" << endl;
+      // cout << idx << ": " << adj[u][idx] << " " << adj[idx][v] << endl << endl;
+      return false;
+    }
+  }
+
+  if (!hasNeighbors) return false;
+
+  for (int i = 0; i < adj.size(); i++) {
+    for (int j = 0; j < adj[u].size(); j++) {
+      if (i == u || i == v || j == u || j == v) {
+        // cout << i << " " << j  << endl;
+        newAdj[i][j] = adj[i][j];
+      }
+    }
+  }
+  // cout << u << " " << v << endl;
+  // print(newAdj);
+  // cout << endl;
+
+  // cout << "(" << u <<  ", " << v << ")"<< endl;
+  return true;
 }
 
 
@@ -120,7 +163,7 @@ bool heavy_edge_single_end_rule(vector<vector<int> > &adj, int u, int v) {
 
   if (adj[u][v] >= sum) {
     // cout << "MERGE: (" << u << ", " << v << ")" << endl;
-    merge_vertices(adj, u, v);
+    // merge_vertices(adj, u, v);
     return true;
   }
 
@@ -156,7 +199,7 @@ bool heavy_edge_both_end_rule(vector<vector<int> > &adj, int u, int v) {
 
   if (adj[u][v] >= sum_u + sum_v) {
     // cout << "MERGE: (" << u << ", " << v << ")" << endl;
-    merge_vertices(adj, u, v);
+    // merge_vertices(adj, u, v);
     return true;
   }
 
@@ -207,26 +250,15 @@ vector<vector<int> > makeAdjacencyMatrix(string fin) {
   return adj;
 }
 
-
-int main(int argc,  char **argv) {
-  string fin = argv[1];
-
-  // std::cout << "Implementing data reduction rules: " << fin << std::endl;
-  vector<vector<int> > adj = makeAdjacencyMatrix(fin);
-
-  // print(adj);
-
-  // // Apply Rule 1 to every pair of vertices
+void apply1(vector<vector<int> > &adj) {
   for (int u = 0; u < adj.size(); u++) {
     for (int v = 0; v < adj[u].size(); v++) {
       heavy_non_edge_rule(adj, u, v);
     }
   }
+}
 
-  // print(adj);
-  // cout << endl << "Rule 2" << endl;
-
-  // Apply Rule 2 to every pair of vertices
+void apply2(vector<vector<int> > &adj) {
   for (int u = 0; u < adj.size(); u++) {
     for (int v = 0; v < adj[u].size(); v++) {
       while(heavy_edge_single_end_rule(adj, u, v))
@@ -234,10 +266,9 @@ int main(int argc,  char **argv) {
         // print(adj);
     }
   }
+}
 
-  // cout << endl << "Rule 3" << endl;
-
-  // Apply Rule 3 to every pair of vertices
+void apply3(vector<vector<int> > &adj) {
   for (int u = 0; u < adj.size(); u++) {
     for (int v = 0; v < adj[u].size(); v++) {
       while(heavy_edge_both_end_rule(adj, u, v))
@@ -245,8 +276,72 @@ int main(int argc,  char **argv) {
         // print(adj);
     }
   }
+}
 
-  cout << fin << ", " << n << ", " << adj.size() << endl;
+int main(int argc,  char **argv) {
+  string fin = argv[1];
+
+
+  // std::cout << "Implementing data reduction rules: " << fin << std::endl;
+  vector<vector<int> > adj = makeAdjacencyMatrix(fin);
+  int total = adj.size();
+
+  // print(adj);
+
+  vector<vector<int> > clique;
+  for (int u = 0; u < adj.size(); u++) {
+    for (int v = 0; v < adj.size(); v++) {
+      if (u != v) {
+        vector<int> emptyRow (adj[u].size(), 0);
+        vector<vector<int> > clique (adj.size(), emptyRow);
+        if (computeCriticalClique(adj, clique, u, v)) {
+          // print(clique);
+          // cout << endl;
+          // apply1(clique);
+          apply2(clique);
+          apply3(clique);
+          // print(clique);
+          total -= (total - clique.size());
+          // if (clique.size() != n)
+          //   cout << fin << ", " << n << ", " << clique.size() << endl;
+        }
+      }
+    }
+  }
+
+  // print(adj);
+
+  // // Apply Rule 1 to every pair of vertices
+  // for (int u = 0; u < adj.size(); u++) {
+  //   for (int v = 0; v < adj[u].size(); v++) {
+  //     heavy_non_edge_rule(adj, u, v);
+  //   }
+  // }
+
+  // print(adj);
+  // cout << endl << "Rule 2" << endl;
+
+  // Apply Rule 2 to every pair of vertices
+  // for (int u = 0; u < adj.size(); u++) {
+  //   for (int v = 0; v < adj[u].size(); v++) {
+  //     while(heavy_edge_single_end_rule(adj, u, v))
+  //       continue;
+  //       // print(adj);
+  //   }
+  // }
+
+  // cout << endl << "Rule 3" << endl;
+
+  // Apply Rule 3 to every pair of vertices
+  // for (int u = 0; u < adj.size(); u++) {
+  //   for (int v = 0; v < adj[u].size(); v++) {
+  //     while(heavy_edge_both_end_rule(adj, u, v))
+  //       continue;
+  //       // print(adj);
+  //   }
+  // }
+
+  cout << fin << ", " << n << ", " << total << endl;
 
   return 0;
 }
