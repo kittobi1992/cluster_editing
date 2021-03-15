@@ -26,6 +26,9 @@ public:
     int redTwin = 0;
     int redTwin2 = 0;
     int redICX = 0;
+    int redThomas2 = 0;
+    int redHeavyEdge = 0;
+    int redHeavyNonEdge = 0;
     int numPrunes = 0; // unsolvable leaf
 
     std::chrono::steady_clock::time_point time_limit = std::chrono::steady_clock::time_point::max();

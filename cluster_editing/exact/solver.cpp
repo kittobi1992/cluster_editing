@@ -100,6 +100,9 @@ Solution ExactSolver::solve_internal(Instance graph, int budget) {
         if(auto opt = simpleTwin(graph); opt) graph = *opt, repeat=true, redTwin++;
         if(auto opt = complexTwin(graph,true); opt) graph = *opt, repeat=true, redTwin2++;
         if(auto opt = icxReductions(graph, budget); opt) graph = *opt, repeat=true, redICX++;
+        if(auto opt = thomas_pairs(graph); opt) graph = *opt, repeat = true, redThomas2++;
+        if(auto opt = heavy_edge_single_end(graph); opt) graph = *opt, repeat = true, redHeavyEdge++;
+        if(auto opt = heavy_non_edge_single_end(graph); opt) graph = *opt, repeat = true, redHeavyNonEdge++;
         // more reductions
         num_reduces++;
     }
@@ -245,6 +248,9 @@ ostream &operator<<(ostream &os, const ExactSolver &rhs) {
     os << "\ttwin simple:   " << rhs.redTwin << endl;
     os << "\ttwin complex:  " << rhs.redTwin2 << endl;
     os << "\ticx:           " << rhs.redICX << endl;
+    os << "\th edge (b):    " << rhs.redThomas2 << endl;
+    os << "\th edge (s):    " << rhs.redHeavyEdge << endl;
+    os << "\th non edge:    " << rhs.redHeavyNonEdge << endl;
     os << "disconnects:     " << rhs.numDisconnects << endl;
     os << "prunes:          " << rhs.numPrunes << endl;
     //os << "iters/reduction: " << rhs.sumReductions * 1.0 / rhs.numReducingNodes << endl;
