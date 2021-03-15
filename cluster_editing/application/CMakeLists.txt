@@ -35,4 +35,9 @@ target_link_libraries(test_reductions ${Boost_LIBRARIES})
 set_property(TARGET test_reductions PROPERTY CXX_STANDARD 17)
 set_property(TARGET test_reductions PROPERTY CXX_STANDARD_REQUIRED ON)
 
-set(TARGETS_WANTING_ALL_SOURCES ${TARGETS_WANTING_ALL_SOURCES} ClusterEditing DrawGraph exact time_all compute_lower_bounds test_reductions PARENT_SCOPE)
+add_executable(test_exact_matches_previous_results test_exact_matches_previous_results.cc)
+target_link_libraries(test_exact_matches_previous_results ${Boost_LIBRARIES})
+set_property(TARGET test_exact_matches_previous_results PROPERTY CXX_STANDARD 17)
+set_property(TARGET test_exact_matches_previous_results PROPERTY CXX_STANDARD_REQUIRED ON)
+
+set(TARGETS_WANTING_ALL_SOURCES ${TARGETS_WANTING_ALL_SOURCES} ClusterEditing DrawGraph exact time_all compute_lower_bounds test_reductions test_exact_matches_previous_results PARENT_SCOPE)
