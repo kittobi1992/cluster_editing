@@ -97,6 +97,7 @@ public:
     explicit Potential(Edges edges) : n(edges.size()), potential(std::move(edges)), potential_is_zero(potential.size(), vector<bool>(potential.size(), false)), free_edges_g(potential.size()) {
         for (int u = 0; u < n; ++u) {
             for (int v = 0; v < n; ++v) {
+                assert(-INF <= potential[u][v] && potential[u][v] <= INF);
                 if (u == v)
                     continue;
                 if (potential[u][v] > 0) {
@@ -211,21 +212,24 @@ public:
             }
         }
 
-        assert(weight > 0);
+        assert(0 < weight && weight < INF);
         return weight;
     }
 
     int apply_star_to_potential(Star star, int weight) {
 #ifndef NDEBUG
-        assert(weight > 0);
+        assert(0 < weight && weight < INF);
+        assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < n; }));
         assert(star.nodes.size() > 2);
-        for (int i = 1; i < star.nodes.size(); ++i) {
+        for (size_t i = 1; i < star.nodes.size(); ++i) {
             int u = star.nodes[i];
-            assert(has_positive_potential(u, star.center()));
-            for (int j = i+1; j < star.nodes.size(); ++j) {
+            assert(potential[u][star.center()] > 0);
+            for (size_t j = i + 1; j < star.nodes.size(); ++j) {
                 int v = star.nodes[j];
-                assert(has_negative_potential(u, v));
+                assert(u != v);
+                assert(potential[u][v] < 0);
             }
+            assert(u != star.center());
         }
 #endif
 
@@ -264,7 +268,7 @@ public:
     }
 
     int unapply_star_to_potential(Star star, int weight) {
-        assert(weight > 0);
+        assert(0 < weight && weight < INF);
         bound -= ((int)star.nodes.size() - 2) * weight;
         for (auto u : star.nodes) {
             for (auto v : star.nodes) {
@@ -395,6 +399,7 @@ public:
     [[nodiscard]] int add_star(Star star, int weight = -1) {
         // `insert` might invalidates iterators to `stars[...]` and `stars_for_edge[...]`
         // `erase` might invalidate iterators to `free_edges_g[...]`
+        // `stars_in_bound[star]` might invalidate iterators to `stars_in_bound`
 #ifndef NDEBUG
         assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < n; }));
         assert(star.nodes.size() > 2);
@@ -403,14 +408,16 @@ public:
             assert(potential[u][star.center()] > 0);
             for (size_t j = i + 1; j < star.nodes.size(); ++j) {
                 int v = star.nodes[j];
+                assert(u != v);
                 assert(potential[u][v] < 0);
             }
+            assert(u != star.center());
         }
 #endif
 
         if (weight == -1)
             weight = potential.calculate_costs(star);
-        assert(weight > 0);
+        assert(0 < weight && weight < INF);
 
         potential.apply_star_to_potential(star, weight);
         stars_in_bound[star] += weight;
@@ -434,8 +441,17 @@ public:
     void remove_star(Star star, int weight) {
         // `erase` might invalidates iterators to `stars[...]` and `stars_for_edge[...]`
         // `insert` might invalidate iterators to `free_edges_g[...]`
-
-        assert(weight > 0);
+#ifndef NDEBUG
+        assert(0 < weight && weight < INF);
+        for (size_t i = 1; i < star.nodes.size(); ++i) {
+            int u = star.nodes[i];
+            for (size_t j = i + 1; j < star.nodes.size(); ++j) {
+                int v = star.nodes[j];
+                assert(u != v);
+            }
+            assert(u != star.center());
+        }
+#endif
 
         potential.unapply_star_to_potential(star, weight);
         stars_in_bound[star] -= weight;
@@ -558,6 +574,7 @@ public:
             assert(potential[a][c] > 0);
             assert(potential[b][c] < 0);
             star_extensions.emplace_back(P3, std::vector{a, b, c}, count);
+            assert(potential.calculate_costs(Star(star_extensions.back().nodes)) > 0);
         }
         return star_extensions;
     };
@@ -608,6 +625,7 @@ public:
                 assert(candidate_star.nodes.size() > 3);
                 candidate_star.nodes.erase(std::remove(candidate_star.nodes.begin(), candidate_star.nodes.end(), v),
                                            candidate_star.nodes.end());
+                assert(potential.calculate_costs(candidate_star) > 0);
                 add_star(candidate_star, 1);
             }
 
@@ -685,6 +703,7 @@ public:
                         candidate_star.nodes.push_back(v);
                         candidate_star.make_canonical();
                     }
+                    assert(potential.calculate_costs(candidate_star) > 0);
                     add_star(candidate_star, 1);
                 }
             }
@@ -802,8 +821,10 @@ int star_bound(const Instance &inst, int limit) {
             vector new_nodes = {u};
             std::copy(star_leaves.begin(), star_leaves.end(), std::back_inserter(new_nodes));
             bound.add_star(Star(new_nodes));
-            if (bound.potential.get_bound() > limit)
+            if (bound.potential.get_bound() > limit) {
+                assert(bound.is_consistent());
                 return bound.potential.get_bound();
+            }
         }
     }
     int old_bound = 0;
