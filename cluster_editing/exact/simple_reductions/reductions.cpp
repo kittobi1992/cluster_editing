@@ -103,7 +103,8 @@ void merge_vertices(vector<vector<int> > &adj, int u, int v) {
   // Remove v from both
   adj.erase(adj.begin()+v);
   for (int idx = 0; idx < adj.size(); idx++)
-    adj[idx].erase(adj[idx].begin()+v);
+    if (v < adj[idx].size())
+      adj[idx].erase(adj[idx].begin()+v);
 }
 
 /*
@@ -148,7 +149,7 @@ bool heavy_non_edge_rule(vector<vector<int> > &adj, int u, int v) {
   @return:  none
 */
 bool heavy_edge_single_end_rule(vector<vector<int> > &adj, int u, int v) {
-  if (adj.size() < u || adj.size() < v) return false;
+  if (adj.size() <= u || adj.size() <= v) return false;
   if (u == -INF || v == -INF) return false;
   if (u == v) return false;
 
@@ -161,9 +162,13 @@ bool heavy_edge_single_end_rule(vector<vector<int> > &adj, int u, int v) {
     sum += abs(adj[u][w]);
   }
 
+  // cout << "aa" << endl;
+
   if (adj[u][v] >= sum) {
+    // cout << "bb: (" << u << ", " << v << ")" << endl;
     // cout << "MERGE: (" << u << ", " << v << ")" << endl;
-    // merge_vertices(adj, u, v);
+    merge_vertices(adj, u, v);
+    // cout << "cc" << endl;
     return true;
   }
 
@@ -184,7 +189,7 @@ bool heavy_edge_single_end_rule(vector<vector<int> > &adj, int u, int v) {
   @return:  none
 */
 bool heavy_edge_both_end_rule(vector<vector<int> > &adj, int u, int v) {
-  if (adj.size() < u || adj.size() < v) return false;
+  if (adj.size() <= u || adj.size() <= v) return false;
   if (u == -INF || v == -INF) return false;
   if (u == v) return false;
 
@@ -199,7 +204,7 @@ bool heavy_edge_both_end_rule(vector<vector<int> > &adj, int u, int v) {
 
   if (adj[u][v] >= sum_u + sum_v) {
     // cout << "MERGE: (" << u << ", " << v << ")" << endl;
-    // merge_vertices(adj, u, v);
+    merge_vertices(adj, u, v);
     return true;
   }
 
@@ -297,7 +302,7 @@ int main(int argc,  char **argv) {
         if (computeCriticalClique(adj, clique, u, v)) {
           // print(clique);
           // cout << endl;
-          // apply1(clique);
+          apply1(clique);
           apply2(clique);
           apply3(clique);
           // print(clique);

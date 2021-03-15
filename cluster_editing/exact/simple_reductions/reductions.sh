@@ -6,4 +6,4 @@ for f in graphs/*.gr; do
  ./reductions $f
 done
 
-# ./reductions graphs/exact001.gr
+# ./reductions graphs/exact041.gr
