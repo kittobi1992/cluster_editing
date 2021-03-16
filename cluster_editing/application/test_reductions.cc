@@ -44,6 +44,9 @@ bool reduce(Instance& inst, int upper) {
     if(auto opt = complexTwin(inst,true); opt) inst = *opt, changed = true;
     if(auto opt = forcedChoices(inst, upper, false); opt) inst = *opt, changed = true;
     if(auto opt = icxReductions(inst, upper); opt) inst = *opt, changed = true;
+    if(auto opt = thomas_pairs(inst); opt) inst = *opt, changed = true;
+    if(auto opt = heavy_edge_single_end(inst); opt) inst = *opt, changed = true;
+    if(auto opt = heavy_non_edge_single_end(inst); opt) inst = *opt, changed = true;
     return changed;
 }
 
@@ -70,7 +73,7 @@ int main(int argc, char *argv[]) {
 
     bool write_log_csv = true;
     ofstream log_file("reduction_results.csv");
-    if(write_log_csv) log_file << "can_solve,instance,n,size after reductions,upper-lower,time\n";
+    if(write_log_csv) log_file << "can_solve,instance,n,size after reductions,upper-lower\n";
 
     int total_size = 0;
     int total_left = 0;
@@ -101,12 +104,18 @@ int main(int argc, char *argv[]) {
                     << ',' << old_n
                     << ',' << real_size
                     << ',' << left
-                    << ',' << fixed << setprecision(4) << time << endl;
+                    << endl;
     }
 
     cout << "Total remaining size:   " << total_size << endl;
     cout << "Total upper-lower diff: " << total_left << endl;
     cout << "Total time:             " << total_time << endl;
+
+    /*
+    Total remaining size:   7176
+    Total upper-lower diff: 18199
+    Total time:             319.864
+     */
 
     return 0;
 }
