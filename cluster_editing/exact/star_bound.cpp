@@ -583,7 +583,7 @@ public:
         //assert(potential.is_consistent(original_edges, stars_in_bound));
         // First attempt: merge with another star
         // Must be a copy because remove_star(star2) might invalidate iterators to stars[star.center()]
-        /*
+
         auto star2s = stars[star.center()];
         for (const auto &star2 : star2s) {
             if (star == star2) {
@@ -593,7 +593,7 @@ public:
             for (auto u : star.leaves()) {
                 for (auto v : star2.leaves()) {
                     // if bound.pair_used(u, v) or v in bound.g[u]:
-                    if (pair_used(u, v) || (potential[u][v] >= 0)) { // NOTE: > 0?
+                    if (u == v || !(potential[u][v] < 0)) { // NOTE: > 0?
                         all_unused_non_edges = false;
                         break;
                     }
@@ -612,7 +612,7 @@ public:
                 return;
             }
         }
-         */
+
 
         Star candidate_star = star;
         std::vector<int> nodes(candidate_star.leaves().begin(), candidate_star.leaves().end());
