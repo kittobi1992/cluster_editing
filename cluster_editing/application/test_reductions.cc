@@ -49,6 +49,7 @@ bool reduce(Instance& inst, int upper) {
     if(auto opt = thomas_pairs(inst); opt) inst = *opt, changed = true;
     if(auto opt = heavy_edge_single_end(inst); opt) inst = *opt, changed = true;
     if(auto opt = heavy_non_edge_single_end(inst); opt) inst = *opt, changed = true;
+    if(auto opt = forcedChoicesSingleMerge(inst, upper, false); opt) inst = *opt, changed = true;
     return changed;
 }
 

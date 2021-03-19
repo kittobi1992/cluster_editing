@@ -9,6 +9,7 @@
 #include <cluster_editing/exact/reductions.h>
 #include <cluster_editing/exact/lower_bounds.h>
 #include <cluster_editing/exact/thomas.h>
+#include <cluster_editing/exact/star_bound.h>
 
 #include "cluster_editing/multilevel.h"
 #include "cluster_editing/io/graph_io.h"
@@ -96,6 +97,7 @@ Solution ExactSolver::solve_internal(Instance graph, int budget) {
         }
 
         repeat = false;
+        if(auto opt = forcedChoicesStarBound(graph, budget, false); opt) graph = *opt, repeat=true, redForcedStar++;
         if(auto opt = forcedChoices(graph, budget); opt) graph = *opt, repeat=true, redForced++;
         if(auto opt = simpleTwin(graph); opt) graph = *opt, repeat=true, redTwin++;
         if(auto opt = complexTwin(graph,true); opt) graph = *opt, repeat=true, redTwin2++;
@@ -244,7 +246,8 @@ Solution solve_heuristic(const Instance &inst) {
 ostream &operator<<(ostream &os, const ExactSolver &rhs) {
     os << "branching nodes: " << rhs.branchingNodes << endl;
     os << "reductions:      " << rhs.numReducingNodes << endl;
-    os << "\tforced:        " << rhs.redForced << endl;
+    os << "\tforced (star): " << rhs.redForcedStar << endl;
+    os << "\tforced (p3):   " << rhs.redForced << endl;
     os << "\ttwin simple:   " << rhs.redTwin << endl;
     os << "\ttwin complex:  " << rhs.redTwin2 << endl;
     os << "\ticx:           " << rhs.redICX << endl;

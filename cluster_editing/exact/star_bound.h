@@ -5,3 +5,5 @@
 int star_bound(const Instance& inst, int limit);
 
 std::optional<Instance> forcedChoicesStarBound(const Instance& inst, int upper_bound, bool verbose);
+
+std::optional<Instance> forcedChoicesSingleMerge(const Instance& inst, int upper_bound, bool verbose);

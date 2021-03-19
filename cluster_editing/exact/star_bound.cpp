@@ -939,3 +939,70 @@ std::optional<Instance> forcedChoicesStarBound(const Instance& inst, int upper_b
 
     return res;
 }
+
+std::optional<Instance> forcedChoicesSingleMerge(const Instance& inst, int upper_bound, bool verbose) {
+
+    int n = size(inst.edges);
+
+    // pay stuff is good
+    auto similarity = inst.edges;
+    for(int u=0; u<n; ++u)
+        for(int v=0; v<n; ++v)
+            similarity[u][v] = max(0, similarity[u][v]);
+
+    // create new triples is good
+    for(int u=0; u<n; ++u)
+        for(int v=u+1; v<n; ++v)
+            for(int w=0; w<n; ++w)
+                if(inst.edges[u][w]>0 && inst.edges[v][w]>0)
+                    similarity[u][v] += min(inst.edges[u][w], inst.edges[v][w]);
+
+    // destroy old triples is bad
+    for(int u=0; u<n; ++u)
+        for(int v=u+1; v<n; ++v)
+            for(int w=0; w<n; ++w)
+                if(inst.edges[u][w]>0 != inst.edges[v][w]>0) {
+                    auto t = Triple(u,v,w,inst.edges);
+                    if(t.valid) similarity[u][v] -= t.cost;
+                }
+
+    vector<array<int,3>> best5;
+    for(int u=0; u<n; ++u)
+        for(int v=u+1; v<n; ++v) {
+            best5.push_back({similarity[u][v],u,v});
+            sort(begin(best5), end(best5), greater<>());
+            if(size(best5)>10) best5.pop_back();
+        }
+
+    auto previous_lower = star_bound_packing(inst, INF);
+    if(verbose) cout << endl << upper_bound -  inst.spendCost - previous_lower.potential.get_bound() << endl;
+
+    auto potential = previous_lower.potential.get_potential();
+    for(auto [sim, u,v] : best5) {
+        auto subinst = inst;
+        subinst.edges[u][v] = subinst.edges[v][u] = -INF;
+        subinst.spendCost += max(0,inst.edges[u][v]);
+        auto lower = star_bound(subinst, upper_bound);
+
+
+        auto new_bound = previous_lower.potential.get_bound();
+        auto old_edge = inst.edges[u][v];
+        if (old_edge >= 0) new_bound -= abs(old_edge - potential[u][v]);
+        auto uv_cost = potential[u][v];
+        if(uv_cost>0) new_bound += uv_cost;
+        potential[u][v] = potential[v][u] = -INF;
+        for(int x=0; x<n; ++x) {
+            auto t = Triple(u, v, x, potential);
+            if (t.valid) new_bound += t.cost;
+        }
+        potential[u][v] = potential[v][u] = uv_cost;
+
+        if(verbose) cout << "brute-force gap: " << upper_bound - subinst.spendCost - lower;
+        if(verbose) cout << "\tgreedy_gap: " << upper_bound - new_bound-inst.spendCost << endl;
+
+        if(subinst.spendCost + lower > upper_bound)
+            return merge(inst, u, v);
+    }
+
+    return {};
+}
