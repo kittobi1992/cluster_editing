@@ -9,6 +9,8 @@ set(ExactSources
       solver.cpp
     lower_bounds.h
     lower_bounds.cpp
+        kab_bounds.h
+        kab_bounds.cpp
 )
 
 
