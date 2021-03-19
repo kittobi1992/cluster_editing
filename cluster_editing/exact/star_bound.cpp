@@ -1,6 +1,9 @@
 
 #include <cluster_editing/exact/star_bound.h>
 
+#include <cluster_editing/exact/reductions.h>
+#include <cluster_editing/exact/lower_bounds.h>
+
 #include <cassert>
 #include <utility>
 #include <vector>
@@ -11,6 +14,7 @@
 #include <set>
 #include <unordered_set>
 #include <iostream>
+#include <optional>
 
 using namespace std;
 
@@ -70,6 +74,12 @@ struct Star {
 
     bool operator==(const Star &rhs) const {
         return nodes == rhs.nodes;
+    }
+
+    bool includes_edge(int u, int v) {
+        auto has_u = nodes[0]==u || binary_search(begin(nodes)+1, end(nodes), u);
+        auto has_v = nodes[0]==v || binary_search(begin(nodes)+1, end(nodes), v);
+        return has_u && has_v;
     }
 };
 
@@ -299,6 +309,10 @@ public:
 
     [[nodiscard]] int get_bound() const {
         return bound;
+    }
+
+    const Edges& get_potential() const {
+        return potential;
     }
 };
 
@@ -716,6 +730,10 @@ public:
     bool is_consistent() {
         return potential.is_consistent(original_edges, stars_in_bound);
     }
+
+    const auto& get_stars_in_bound() const {
+        return stars_in_bound;
+    }
 };
 
 vector<int> degeneracyOrdering(const map<int, vector<int>> &g) {
@@ -784,7 +802,7 @@ vector<vector<int>> coloring(const map<int, vector<int>> &g) {
     return ans;
 }
 
-int star_bound(const Instance &inst, int limit) {
+auto star_bound_packing(const Instance &inst, int limit) {
     auto bound = StarBound(inst.edges);
 
     int n = size(inst.edges);
@@ -823,7 +841,7 @@ int star_bound(const Instance &inst, int limit) {
             bound.add_star(Star(new_nodes));
             if (bound.potential.get_bound() > limit) {
                 assert(bound.is_consistent());
-                return bound.potential.get_bound();
+                return bound;
             }
         }
     }
@@ -846,77 +864,78 @@ int star_bound(const Instance &inst, int limit) {
             bound.try_improve(star);
             if (bound.potential.get_bound() > limit) {
                 assert(bound.is_consistent());
-                return bound.potential.get_bound();
+                return bound;
             }
         }
 
         assert(bound.is_consistent());
     }
-    return bound.potential.get_bound();
-    /*
-    auto potential = inst.edges;
-    auto n = size(potential);
+    return bound;
+}
 
-    // Calculate degrees
-    auto node_sizes = vector<pair<int, int>>();
-    for (int i = 0; i < n; ++i) {
-        int neighbors = 0;
-        for (int j = 0; j < n; ++j) {
-            if (i==j) continue;
-            neighbors += potential[i][j] > 0;
-        }
-        node_sizes.push_back({neighbors, i});
-    }
+int star_bound(const Instance &inst, int limit) {
+    return star_bound_packing(inst, limit).potential.get_bound();
+}
 
-    sort(node_sizes.begin(), node_sizes.end(), greater<>());
-    
-    int bound = 0;
-    for (auto [_, u] : node_sizes) {
-        // Calc neighbor candidates
-        auto candidates = vector<int>();
-        for (int v = 0; v < n; ++v)
-            if (v != u && potential[u][v] > 0)
-                candidates.push_back(v);
-        // Build neighborhood graph
-        auto neighborgraph = map<int, vector<int>>();
-        for (auto cand1 : candidates) {
-            for (auto cand2 : candidates)
-                if (cand1 != cand2 && potential[cand1][cand2] >= 0) // why >= 0?
-                    neighborgraph[cand1].push_back(cand2);
-        }
-        // Build stars based on neighborhood coloring
-        auto stars = coloring(neighborgraph);
-        for (auto & star : stars) {
-            if (size(star) < 2)
-                continue;
+std::optional<Instance> forcedChoicesStarBound(const Instance& inst, int upper_bound, bool verbose) {
+    auto bound = star_bound_packing(inst, upper_bound);
+    Edges potential = bound.potential.get_potential();
 
-            auto minEdge = INF;
-            for (auto v1 : star) {
-                minEdge = min(minEdge, potential[u][v1]);
+    int n=size(inst.edges);
 
-                for (auto v2 : star)
-                    if (v1 != v2)
-                        minEdge = min(minEdge, -potential[v1][v2]);
+    vector<tuple<int,int,int>> forced;
+    for(int u=0; u<n; ++u) {
+        for(int v=u+1; v<n; ++v) {
+            if(inst.edges[u][v]==-INF) continue;
+
+            auto old_edge = inst.edges[u][v];
+            // we think that not removing the stars overlapping with the modified edge
+            // never gives us triples that we are not allowed to take
+
+            // see what happens if i set uv to permanent or forbidden
+            for(auto choice : {INF, -INF}) {
+
+                // remove stuff that uses this edge (we omit this and only check weights)
+                auto new_bound = bound.potential.get_bound();
+
+                if (!((old_edge > 0 && choice == INF) || (old_edge < 0 && choice == -INF))) {
+                    new_bound -= abs(old_edge - potential[u][v]);
+                }
+
+                auto uv_cost = potential[u][v];
+                if(choice==INF && uv_cost<0) new_bound += uv_cost;
+                if(choice==-INF && uv_cost>0) new_bound += uv_cost;
+                potential[u][v] = potential[v][u] = choice;
+                for(int x=0; x<n; ++x) {
+                    auto t = Triple(u, v, x, potential);
+                    if (t.valid) new_bound += t.cost;
+                }
+                potential[u][v] = potential[v][u] = uv_cost;
+
+                // reapply triple structures (we omit this)
+
+                if(new_bound+inst.spendCost > upper_bound)
+                    forced.emplace_back(u,v,-choice);
             }
-
-            bound += (size(star) - 1) * minEdge;
-            if (bound > limit)
-                return bound;
-
-            for (auto v1 : star) {
-                potential[u][v1] -= minEdge;
-                potential[v1][u] -= minEdge;
-
-                for (auto v2 : star)
-                    if (v1 != v2) {
-                        potential[v1][v2] += minEdge;
-                    }
-            }
-
         }
     }
 
-    // TODO Local search
+    int perms = 0;
+    for(auto [u,v,c] : forced) perms += (c==INF);
+    if(verbose) cout << "Forced: " << size(forced) << "\tPerm: " << perms << "\tForb: " << size(forced)-perms << endl;
+    if(empty(forced)) return {};
 
-    return bound;*/
+    // apply all forced choices
+    auto res = inst;
+    for(auto [u,v,c] : forced) {
+        if(c==INF && res.edges[u][v]<0) res.spendCost -= res.edges[u][v];
+        if(c==-INF&& res.edges[u][v]>0) res.spendCost += res.edges[u][v];
+        res.edges[u][v] = res.edges[v][u] = c;
+        if(res.spendCost>upper_bound)
+            return Instance{}; // not solvable
+    }
+
+    mergeAllINF(res);
+
+    return res;
 }
