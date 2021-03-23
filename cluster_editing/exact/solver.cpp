@@ -9,6 +9,7 @@
 #include <cluster_editing/exact/reductions.h>
 #include <cluster_editing/exact/lower_bounds.h>
 #include <cluster_editing/exact/thomas.h>
+#include <cluster_editing/flat.h>
 
 #include "cluster_editing/multilevel.h"
 #include "cluster_editing/io/graph_io.h"
@@ -210,31 +211,52 @@ Solution solve_heuristic(const Instance &inst) {
             adj[j].push_back(i);
         }
     }
+    cluster_editing::Graph graph = cluster_editing::ds::GraphFactory::construct(adj);
+
+    // TODO bring over evo
 
     cluster_editing::Context context;
     context.coarsening.algorithm = cluster_editing::CoarseningAlgorithm::lp_coarsener;
-    context.refinement.lp.maximum_lp_iterations = 5;
-    cluster_editing::Graph graph = cluster_editing::ds::GraphFactory::construct(adj);
+    context.refinement.lp.maximum_lp_iterations = 10000;
+    context.refinement.lp.activate_all_cliques_after_rounds = 1;
+    context.refinement.lp.random_shuffle_each_round = true;
+    context.refinement.lp.node_order = cluster_editing::NodeOrdering::random_shuffle;
     context.general.verbose_output = false;
+    context.refinement.use_lp_refiner = true;
+    context.refinement.use_fm_refiner = true;     // doesn't occur in multilevel
+    context.refinement.maximum_fm_iterations = 100;
 
-    cluster_editing::multilevel::solve(graph, context);
+    size_t num_reps = 10000;
+    size_t best_num_edits = graph.numEdges();
+    vector<int> clique_assignment(n);
+    auto update = [&] {
+      size_t num_edits = cluster_editing::metrics::edits(graph);
+      if (num_edits < best_num_edits) {
+        best_num_edits = num_edits;
+        for (auto u : graph.nodes()) {
+          clique_assignment[u] = graph.clique(u);
+        }
+      }
+      graph.reset();
+    };
+
+    for (size_t i = 0; i < num_reps; ++i) {
+      cluster_editing::flat::solve(graph, context);
+      update();
+    }
+    for (size_t i = 0; i < num_reps; ++i) {
+      cluster_editing::multilevel::solve(graph, context);
+      update();
+    }
 
     // build the solution
     Solution solution;
-    const size_t edge_insertions = cluster_editing::metrics::edge_insertions(graph);
-    const size_t edge_deletions = cluster_editing::metrics::edge_deletions(graph);
-    solution.cost = inst.spendCost + edge_deletions + edge_insertions;
+    solution.cost = inst.spendCost + best_num_edits;
 
-    vector<int> clique(n);
-    int maxclq = 0;
-    for (auto node: graph.nodes()) {
-        clique[node] = graph.clique(node);
-        if (clique[node] > maxclq)
-            maxclq = clique[node];
-    }
+    int maxclq = *std::max_element(clique_assignment.begin(), clique_assignment.end());
     vector<vector<int>> clusters(maxclq + 1);
     for (int i = 0; i < n; ++i)
-        clusters[clique[i]].push_back(i);
+        clusters[clique_assignment[i]].push_back(i);
     solution.cliques = clusters;
 
     return solution;
