@@ -214,40 +214,42 @@ Solution solve_heuristic(const Instance &inst) {
     cluster_editing::Graph graph = cluster_editing::ds::GraphFactory::construct(adj);
 
     // TODO bring over evo
+    // TODO stop if lower bound reached
 
     cluster_editing::Context context;
     context.coarsening.algorithm = cluster_editing::CoarseningAlgorithm::lp_coarsener;
-    context.refinement.lp.maximum_lp_iterations = 10000;
-    context.refinement.lp.activate_all_cliques_after_rounds = 1;
+    context.refinement.lp.maximum_lp_iterations = 500;
+    context.refinement.lp.activate_all_cliques_after_rounds = 10;
     context.refinement.lp.random_shuffle_each_round = true;
     context.refinement.lp.node_order = cluster_editing::NodeOrdering::random_shuffle;
     context.general.verbose_output = false;
     context.refinement.use_lp_refiner = true;
-    context.refinement.use_fm_refiner = true;     // doesn't occur in multilevel
-    context.refinement.maximum_fm_iterations = 100;
 
-    size_t num_reps = 10000;
+    size_t num_reps = 200;
     size_t best_num_edits = graph.numEdges();
     vector<int> clique_assignment(n);
     auto update = [&] {
-      size_t num_edits = cluster_editing::metrics::edits(graph);
-      if (num_edits < best_num_edits) {
-        best_num_edits = num_edits;
-        for (auto u : graph.nodes()) {
-          clique_assignment[u] = graph.clique(u);
+        size_t num_edits = cluster_editing::metrics::edits(graph);
+        if (num_edits < best_num_edits) {
+            best_num_edits = num_edits;
+            for (auto u : graph.nodes()) {
+                clique_assignment[u] = graph.clique(u);
+            }
         }
-      }
-      graph.reset();
+        graph.reset();
     };
 
+    auto t_begin = std::chrono::steady_clock::now();
     for (size_t i = 0; i < num_reps; ++i) {
-      cluster_editing::flat::solve(graph, context);
-      update();
+        cluster_editing::flat::solve(graph, context);
+        update();
     }
+    auto t_flat = std::chrono::steady_clock::now();
     for (size_t i = 0; i < num_reps; ++i) {
-      cluster_editing::multilevel::solve(graph, context);
-      update();
+        cluster_editing::multilevel::solve(graph, context);
+        update();
     }
+    auto t_end = std::chrono::steady_clock::now();
 
     // build the solution
     Solution solution;
@@ -258,7 +260,6 @@ Solution solve_heuristic(const Instance &inst) {
     for (int i = 0; i < n; ++i)
         clusters[clique_assignment[i]].push_back(i);
     solution.cliques = clusters;
-
     return solution;
 }
 
