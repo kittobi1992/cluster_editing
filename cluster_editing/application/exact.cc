@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
     ExactSolver solver;
     solver.verbose = true;
-    solver.time_limit = chrono::steady_clock::now() + chrono::seconds(20);
+    solver.time_limit = chrono::steady_clock::now() + chrono::seconds(1800);
     auto solution = solver.solve(inst);
     cout << solver << endl;
     cout << solution.worked << endl;

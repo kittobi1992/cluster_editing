@@ -141,19 +141,43 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
         for(auto val : row)
             isUnweighted &= val==1 || val==-1;
     if(isUnweighted) {
+        auto t1 = chrono::steady_clock::now();
         auto upper = solve_heuristic(inst).cost;
         if(verbose) cout << "upper bound " << upper << endl;
         if(auto opt = thomas(inst); opt) inst = *opt; // TODO multiple thomas reductions
         if(auto opt = distance4Reduction(inst); opt) inst = *opt;
-        if(auto opt = simpleTwin(inst); opt) inst = *opt;
-        //if(auto opt = forcedChoices(inst, upper); opt) inst = *opt;
+        while(true) {
+            string applied = "";
+            if(empty(applied)) if(auto opt = forcedChoicesStarBound(inst, upper, false); opt) inst = *opt, applied = "force star";
+            if(empty(applied)) if(auto opt = forcedChoices(inst, upper); opt) inst = *opt, applied = "force p3";
+            if(empty(applied)) if(auto opt = simpleTwin(inst); opt) inst = *opt, applied = "twin simple";
+            if(empty(applied)) if(auto opt = complexTwin(inst,true); opt) inst = *opt, applied = "twin complex";
+            if(empty(applied)) if(auto opt = icxReductions(inst, upper); opt) inst = *opt, applied = "icx";
+            if(empty(applied)) if(auto opt = thomas_pairs(inst); opt) inst = *opt, applied = "heavy edge (b)";
+            if(empty(applied)) if(auto opt = heavy_edge_single_end(inst); opt) inst = *opt, applied = "heavy edge (s)";
+            if(empty(applied)) if(auto opt = heavy_non_edge_single_end(inst); opt) inst = *opt, applied = "heavy non-edge";
+            if(empty(applied)) break;
+            else if(verbose) cout << "reduced to n=" << size(inst.edges)
+                << " -INFs=" << forbiddenEdges(inst)
+                << " spent=" << inst.spendCost
+                << " with " << applied << endl;
+        }
+        auto t2 = chrono::steady_clock::now();
+        if(verbose) {
+            cout << "INITIAL REDUCTION FINISHED" << endl;
+            cout << "time:  " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() * 0.001 << " s\n";
+            cout << "size:  " << size(inst.edges) << endl;
+            int lower = star_bound(inst,upper);
+            cout << "lower: " << inst.spendCost + lower << endl;
+            cout << "upper: " << upper << endl;
+            cout << "gap:   " << upper-lower-inst.spendCost << endl;
+            cout << "STARTING BRANCH AND BOUND" << endl;
+        }
     }
 
     Solution s_comb;
     s_comb.cost = inst.spendCost;
 
-    if(verbose) cout << "cost of initial reductions " << s_comb.cost << endl;
-    if(verbose) cout << "instance size after reductions n=" << size(inst.edges) << endl;
     auto comps = constructConnectedComponents(inst);
     sort(begin(comps), end(comps), [](auto& a, auto& b){ return size(a.edges)<size(b.edges); });
     if(verbose) cout << "split into " << size(comps) << " CCs" << endl;
@@ -164,7 +188,7 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
         if(verbose) cout << "start solving CC of size " << size(comp.edges) << " first bound " << lower << endl;
 
         for (int budget = lower; !s.worked && s_comb.cost+budget<=budget_limit; ++budget) {
-            if(verbose) cout << budget << "   \r" << flush;
+            if(verbose) cout << budget << "\t (total: " << s_comb.cost + budget << ")\r" << flush;
             s = solve_internal(comp, budget);
 
             if(chrono::steady_clock::now()>time_limit) {

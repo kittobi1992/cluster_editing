@@ -24,4 +24,6 @@ struct Instance {
   }
 };
 
+int forbiddenEdges(const Instance& inst);
+
 Instance load_exact_instance(int num);
