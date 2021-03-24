@@ -1,11 +1,13 @@
 
 #include <cluster_editing/exact/lower_bounds.h>
+#include <cluster_editing/exact/star_bound.h>
 
 #include <cassert>
 #include <vector>
 #include <numeric>
 #include <algorithm>
 #include <random>
+#include <map>
 
 using namespace std;
 
@@ -237,4 +239,13 @@ vector<Triple> getAPacking(const Instance &inst) {
     maximizePacking(packing, potential,INF);
     swapLocal(packing, potential,INF);
     return packing;
+}
+
+int meta_lower_bound(const Instance& inst, int limit) {
+    /*auto best_bound = star_bound(inst, limit);
+    if (best_bound > limit)
+        return best_bound;
+    best_bound = max(best_bound, packing_local_search_bound(inst, limit));
+    return best_bound;*/
+    return star_bound(inst, limit);
 }

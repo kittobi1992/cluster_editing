@@ -307,7 +307,7 @@ std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, boo
         if(c==-INF&& res.edges[u][v]>0) res.spendCost += res.edges[u][v];
         res.edges[u][v] = res.edges[v][u] = c;
         if(res.spendCost>upper_bound)
-            return {}; // not solvable
+            return Instance{}; // not solvable
     }
 
     mergeAllINF(res);

@@ -9,6 +9,7 @@
 #include <cluster_editing/exact/reductions.h>
 #include <cluster_editing/exact/lower_bounds.h>
 #include <cluster_editing/exact/thomas.h>
+#include <cluster_editing/exact/star_bound.h>
 #include <cluster_editing/flat.h>
 
 #include "cluster_editing/multilevel.h"
@@ -74,7 +75,7 @@ Solution ExactSolver::solve_internal(Instance graph, int budget) {
         if(chrono::steady_clock::now()>time_limit) return {};
 
         //auto lower_bound = packing_lower_bound(graph.edges, budget-graph.spendCost);
-        auto lower_bound = packing_local_search_bound(graph, budget-graph.spendCost);
+        auto lower_bound = meta_lower_bound(graph, budget-graph.spendCost);
         if(lower_bound + graph.spendCost > budget) {
             numReducingNodes += changed;
             numPrunes++;
@@ -97,6 +98,7 @@ Solution ExactSolver::solve_internal(Instance graph, int budget) {
         }
 
         repeat = false;
+        if(auto opt = forcedChoicesStarBound(graph, budget, false); opt) graph = *opt, repeat=true, redForcedStar++;
         if(auto opt = forcedChoices(graph, budget); opt) graph = *opt, repeat=true, redForced++;
         if(auto opt = simpleTwin(graph); opt) graph = *opt, repeat=true, redTwin++;
         if(auto opt = complexTwin(graph,true); opt) graph = *opt, repeat=true, redTwin2++;
@@ -158,7 +160,7 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
     for (auto& comp : comps) {
 
         Solution s;
-        auto lower = packing_local_search_bound(comp, INF);
+        auto lower = meta_lower_bound(comp, INF);
         if(verbose) cout << "start solving CC of size " << size(comp.edges) << " first bound " << lower << endl;
 
         for (int budget = lower; !s.worked && s_comb.cost+budget<=budget_limit; ++budget) {
@@ -267,7 +269,8 @@ Solution solve_heuristic(const Instance &inst) {
 ostream &operator<<(ostream &os, const ExactSolver &rhs) {
     os << "branching nodes: " << rhs.branchingNodes << endl;
     os << "reductions:      " << rhs.numReducingNodes << endl;
-    os << "\tforced:        " << rhs.redForced << endl;
+    os << "\tforced (star): " << rhs.redForcedStar << endl;
+    os << "\tforced (p3):   " << rhs.redForced << endl;
     os << "\ttwin simple:   " << rhs.redTwin << endl;
     os << "\ttwin complex:  " << rhs.redTwin2 << endl;
     os << "\ticx:           " << rhs.redICX << endl;

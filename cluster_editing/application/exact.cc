@@ -11,7 +11,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
-    int num = 179;
+    int num = 139;
     if(argc>1) num = atoi(argv[1]);
     auto inst = load_exact_instance(num);
 

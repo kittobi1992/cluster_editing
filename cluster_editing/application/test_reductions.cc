@@ -10,6 +10,7 @@
 #include <cluster_editing/exact/reductions.h>
 #include <cluster_editing/exact/thomas.h>
 #include <cluster_editing/exact/solver.h>
+#include <cluster_editing/exact/star_bound.h>
 
 using namespace std;
 
@@ -41,12 +42,14 @@ set not_solved {
 
 bool reduce(Instance& inst, int upper) {
     bool changed = false;
+    if(auto opt = forcedChoicesStarBound(inst, upper, false); opt) inst = *opt, changed = true;
     if(auto opt = complexTwin(inst,true); opt) inst = *opt, changed = true;
     if(auto opt = forcedChoices(inst, upper, false); opt) inst = *opt, changed = true;
     if(auto opt = icxReductions(inst, upper); opt) inst = *opt, changed = true;
     if(auto opt = thomas_pairs(inst); opt) inst = *opt, changed = true;
     if(auto opt = heavy_edge_single_end(inst); opt) inst = *opt, changed = true;
     if(auto opt = heavy_non_edge_single_end(inst); opt) inst = *opt, changed = true;
+    if(auto opt = forcedChoicesSingleMerge(inst, upper, false); opt) inst = *opt, changed = true;
     return changed;
 }
 
@@ -91,7 +94,7 @@ int main(int argc, char *argv[]) {
         while(reduce(inst,upper));
         auto t2 = chrono::steady_clock::now();
 
-        auto left = upper - inst.spendCost - packing_local_search_bound(inst, INF);
+        auto left = upper - inst.spendCost - star_bound(inst, INF);
         auto real_size = real_inst_size(inst);
         auto time = chrono::duration_cast<chrono::duration<double>>(t2-t1).count();
         total_left += left;

@@ -22,6 +22,7 @@ public:
     int branchingNodes = 0;
     int numReducingNodes = 0;
     int numDisconnects = 0;
+    int redForcedStar = 0;
     int redForced = 0;
     int redTwin = 0;
     int redTwin2 = 0;
