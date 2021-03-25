@@ -1,0 +1,79 @@
+solving instance with n=211
+upper bound 2777
+reduced to n=60 -INFs=1858 spent=2505 with force star
+reduced to n=55 -INFs=1846 spent=2605 with force star
+reduced to n=44 -INFs=1384 spent=2665 with force star
+reduced to n=34 -INFs=886 spent=2678 with force star
+reduced to n=32 -INFs=782 spent=2681 with force star
+reduced to n=30 -INFs=706 spent=2683 with force star
+reduced to n=25 -INFs=498 spent=2726 with force star
+reduced to n=23 -INFs=436 spent=2739 with force star
+reduced to n=23 -INFs=440 spent=2739 with force p3
+reduced to n=22 -INFs=412 spent=2740 with twin complex
+reduced to n=22 -INFs=430 spent=2744 with force star
+reduced to n=22 -INFs=450 spent=2744 with force p3
+reduced to n=21 -INFs=410 spent=2744 with twin simple
+reduced to n=20 -INFs=374 spent=2776 with twin complex
+reduced to n=19 -INFs=340 spent=2777 with twin complex
+reduced to n=18 -INFs=306 spent=2777 with twin simple
+reduced to n=18 -INFs=324 spent=2777 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  4.174 s
+size:  18
+lower: 2777
+upper: 2777
+gap:   0
+STARTING BRANCH AND BOUND
+split into 18 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+start solving CC of size 1 first bound 0
+0	 (total: 2777)
+branching nodes: 0
+reductions:      0
+	forced (star): 0
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  0
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          0
+
+1
+k=2777
+4.17473

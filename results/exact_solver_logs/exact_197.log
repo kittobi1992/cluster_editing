@@ -1,0 +1,62 @@
+solving instance with n=620
+upper bound 15831
+reduced to n=620 -INFs=119198 spent=86 with force star
+reduced to n=620 -INFs=119200 spent=86 with force star
+reduced to n=611 -INFs=119948 spent=286 with force star
+reduced to n=611 -INFs=119958 spent=286 with force star
+reduced to n=609 -INFs=118430 spent=287 with twin complex
+reduced to n=597 -INFs=110408 spent=520 with force star
+reduced to n=555 -INFs=84944 spent=1523 with force star
+reduced to n=553 -INFs=84112 spent=1546 with force star
+reduced to n=549 -INFs=82852 spent=1637 with force star
+reduced to n=544 -INFs=82412 spent=1776 with force star
+reduced to n=544 -INFs=82418 spent=1776 with force star
+reduced to n=531 -INFs=73570 spent=2033 with twin complex
+reduced to n=531 -INFs=73600 spent=2035 with force star
+reduced to n=530 -INFs=75382 spent=2111 with force star
+reduced to n=530 -INFs=75538 spent=2112 with force star
+reduced to n=530 -INFs=75566 spent=2114 with force star
+reduced to n=529 -INFs=77346 spent=2178 with force star
+reduced to n=529 -INFs=77404 spent=2178 with force star
+reduced to n=529 -INFs=77406 spent=2178 with force star
+reduced to n=509 -INFs=70244 spent=2855 with force star
+reduced to n=509 -INFs=70614 spent=2859 with force star
+reduced to n=509 -INFs=70898 spent=2861 with force star
+reduced to n=509 -INFs=70900 spent=2861 with force star
+reduced to n=493 -INFs=60304 spent=3101 with twin complex
+reduced to n=493 -INFs=60568 spent=3103 with force star
+reduced to n=490 -INFs=62232 spent=3165 with force star
+reduced to n=490 -INFs=62534 spent=3171 with force star
+reduced to n=452 -INFs=41256 spent=3427 with force star
+reduced to n=429 -INFs=26198 spent=3621 with twin complex
+reduced to n=426 -INFs=24708 spent=3669 with twin complex
+reduced to n=425 -INFs=24060 spent=3670 with heavy edge (b)
+reduced to n=424 -INFs=23398 spent=3670 with twin complex
+reduced to n=424 -INFs=23428 spent=3670 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  2419.58 s
+size:  424
+lower: 15758
+upper: 15831
+gap:   73
+STARTING BRANCH AND BOUND
+split into 2 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 3670)
+time limit exceeded
+branching nodes: 0
+reductions:      0
+	forced (star): 0
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  0
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          0
+
+0
+k=1000000000
+2466.56

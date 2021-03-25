@@ -1,0 +1,36 @@
+solving instance with n=50
+upper bound 322
+reduced to n=14 -INFs=6 spent=287 with force star
+reduced to n=10 -INFs=12 spent=302 with force star
+reduced to n=5 -INFs=12 spent=321 with force star
+reduced to n=3 -INFs=4 spent=322 with force star
+reduced to n=2 -INFs=2 spent=322 with twin simple
+reduced to n=2 -INFs=4 spent=322 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  0.428 s
+size:  2
+lower: 322
+upper: 322
+gap:   0
+STARTING BRANCH AND BOUND
+split into 2 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 322)
+start solving CC of size 1 first bound 0
+0	 (total: 322)
+branching nodes: 0
+reductions:      0
+	forced (star): 0
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  0
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          0
+
+1
+k=322
+0.42863

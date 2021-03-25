@@ -1,0 +1,148 @@
+solving instance with n=263
+upper bound 1117
+reduced to n=109 -INFs=9662 spent=946 with force star
+reduced to n=96 -INFs=8044 spent=1051 with force star
+reduced to n=92 -INFs=7568 spent=1062 with force star
+reduced to n=92 -INFs=7608 spent=1063 with force star
+reduced to n=90 -INFs=7294 spent=1068 with force star
+reduced to n=89 -INFs=7132 spent=1077 with force star
+reduced to n=87 -INFs=6866 spent=1079 with force star
+reduced to n=85 -INFs=6550 spent=1082 with force star
+reduced to n=85 -INFs=6554 spent=1082 with force star
+reduced to n=74 -INFs=5258 spent=1105 with force p3
+reduced to n=73 -INFs=5122 spent=1108 with force star
+reduced to n=70 -INFs=4734 spent=1114 with force star
+reduced to n=69 -INFs=4604 spent=1115 with force star
+reduced to n=55 -INFs=2962 spent=1116 with force p3
+reduced to n=54 -INFs=2856 spent=1116 with twin simple
+reduced to n=53 -INFs=2754 spent=1117 with twin complex
+reduced to n=52 -INFs=2652 spent=1117 with twin simple
+reduced to n=52 -INFs=2704 spent=1117 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  1.756 s
+size:  52
+lower: 1117
+upper: 1117
+gap:   0
+STARTING BRANCH AND BOUND
+split into 52 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+start solving CC of size 1 first bound 0
+0	 (total: 1117)
+branching nodes: 0
+reductions:      0
+	forced (star): 0
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  0
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          0
+
+1
+k=1117
+1.75731

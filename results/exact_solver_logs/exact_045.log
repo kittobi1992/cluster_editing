@@ -1,0 +1,59 @@
+solving instance with n=100
+upper bound 1085
+reduced to n=99 -INFs=8 spent=5 with forced single merge
+reduced to n=98 -INFs=8 spent=13 with forced single merge
+reduced to n=97 -INFs=8 spent=21 with forced single merge
+reduced to n=96 -INFs=8 spent=27 with forced single merge
+reduced to n=95 -INFs=10 spent=67 with force star
+reduced to n=94 -INFs=10 spent=72 with forced single merge
+reduced to n=94 -INFs=12 spent=72 with force star
+reduced to n=93 -INFs=12 spent=86 with forced single merge
+reduced to n=92 -INFs=10 spent=97 with force star
+reduced to n=92 -INFs=14 spent=97 with force star
+reduced to n=91 -INFs=14 spent=102 with forced single merge
+reduced to n=90 -INFs=14 spent=123 with force star
+reduced to n=89 -INFs=38 spent=138 with force star
+reduced to n=89 -INFs=56 spent=139 with force star
+reduced to n=89 -INFs=64 spent=139 with force star
+reduced to n=89 -INFs=80 spent=140 with force star
+reduced to n=89 -INFs=84 spent=140 with force star
+reduced to n=88 -INFs=84 spent=152 with forced single merge
+reduced to n=87 -INFs=82 spent=168 with force star
+reduced to n=86 -INFs=82 spent=180 with forced single merge
+reduced to n=85 -INFs=82 spent=200 with force star
+reduced to n=81 -INFs=126 spent=263 with force star
+reduced to n=81 -INFs=208 spent=265 with force star
+reduced to n=81 -INFs=280 spent=268 with force star
+reduced to n=77 -INFs=148 spent=322 with force star
+reduced to n=77 -INFs=266 spent=329 with force star
+reduced to n=77 -INFs=272 spent=329 with force star
+reduced to n=76 -INFs=200 spent=335 with twin complex
+reduced to n=75 -INFs=150 spent=346 with force star
+reduced to n=74 -INFs=86 spent=359 with force star
+reduced to n=74 -INFs=92 spent=359 with force star
+INITIAL REDUCTION FINISHED
+time:  44.824 s
+size:  74
+lower: 1069
+upper: 1085
+gap:   16
+STARTING BRANCH AND BOUND
+split into 1 CCs
+start solving CC of size 74 first bound 710
+710	 (total: 1069)711	 (total: 1070)712	 (total: 1071)713	 (total: 1072)714	 (total: 1073)715	 (total: 1074)716	 (total: 1075)717	 (total: 1076)718	 (total: 1077)719	 (total: 1078)720	 (total: 1079)721	 (total: 1080)722	 (total: 1081)723	 (total: 1082)724	 (total: 1083)725	 (total: 1084)726	 (total: 1085)
+branching nodes: 230
+reductions:      146
+	forced (star): 312
+	forced (p3):   65
+	twin simple:   0
+	twin complex:  38
+	icx:           1
+	h edge (b):    2
+	h edge (s):    2
+	h non edge:    54
+disconnects:     8
+prunes:          238
+
+1
+k=1085
+258.858

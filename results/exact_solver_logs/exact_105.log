@@ -1,0 +1,33 @@
+solving instance with n=200
+upper bound 5320
+reduced to n=135 -INFs=550 spent=1910 with force star
+reduced to n=87 -INFs=134 spent=3102 with force star
+reduced to n=80 -INFs=54 spent=3221 with twin complex
+reduced to n=79 -INFs=52 spent=3244 with twin complex
+INITIAL REDUCTION FINISHED
+time:  22.203 s
+size:  79
+lower: 5153
+upper: 5320
+gap:   167
+STARTING BRANCH AND BOUND
+split into 1 CCs
+start solving CC of size 79 first bound 1909
+1909	 (total: 5153)1910	 (total: 5154)1911	 (total: 5155)1912	 (total: 5156)1913	 (total: 5157)1914	 (total: 5158)1915	 (total: 5159)1916	 (total: 5160)1917	 (total: 5161)1918	 (total: 5162)1919	 (total: 5163)1920	 (total: 5164)1921	 (total: 5165)1922	 (total: 5166)1923	 (total: 5167)1924	 (total: 5168)1925	 (total: 5169)1926	 (total: 5170)1927	 (total: 5171)1928	 (total: 5172)1929	 (total: 5173)1930	 (total: 5174)1931	 (total: 5175)1932	 (total: 5176)1933	 (total: 5177)1934	 (total: 5178)1935	 (total: 5179)1936	 (total: 5180)1937	 (total: 5181)1938	 (total: 5182)1939	 (total: 5183)1940	 (total: 5184)1941	 (total: 5185)1942	 (total: 5186)1943	 (total: 5187)1944	 (total: 5188)1945	 (total: 5189)1946	 (total: 5190)1947	 (total: 5191)1948	 (total: 5192)1949	 (total: 5193)1950	 (total: 5194)1951	 (total: 5195)1952	 (total: 5196)1953	 (total: 5197)1954	 (total: 5198)1955	 (total: 5199)1956	 (total: 5200)1957	 (total: 5201)1958	 (total: 5202)1959	 (total: 5203)1960	 (total: 5204)1961	 (total: 5205)1962	 (total: 5206)1963	 (total: 5207)1964	 (total: 5208)1965	 (total: 5209)1966	 (total: 5210)1967	 (total: 5211)1968	 (total: 5212)1969	 (total: 5213)1970	 (total: 5214)1971	 (total: 5215)1972	 (total: 5216)1973	 (total: 5217)1974	 (total: 5218)1975	 (total: 5219)1976	 (total: 5220)1977	 (total: 5221)1978	 (total: 5222)1979	 (total: 5223)1980	 (total: 5224)1981	 (total: 5225)1982	 (total: 5226)1983	 (total: 5227)1984	 (total: 5228)1985	 (total: 5229)1986	 (total: 5230)1987	 (total: 5231)1988	 (total: 5232)1989	 (total: 5233)1990	 (total: 5234)1991	 (total: 5235)1992	 (total: 5236)1993	 (total: 5237)1994	 (total: 5238)1995	 (total: 5239)1996	 (total: 5240)1997	 (total: 5241)1998	 (total: 5242)1999	 (total: 5243)2000	 (total: 5244)2001	 (total: 5245)2002	 (total: 5246)2003	 (total: 5247)2004	 (total: 5248)2005	 (total: 5249)2006	 (total: 5250)2007	 (total: 5251)2008	 (total: 5252)2009	 (total: 5253)2010	 (total: 5254)2011	 (total: 5255)2012	 (total: 5256)2013	 (total: 5257)2014	 (total: 5258)2015	 (total: 5259)2016	 (total: 5260)2017	 (total: 5261)2018	 (total: 5262)2019	 (total: 5263)2020	 (total: 5264)2021	 (total: 5265)2022	 (total: 5266)2023	 (total: 5267)2024	 (total: 5268)
+time limit exceeded
+branching nodes: 274
+reductions:      505
+	forced (star): 501
+	forced (p3):   543
+	twin simple:   2
+	twin complex:  253
+	icx:           5
+	h edge (b):    0
+	h edge (s):    28
+	h non edge:    20
+disconnects:     0
+prunes:          387
+
+0
+k=1000000000
+1801.34

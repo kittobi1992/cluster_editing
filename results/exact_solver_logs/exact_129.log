@@ -1,0 +1,69 @@
+solving instance with n=216
+upper bound 2211
+reduced to n=33 -INFs=832 spent=2203 with force star
+reduced to n=33 -INFs=844 spent=2203 with force star
+reduced to n=33 -INFs=846 spent=2203 with force star
+reduced to n=20 -INFs=372 spent=2208 with force p3
+reduced to n=19 -INFs=338 spent=2209 with twin complex
+reduced to n=18 -INFs=306 spent=2211 with twin complex
+reduced to n=18 -INFs=324 spent=2211 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  2.051 s
+size:  18
+lower: 2211
+upper: 2211
+gap:   0
+STARTING BRANCH AND BOUND
+split into 18 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+start solving CC of size 1 first bound 0
+0	 (total: 2211)
+branching nodes: 0
+reductions:      0
+	forced (star): 0
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  0
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          0
+
+1
+k=2211
+2.05197

@@ -1,0 +1,28 @@
+solving instance with n=40
+upper bound 181
+INITIAL REDUCTION FINISHED
+time:  2.089 s
+size:  40
+lower: 168
+upper: 181
+gap:   13
+STARTING BRANCH AND BOUND
+split into 1 CCs
+start solving CC of size 40 first bound 168
+168	 (total: 168)169	 (total: 169)170	 (total: 170)171	 (total: 171)172	 (total: 172)173	 (total: 173)174	 (total: 174)175	 (total: 175)176	 (total: 176)177	 (total: 177)178	 (total: 178)179	 (total: 179)180	 (total: 180)181	 (total: 181)
+branching nodes: 538
+reductions:      433
+	forced (star): 687
+	forced (p3):   192
+	twin simple:   0
+	twin complex:  141
+	icx:           1
+	h edge (b):    9
+	h edge (s):    8
+	h non edge:    111
+disconnects:     135
+prunes:          544
+
+1
+k=181
+64.3342

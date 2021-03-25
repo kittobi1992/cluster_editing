@@ -1,0 +1,54 @@
+solving instance with n=232
+upper bound 5514
+reduced to n=66 -INFs=100 spent=5182 with force star
+reduced to n=53 -INFs=650 spent=5319 with force star
+reduced to n=26 -INFs=192 spent=5462 with force star
+reduced to n=14 -INFs=146 spent=5508 with force star
+reduced to n=11 -INFs=94 spent=5510 with force star
+reduced to n=11 -INFs=106 spent=5510 with force p3
+reduced to n=10 -INFs=90 spent=5514 with twin complex
+reduced to n=10 -INFs=100 spent=5514 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  14.682 s
+size:  10
+lower: 5514
+upper: 5514
+gap:   0
+STARTING BRANCH AND BOUND
+split into 10 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 5514)
+start solving CC of size 1 first bound 0
+0	 (total: 5514)
+start solving CC of size 1 first bound 0
+0	 (total: 5514)
+start solving CC of size 1 first bound 0
+0	 (total: 5514)
+start solving CC of size 1 first bound 0
+0	 (total: 5514)
+start solving CC of size 1 first bound 0
+0	 (total: 5514)
+start solving CC of size 1 first bound 0
+0	 (total: 5514)
+start solving CC of size 1 first bound 0
+0	 (total: 5514)
+start solving CC of size 1 first bound 0
+0	 (total: 5514)
+start solving CC of size 1 first bound 0
+0	 (total: 5514)
+branching nodes: 0
+reductions:      0
+	forced (star): 0
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  0
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          0
+
+1
+k=5514
+14.6833

@@ -1,0 +1,55 @@
+solving instance with n=330
+upper bound 2788
+reduced to n=322 -INFs=72330 spent=0 with twin simple
+reduced to n=315 -INFs=69468 spent=13 with twin complex
+reduced to n=315 -INFs=69486 spent=13 with force star
+reduced to n=310 -INFs=67434 spent=25 with twin complex
+reduced to n=309 -INFs=67034 spent=67 with force star
+reduced to n=306 -INFs=65786 spent=93 with twin complex
+reduced to n=303 -INFs=64474 spent=116 with twin complex
+reduced to n=301 -INFs=63660 spent=125 with twin complex
+reduced to n=300 -INFs=63248 spent=129 with twin complex
+reduced to n=300 -INFs=63280 spent=129 with force star
+reduced to n=299 -INFs=62878 spent=130 with twin complex
+reduced to n=298 -INFs=62354 spent=131 with twin complex
+reduced to n=297 -INFs=61830 spent=132 with twin complex
+reduced to n=296 -INFs=61304 spent=134 with twin complex
+reduced to n=295 -INFs=60890 spent=135 with twin complex
+reduced to n=294 -INFs=60484 spent=136 with twin complex
+reduced to n=293 -INFs=60076 spent=137 with twin complex
+reduced to n=292 -INFs=59670 spent=138 with twin complex
+reduced to n=291 -INFs=59280 spent=139 with twin complex
+reduced to n=290 -INFs=58890 spent=140 with twin complex
+reduced to n=289 -INFs=58502 spent=142 with twin complex
+reduced to n=289 -INFs=58508 spent=142 with heavy non-edge
+reduced to n=289 -INFs=58510 spent=144 with force star
+reduced to n=288 -INFs=58074 spent=274 with forced single merge
+reduced to n=286 -INFs=57310 spent=321 with twin complex
+reduced to n=286 -INFs=57320 spent=321 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  98.153 s
+size:  286
+lower: 2691
+upper: 2788
+gap:   97
+STARTING BRANCH AND BOUND
+split into 1 CCs
+start solving CC of size 286 first bound 2370
+2370	 (total: 2691)2371	 (total: 2692)2372	 (total: 2693)2373	 (total: 2694)2374	 (total: 2695)2375	 (total: 2696)2376	 (total: 2697)2377	 (total: 2698)2378	 (total: 2699)2379	 (total: 2700)2380	 (total: 2701)2381	 (total: 2702)2382	 (total: 2703)2383	 (total: 2704)2384	 (total: 2705)2385	 (total: 2706)2386	 (total: 2707)2387	 (total: 2708)2388	 (total: 2709)2389	 (total: 2710)2390	 (total: 2711)2391	 (total: 2712)2392	 (total: 2713)2393	 (total: 2714)2394	 (total: 2715)2395	 (total: 2716)2396	 (total: 2717)2397	 (total: 2718)2398	 (total: 2719)2399	 (total: 2720)2400	 (total: 2721)2401	 (total: 2722)2402	 (total: 2723)2403	 (total: 2724)2404	 (total: 2725)2405	 (total: 2726)2406	 (total: 2727)2407	 (total: 2728)
+time limit exceeded
+branching nodes: 171
+reductions:      206
+	forced (star): 381
+	forced (p3):   10
+	twin simple:   0
+	twin complex:  204
+	icx:           0
+	h edge (b):    9
+	h edge (s):    13
+	h non edge:    170
+disconnects:     0
+prunes:          200
+
+0
+k=1000000000
+1801.5

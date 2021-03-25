@@ -1,0 +1,43 @@
+solving instance with n=20
+upper bound 46
+reduced to n=20 -INFs=78 spent=2 with force p3
+reduced to n=20 -INFs=96 spent=2 with force p3
+reduced to n=19 -INFs=60 spent=2 with twin simple
+reduced to n=18 -INFs=56 spent=3 with twin complex
+reduced to n=17 -INFs=54 spent=6 with force star
+reduced to n=16 -INFs=46 spent=8 with force star
+reduced to n=16 -INFs=50 spent=8 with force star
+reduced to n=16 -INFs=54 spent=8 with force p3
+reduced to n=15 -INFs=52 spent=9 with twin complex
+reduced to n=15 -INFs=54 spent=9 with force p3
+reduced to n=14 -INFs=44 spent=10 with twin complex
+reduced to n=14 -INFs=50 spent=10 with force p3
+reduced to n=14 -INFs=51 spent=10 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  0.141 s
+size:  14
+lower: 44
+upper: 46
+gap:   2
+STARTING BRANCH AND BOUND
+split into 2 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 10)
+start solving CC of size 13 first bound 34
+34	 (total: 44)35	 (total: 45)36	 (total: 46)
+branching nodes: 2
+reductions:      4
+	forced (star): 4
+	forced (p3):   3
+	twin simple:   0
+	twin complex:  3
+	icx:           0
+	h edge (b):    0
+	h edge (s):    1
+	h non edge:    1
+disconnects:     0
+prunes:          2
+
+1
+k=46
+0.161524

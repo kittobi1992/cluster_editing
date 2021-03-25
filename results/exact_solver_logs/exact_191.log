@@ -1,0 +1,29 @@
+solving instance with n=400
+upper bound 18427
+INITIAL REDUCTION FINISHED
+time:  842.512 s
+size:  400
+lower: 18200
+upper: 18427
+gap:   227
+STARTING BRANCH AND BOUND
+split into 1 CCs
+start solving CC of size 400 first bound 18200
+18200	 (total: 18200)18201	 (total: 18201)18202	 (total: 18202)18203	 (total: 18203)18204	 (total: 18204)18205	 (total: 18205)
+time limit exceeded
+branching nodes: 0
+reductions:      5
+	forced (star): 6
+	forced (p3):   1
+	twin simple:   0
+	twin complex:  3
+	icx:           0
+	h edge (b):    0
+	h edge (s):    1
+	h non edge:    0
+disconnects:     0
+prunes:          5
+
+0
+k=1000000000
+1858.04
