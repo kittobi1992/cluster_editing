@@ -156,6 +156,7 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
             if(empty(applied)) if(auto opt = thomas_pairs(inst); opt) inst = *opt, applied = "heavy edge (b)";
             if(empty(applied)) if(auto opt = heavy_edge_single_end(inst); opt) inst = *opt, applied = "heavy edge (s)";
             if(empty(applied)) if(auto opt = heavy_non_edge_single_end(inst); opt) inst = *opt, applied = "heavy non-edge";
+            if(empty(applied)) if(auto opt = forcedChoicesSingleMerge(inst, upper, false); opt) inst = *opt, applied = "forced single merge";
             if(empty(applied)) break;
             else if(verbose) cout << "reduced to n=" << size(inst.edges)
                 << " -INFs=" << forbiddenEdges(inst)
