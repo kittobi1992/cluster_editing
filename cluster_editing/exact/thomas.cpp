@@ -198,6 +198,7 @@ std::optional<Instance> heavy_non_edge_single_end(Instance inst) {
     auto& g = res.edges;
     for(int u=0; u<n; u++) {
         for(int v=0; v<n; v++) {
+            if(u==v) continue;
             if(g[u][v]>=0) continue;
             if(g[u][v]==-INF) continue;
 
