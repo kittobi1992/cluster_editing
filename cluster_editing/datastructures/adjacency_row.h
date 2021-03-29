@@ -327,6 +327,18 @@ namespace cluster_editing::ds {
 
         void zero_unused_bits() noexcept;
 
+        /**
+         * Make sure that \p f does mutate the AdjacencyRows where \a block(i) is called on.
+         *
+         * Additionally \p get_block must be a subset of at least one \a block(i) from an AdjacencyRow with the
+         * desired size. AdjacencyRow holds up the invariant that the bits in the last block beyond the last valid bit
+         * are zeroed out. Disregarding this might lead \p f being called with nodes beyond the last valid bit.
+         *
+         * @param num_blocks
+         * @param get_block
+         * @param f
+         * @return
+         */
         template<class B, class F>
         constexpr static void for_each(block_index_type num_blocks, B get_block, F f) {
             static_assert(std::is_invocable_r_v<block_type, B, block_index_type>);

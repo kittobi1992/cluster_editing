@@ -101,24 +101,30 @@ namespace std {
 class Potential {
     int n;
     Edges potential;
-    std::vector<ds::AdjacencyRow> potential_is_zero;
-    std::vector<ds::AdjacencyRow> free_edges_g;
+    std::vector<ds::AdjacencyRow> m_non_zero_potential;
+    std::vector<ds::AdjacencyRow> m_adj;
     int bound = 0;
 
 public:
     explicit Potential(Edges edges) :
             n(edges.size()), potential(std::move(edges)),
-            potential_is_zero(potential.size(), ds::AdjacencyRow(potential.size())),
-            free_edges_g(potential.size(), ds::AdjacencyRow(potential.size())) {
+            m_non_zero_potential(potential.size(), ds::AdjacencyRow(potential.size())),
+            m_adj(potential.size(), ds::AdjacencyRow(potential.size())) {
         for (int u = 0; u < n; ++u) {
             for (int v = 0; v < n; ++v) {
                 assert(-INF <= potential[u][v] && potential[u][v] <= INF);
-                if (u == v)
+                if (u == v) {
+                    assert(!m_non_zero_potential[u].test(v));
                     continue;
+                }
                 if (potential[u][v] > 0) {
-                    free_edges_g[u].set(v);
+                    m_non_zero_potential[u].set(v);
+                    m_adj[u].set(v);
                 } else if (potential[u][v] == 0) {
-                    potential_is_zero[u].set(v);
+                    assert(!m_non_zero_potential[u].test(v));
+                } else {
+                    m_non_zero_potential[u].set(v);
+                    assert(!m_adj[u].test(v));
                 }
             }
         }
@@ -131,27 +137,24 @@ public:
                 if (u == v)
                     continue;
                 if (potential[u][v] == 0) {
-                    if (!potential_is_zero[u][v]) {
-                        valid = false;
-                    }
-                    if (free_edges_g[u].test(v)) {
+                    if (m_non_zero_potential[u][v]) {
                         valid = false;
                     }
                 } else if (potential[u][v] > 0) {
-                    if (potential_is_zero[u][v]) {
+                    if (!m_non_zero_potential[u][v]) {
                         valid = false;
                     }
-                    if (!free_edges_g[u].test(v)) {
+                    if (!m_adj[u].test(v)) {
                         valid = false;
                     }
                     if (!(0 <= potential[u][v] && potential[u][v] <= original_edges[u][v])) {
                         valid = false;
                     }
                 } else {
-                    if (potential_is_zero[u][v]) {
+                    if (!m_non_zero_potential[u][v]) {
                         valid = false;
                     }
-                    if (free_edges_g[u].test(v)) {
+                    if (m_adj[u].test(v)) {
                         valid = false;
                     }
                     if (!(original_edges[u][v] <= potential[u][v] && potential[u][v] <= 0)) {
@@ -173,10 +176,10 @@ public:
         if (potential != other.potential) {
             valid = false;
         }
-        if (free_edges_g != other.free_edges_g) {
+        if (m_non_zero_potential != other.m_non_zero_potential) {
             valid = false;
         }
-        if (potential_is_zero != other.potential_is_zero) {
+        if (m_adj != other.m_adj) {
             valid = false;
         }
         if (bound != other.bound) {
@@ -201,16 +204,16 @@ public:
 
     [[nodiscard]] bool pair_used(int u, int v) const {
         assert(0 <= u && u < n && 0 <= v && v < n && u != v);
-        return potential_is_zero[u][v];
+        return !m_non_zero_potential[u].test(v);
     };
 
-    [[nodiscard]] const auto &used_pairs(int u) const {
-        return potential_is_zero[u];
+    [[nodiscard]] const auto &unused_pairs(int u) const {
+        return m_non_zero_potential[u];
     }
 
-    [[nodiscard]] const auto &free_edges(int u) const {
+    [[nodiscard]] const auto &adj(int u) const {
         assert(0 <= u && u < n);
-        return free_edges_g[u];
+        return m_adj[u];
     }
 
     [[nodiscard]] int calculate_costs(const Star &star) const {
@@ -269,15 +272,16 @@ public:
                     potential[u][v] -= weight;
                     assert(potential[u][v] >= 0);
                     if (potential[u][v] == 0) {
-                        potential_is_zero[u][v] = true;
-                        free_edges_g[u].reset(v);
+                        assert(u != v);
+                        m_non_zero_potential[u][v] = false;
                     }
                 } else {
                     assert(has_negative_potential(u, v));
                     potential[u][v] += weight;
                     assert(potential[u][v] <= 0);
                     if (potential[u][v] == 0) {
-                        potential_is_zero[u][v] = true;
+                        assert(u != v);
+                        m_non_zero_potential[u][v] = false;
                     }
                 }
             }
@@ -295,8 +299,8 @@ public:
                     continue;
                 if (u == star.center() || v == star.center()) {
                     if (potential[u][v] == 0) {
-                        potential_is_zero[u][v] = false;
-                        free_edges_g[u].set(v);
+                        assert(u != v);
+                        m_non_zero_potential[u][v] = true;
                     }
                     assert(potential[u][v] >= 0);
                     potential[u][v] += weight;
@@ -305,7 +309,8 @@ public:
                 } else {
                     assert(potential[u][v] <= 0);
                     if (potential[u][v] == 0) {
-                        potential_is_zero[u][v] = false;
+                        assert(u != v);
+                        m_non_zero_potential[u][v] = true;
                     }
                     potential[u][v] -= weight;
                     assert(potential[u][v] < 0);
@@ -529,21 +534,33 @@ public:
         if (potential[u][v] > 0) {
 
             {
-                const auto &v_row = potential.free_edges(v);
-                const auto &u_row_used = potential.used_pairs(u);
-                auto get_block = [&](auto i) { return v_row.block(i) & ~u_row_used.block(i); };
-                ds::AdjacencyRow::for_each(v_row.num_blocks(), get_block, [&](int y) {
-                    if (y != u && potential[u][y] < 0)
-                        p3s.push_back({v, u, y});
+                const auto &v_row_adj = potential.adj(v);
+                const auto &v_row_unused = potential.unused_pairs(v);
+                const auto &u_row_adj = potential.adj(u);
+                const auto &u_row_unused = potential.unused_pairs(u);
+                auto get_block_y = [&](auto i) {
+                    // assert(potential.free_edges(v) == (v_row_adj.block(i) & v_row_unused.block(i)));
+                    return v_row_adj.block(i) & v_row_unused.block(i) & ~u_row_adj.block(i) & u_row_unused.block(i);
+                };
+                ds::AdjacencyRow::for_each(v_row_adj.num_blocks(), get_block_y, [&](int y) {
+                    assert(potential[u][y] < 0);
+                    assert(y != u);
+                    p3s.push_back({v, u, y});
                 });
             }
             {
-                const auto &u_row = potential.free_edges(u);
-                const auto &v_row_used = potential.used_pairs(v);
-                auto get_block = [&](auto i) { return u_row.block(i) & ~v_row_used.block(i); };
-                ds::AdjacencyRow::for_each(u_row.num_blocks(), get_block, [&](int y) {
-                    if (y != v && potential[v][y] < 0)
-                        p3s.push_back({u, v, y});
+                const auto &u_row_adj = potential.adj(u);
+                const auto &u_row_unused = potential.unused_pairs(u);
+                const auto &v_row_adj = potential.adj(v);
+                const auto &v_row_unused = potential.unused_pairs(v);
+                auto get_block_y = [&](auto i) {
+                    // assert(potential.free_edges(u) == (u_row_adj.block(i) & u_row_unused.block(i)));
+                    return u_row_adj.block(i) & u_row_unused.block(i) & ~v_row_adj.block(i) & v_row_unused.block(i);
+                };
+                ds::AdjacencyRow::for_each(u_row_adj.num_blocks(), get_block_y, [&](int y) {
+                    assert(potential[v][y] < 0);
+                    assert(y != v);
+                    p3s.push_back({u, v, y});
                 });
             }
 
@@ -566,10 +583,15 @@ public:
             }
         } else if (potential[u][v] < 0) { //TODO or <= 0?
             {
-                const auto &row_u = potential.free_edges(u);
-                const auto &row_v = potential.free_edges(v);
-                auto get_block = [&](auto i) { return row_u.block(i) & row_v.block(i); };
-                ds::AdjacencyRow::for_each(row_u.num_blocks(), get_block, [&](int y) {
+                const auto &u_row_adj = potential.adj(u);
+                const auto &u_row_unused = potential.unused_pairs(u);
+                const auto &v_row_adj = potential.adj(v);
+                const auto &v_row_unused = potential.unused_pairs(v);
+                auto get_block = [&](auto i) {
+                    // assert((potential.free_edges(u).block(i) & potential.free_edges(v).block(i)) == (u_row_adj.block(i) & u_row_unused.block(i) & v_row_adj.block(i) & v_row_unused.block(i)));
+                    return u_row_adj.block(i) & u_row_unused.block(i) & v_row_adj.block(i) & v_row_unused.block(i);
+                };
+                ds::AdjacencyRow::for_each(u_row_adj.num_blocks(), get_block, [&](int y) {
                     p3s.push_back({y, v, u});
                 });
             }
@@ -577,7 +599,13 @@ public:
             for (auto p : {pair{u, v}, {v, u}}) {
                 auto ext = p.first;
                 auto existing = p.second;
-                potential.free_edges(ext).for_each([&](auto center) {
+                const auto &ext_row_adj = potential.adj(ext);
+                const auto &ext_row_unused = potential.unused_pairs(ext);
+                auto get_block_center = [&](auto i) {
+                    // assert(potential.free_edges(ext).block(i) == (ext_row_adj.block(i) & ext_row_unused.block(i)));
+                    return ext_row_adj.block(i) & ext_row_unused.block(i);
+                };
+                ds::AdjacencyRow::for_each(ext_row_adj.num_blocks(), get_block_center, [&](auto center) {
                     if (auto stars_it = stars_for_edge.find({center, existing}); stars_it != stars_for_edge.end()) {
                         const auto&[_, stars] = *stars_it;
 
@@ -850,11 +878,16 @@ auto star_bound_packing(const Instance &inst, int limit) {
 
     for (auto[_, u] : node_sizes) {
         // Calc neighbor candidates
-        auto candidates = bound.potential.free_edges(u);
+        const auto &u_row_adj = bound.potential.adj(u);
+        const auto &u_row_unused = bound.potential.unused_pairs(u);
+        auto get_block_candidate = [&](auto i) {
+            // assert(bound.potential.free_edges(u).block(i) == (u_row_adj.block(i) & u_row_unused.block(i)));
+            return u_row_adj.block(i) & u_row_unused.block(i);
+        };
         // Build neighborhood graph
         robin_hood::unordered_map<int, vector<int>> neighbor_graph;
-        candidates.for_each([&](auto cand1) {
-            candidates.for_each([&](auto cand2) {
+        ds::AdjacencyRow::for_each(u_row_adj.num_blocks(), get_block_candidate, [&](auto cand1) {
+            ds::AdjacencyRow::for_each(u_row_adj.num_blocks(), get_block_candidate,[&](auto cand2) {
                 if (cand1 != cand2)
                     if (bound.potential.pair_used(cand1, cand2) || bound.potential[cand1][cand2] >= 0) // > or >= ?
                         neighbor_graph[cand1].push_back(cand2);
