@@ -750,7 +750,8 @@ public:
                     const auto cmp = [](const Candidate &a, const Candidate &b) {
                         return a.shared_p3 < b.shared_p3;
                     };
-                    Candidate replacement = (uni_dist(gen) < 0.8)
+                    auto p = global_star_bound_config.min_degree_candidate_vs_random_candidate_probability;
+                    Candidate replacement = (uni_dist(gen) < p)
                                             ? *std::min_element(all_candidates.begin(), all_candidates.end(), cmp)
                                             : all_candidates[idx_dist(gen)];
 
@@ -908,8 +909,9 @@ auto star_bound_packing(const Instance &inst, int limit) {
         }
     }
     int old_bound = 0;
-    int num_unchanged = 0;
-    while (old_bound < bound.potential.get_bound() || num_unchanged < 5) {
+    size_t num_unchanged = 0;
+    size_t max_num_unchanged = global_star_bound_config.max_num_unchanged;
+    while (old_bound < bound.potential.get_bound() || num_unchanged < max_num_unchanged) {
         if (old_bound < bound.potential.get_bound())
             num_unchanged = 0;
         else
