@@ -195,6 +195,14 @@ namespace cluster_editing::ds {
             return *this;
         }
 
+        bool operator==(const AdjacencyRow &rhs) const {
+            return m_num_nodes == rhs.m_num_nodes && m_blocks == rhs.m_blocks;
+        }
+
+        bool operator!=(const AdjacencyRow &rhs) const {
+            return !(*this == rhs);
+        }
+
         AdjacencyRow &operator&=(const AdjacencyRow &rhs) {
             assert(num_nodes() == rhs.num_nodes());
             for (block_type i = 0; i < num_blocks(); ++i)

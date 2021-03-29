@@ -4,6 +4,9 @@
 #include <cluster_editing/exact/reductions.h>
 #include <cluster_editing/exact/lower_bounds.h>
 
+#include <cluster_editing/datastructures/adjacency_row.h>
+#include <cluster_editing/datastructures/robin_hood.h>
+
 #include <cassert>
 #include <utility>
 #include <vector>
@@ -12,11 +15,11 @@
 #include <random>
 #include <map>
 #include <set>
-#include <unordered_set>
 #include <iostream>
 #include <optional>
 
 using namespace std;
+using namespace cluster_editing;
 
 template<class T>
 static inline void hash_combine(std::size_t &seed, T const &v) {
@@ -87,10 +90,9 @@ namespace std {
     template<>
     struct hash<Star> {
         size_t operator()(const Star &star) const {
-            std::size_t seed = 0;
-            for (auto node : star.nodes)
-                hash_combine(seed, node);
-            return seed;
+            const void *ptr = star.nodes.data();
+            size_t len = star.nodes.size() * sizeof(decltype(star.nodes[0]));
+            return robin_hood::hash_bytes(ptr, len);
         }
     };
 }
@@ -99,21 +101,24 @@ namespace std {
 class Potential {
     int n;
     Edges potential;
-    std::vector<std::vector<bool>> potential_is_zero;
-    std::vector<std::set<int>> free_edges_g;
+    std::vector<ds::AdjacencyRow> potential_is_zero;
+    std::vector<ds::AdjacencyRow> free_edges_g;
     int bound = 0;
 
 public:
-    explicit Potential(Edges edges) : n(edges.size()), potential(std::move(edges)), potential_is_zero(potential.size(), vector<bool>(potential.size(), false)), free_edges_g(potential.size()) {
+    explicit Potential(Edges edges) :
+            n(edges.size()), potential(std::move(edges)),
+            potential_is_zero(potential.size(), ds::AdjacencyRow(potential.size())),
+            free_edges_g(potential.size(), ds::AdjacencyRow(potential.size())) {
         for (int u = 0; u < n; ++u) {
             for (int v = 0; v < n; ++v) {
                 assert(-INF <= potential[u][v] && potential[u][v] <= INF);
                 if (u == v)
                     continue;
                 if (potential[u][v] > 0) {
-                    free_edges_g[u].insert(v);
+                    free_edges_g[u].set(v);
                 } else if (potential[u][v] == 0) {
-                    potential_is_zero[u][v] = true;
+                    potential_is_zero[u].set(v);
                 }
             }
         }
@@ -129,14 +134,14 @@ public:
                     if (!potential_is_zero[u][v]) {
                         valid = false;
                     }
-                    if (free_edges_g[u].count(v) == 1) {
+                    if (free_edges_g[u].test(v)) {
                         valid = false;
                     }
                 } else if (potential[u][v] > 0) {
                     if (potential_is_zero[u][v]) {
                         valid = false;
                     }
-                    if (free_edges_g[u].count(v) == 0) {
+                    if (!free_edges_g[u].test(v)) {
                         valid = false;
                     }
                     if (!(0 <= potential[u][v] && potential[u][v] <= original_edges[u][v])) {
@@ -146,7 +151,7 @@ public:
                     if (potential_is_zero[u][v]) {
                         valid = false;
                     }
-                    if (free_edges_g[u].count(v) == 1) {
+                    if (free_edges_g[u].test(v)) {
                         valid = false;
                     }
                     if (!(original_edges[u][v] <= potential[u][v] && potential[u][v] <= 0)) {
@@ -158,10 +163,11 @@ public:
         return valid;
     }
 
-    bool is_consistent(const Edges &original_edges, const std::unordered_map<Star, int> &stars_in_bound) {
+    bool is_consistent(const Edges &original_edges,
+                       const robin_hood::unordered_map<Star, int> &stars_in_bound) {
         bool valid = is_consistent(original_edges);
         Potential other(original_edges);
-        for (auto [star, weight] : stars_in_bound) {
+        for (auto[star, weight] : stars_in_bound) {
             other.apply_star_to_potential(star, weight);
         }
         if (potential != other.potential) {
@@ -198,6 +204,10 @@ public:
         return potential_is_zero[u][v];
     };
 
+    [[nodiscard]] const auto &used_pairs(int u) const {
+        return potential_is_zero[u];
+    }
+
     [[nodiscard]] const auto &free_edges(int u) const {
         assert(0 <= u && u < n);
         return free_edges_g[u];
@@ -214,7 +224,7 @@ public:
                 return 0;
             weight = min(weight, potential[star.center()][u]);
 
-            for (size_t j = i+1; j < star.nodes.size(); ++j) {
+            for (size_t j = i + 1; j < star.nodes.size(); ++j) {
                 int v = star.nodes[j];
                 if (potential[u][v] >= 0)
                     return 0;
@@ -243,7 +253,7 @@ public:
         }
 #endif
 
-        bound += ((int)star.nodes.size() - 2) * weight;
+        bound += ((int) star.nodes.size() - 2) * weight;
 
 
         /*for (int i = 1; i < star.nodes.size(); ++i) {
@@ -252,7 +262,7 @@ public:
         }*/
         for (auto u : star.nodes) {
             for (auto v : star.nodes) {
-                if (u==v)
+                if (u == v)
                     continue;
                 if (u == star.center() || v == star.center()) {
                     assert(has_positive_potential(u, v));
@@ -260,10 +270,9 @@ public:
                     assert(potential[u][v] >= 0);
                     if (potential[u][v] == 0) {
                         potential_is_zero[u][v] = true;
-                        free_edges_g[u].erase(v);
+                        free_edges_g[u].reset(v);
                     }
-                }
-                else {
+                } else {
                     assert(has_negative_potential(u, v));
                     potential[u][v] += weight;
                     assert(potential[u][v] <= 0);
@@ -274,12 +283,12 @@ public:
             }
         }
 
-        return ((int)star.nodes.size() - 2) * weight;
+        return ((int) star.nodes.size() - 2) * weight;
     }
 
     int unapply_star_to_potential(Star star, int weight) {
         assert(0 < weight && weight < INF);
-        bound -= ((int)star.nodes.size() - 2) * weight;
+        bound -= ((int) star.nodes.size() - 2) * weight;
         for (auto u : star.nodes) {
             for (auto v : star.nodes) {
                 if (u == v)
@@ -287,14 +296,13 @@ public:
                 if (u == star.center() || v == star.center()) {
                     if (potential[u][v] == 0) {
                         potential_is_zero[u][v] = false;
-                        free_edges_g[u].insert(v);
+                        free_edges_g[u].set(v);
                     }
                     assert(potential[u][v] >= 0);
                     potential[u][v] += weight;
                     assert(potential[u][v] > 0);
 
-                }
-                else {
+                } else {
                     assert(potential[u][v] <= 0);
                     if (potential[u][v] == 0) {
                         potential_is_zero[u][v] = false;
@@ -304,14 +312,14 @@ public:
                 }
             }
         }
-        return -((int)star.nodes.size() - 2) * weight;
+        return -((int) star.nodes.size() - 2) * weight;
     };
 
     [[nodiscard]] int get_bound() const {
         return bound;
     }
 
-    const Edges& get_potential() const {
+    [[nodiscard]] const Edges &get_potential() const {
         return potential;
     }
 };
@@ -343,9 +351,9 @@ protected:
 public:
     Potential potential;
 private:
-    std::vector<std::unordered_set<Star>> stars;
-    std::unordered_map<pair<int, int>, std::set<Star>, pair_hash> stars_for_edge;
-    std::unordered_map<Star, int> stars_in_bound;
+    std::vector<robin_hood::unordered_set<Star>> stars;
+    robin_hood::unordered_map<pair<int, int>, robin_hood::unordered_set<Star>, pair_hash> stars_for_edge;
+    robin_hood::unordered_map<Star, int> stars_in_bound;
     std::vector<std::vector<int>> p3_count;
 
     std::mt19937_64 gen;
@@ -374,7 +382,7 @@ public:
 
     }
 
-    bool has_star(const Star &star) const {
+    [[nodiscard]] bool has_star(const Star &star) const {
         assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < n; }));
         return stars[star.center()].find(star) != stars[star.center()].end();
     };
@@ -389,19 +397,19 @@ public:
 
     };
 
-    bool can_add(const Star &star) const {
-        for (auto v1 : star.nodes)
-            for (auto v2 : star.nodes)
+    [[nodiscard]] bool can_add(const std::vector<int> &nodes) const {
+        for (auto v1 : nodes)
+            for (auto v2 : nodes)
                 if (v1 != v2 && potential.pair_used(v1, v2))
                     return false;
         return true;
     };
 
-    bool can_add_candidate(const Candidate &candidate) const {
+    [[nodiscard]] bool can_add_candidate(const Candidate &candidate) const {
         assert(std::all_of(candidate.nodes.begin(), candidate.nodes.end(),
                            [&](int u) { return 0 <= u && u < n; }));
         if (candidate.type == P3)
-            return can_add(Star(candidate.nodes));
+            return can_add(candidate.nodes);
 
         auto star = Star(vector<int>(candidate.nodes.begin(), candidate.nodes.end() - 1));
         auto ext = candidate.nodes.back();
@@ -412,7 +420,7 @@ public:
 
     [[nodiscard]] int add_star(Star star, int weight = -1) {
         // `insert` might invalidates iterators to `stars[...]` and `stars_for_edge[...]`
-        // `erase` might invalidate iterators to `free_edges_g[...]`
+        // `erase` might invalidate iteration over `free_edges_g[...]`
         // `stars_in_bound[star]` might invalidate iterators to `stars_in_bound`
 #ifndef NDEBUG
         assert(std::all_of(star.nodes.begin(), star.nodes.end(), [&](int u) { return 0 <= u && u < n; }));
@@ -454,7 +462,7 @@ public:
 
     void remove_star(Star star, int weight) {
         // `erase` might invalidates iterators to `stars[...]` and `stars_for_edge[...]`
-        // `insert` might invalidate iterators to `free_edges_g[...]`
+        // `insert` might invalidate iteration over `free_edges_g[...]`
 #ifndef NDEBUG
         assert(0 < weight && weight < INF);
         for (size_t i = 1; i < star.nodes.size(); ++i) {
@@ -513,18 +521,31 @@ public:
         }
     }
 
-    std::vector<Candidate> get_candidates(int u, int v) const {
+    [[nodiscard]] std::vector<Candidate> get_candidates(int u, int v) const {
         assert(0 <= u && u < n && 0 <= v && v < n);
         vector<Candidate> star_extensions;
 
         vector<array<int, 3>> p3s;
         if (potential[u][v] > 0) {
-            for (int y : potential.free_edges(v))
-                if (y != u && potential[u][y] < 0 && !potential.pair_used(u, y))
-                    p3s.push_back({v, u, y});
-            for (int y : potential.free_edges(u))
-                if (y != v && potential[v][y] < 0 && !potential.pair_used(v, y))
-                    p3s.push_back({u, v, y});
+
+            {
+                const auto &v_row = potential.free_edges(v);
+                const auto &u_row_used = potential.used_pairs(u);
+                auto get_block = [&](auto i) { return v_row.block(i) & ~u_row_used.block(i); };
+                ds::AdjacencyRow::for_each(v_row.num_blocks(), get_block, [&](int y) {
+                    if (y != u && potential[u][y] < 0)
+                        p3s.push_back({v, u, y});
+                });
+            }
+            {
+                const auto &u_row = potential.free_edges(u);
+                const auto &v_row_used = potential.used_pairs(v);
+                auto get_block = [&](auto i) { return u_row.block(i) & ~v_row_used.block(i); };
+                ds::AdjacencyRow::for_each(u_row.num_blocks(), get_block, [&](int y) {
+                    if (y != v && potential[v][y] < 0)
+                        p3s.push_back({u, v, y});
+                });
+            }
 
             for (auto p : {pair{u, v}, {v, u}}) {
                 auto center = p.first;
@@ -544,15 +565,19 @@ public:
                 }
             }
         } else if (potential[u][v] < 0) { //TODO or <= 0?
-            for (auto y : potential.free_edges(u))
-                if (potential.free_edges(v).find(y) != potential.free_edges(v).end())
+            {
+                const auto &row_u = potential.free_edges(u);
+                const auto &row_v = potential.free_edges(v);
+                auto get_block = [&](auto i) { return row_u.block(i) & row_v.block(i); };
+                ds::AdjacencyRow::for_each(row_u.num_blocks(), get_block, [&](int y) {
                     p3s.push_back({y, v, u});
-
+                });
+            }
 
             for (auto p : {pair{u, v}, {v, u}}) {
                 auto ext = p.first;
                 auto existing = p.second;
-                for (auto center : potential.free_edges(ext)) {
+                potential.free_edges(ext).for_each([&](auto center) {
                     if (auto stars_it = stars_for_edge.find({center, existing}); stars_it != stars_for_edge.end()) {
                         const auto&[_, stars] = *stars_it;
 
@@ -572,7 +597,7 @@ public:
                             }
                         }
                     }
-                }
+                });
             }
         }
 
@@ -731,15 +756,15 @@ public:
         return potential.is_consistent(original_edges, stars_in_bound);
     }
 
-    const auto& get_stars_in_bound() const {
+    [[nodiscard]] const auto &get_stars_in_bound() const {
         return stars_in_bound;
     }
 };
 
-vector<int> degeneracyOrdering(const map<int, vector<int>> &g) {
+vector<int> degeneracyOrdering(const robin_hood::unordered_map<int, vector<int>> &g) {
     vector<int> answer;
-    map<int, size_t> deg;
-    vector<set<int>> nodesByDeg;
+    robin_hood::unordered_map<int, size_t> deg;
+    vector<robin_hood::unordered_set<int>> nodesByDeg;
 
     for (const auto &[u, neighbors] : g) {
         auto d = deg[u] = size(neighbors);
@@ -776,10 +801,10 @@ vector<int> degeneracyOrdering(const map<int, vector<int>> &g) {
     return answer;
 }
 
-vector<vector<int>> coloring(const map<int, vector<int>> &g) {
+vector<vector<int>> coloring(const robin_hood::unordered_map<int, vector<int>> &g) {
     int maxColor = -1;
-    auto color = map<int, int>();
-    auto ans = vector<vector<int>>();
+    robin_hood::unordered_map<int, int> color;
+    vector<vector<int>> ans;
 
     for (auto u : degeneracyOrdering(g)) {
         set<int> neighborColors;
@@ -790,8 +815,11 @@ vector<vector<int>> coloring(const map<int, vector<int>> &g) {
             }
         }
         int c = 0;
-        while (neighborColors.find(c) != neighborColors.end())
-            c++;
+        for (int neighborColor : neighborColors) {
+            if (c != neighborColor)
+                break;
+            ++c;
+        }
         if (c > maxColor) {
             maxColor = c;
             ans.emplace_back();
@@ -810,12 +838,12 @@ auto star_bound_packing(const Instance &inst, int limit) {
     // Calculate degrees
     auto node_sizes = vector<pair<int, int>>();
     for (int i = 0; i < n; ++i) {
-        int neighbors = 0;
+        int num_neighbors = 0;
         for (int j = 0; j < n; ++j) {
             if (i == j) continue;
-            neighbors += inst.edges[i][j] > 0;
+            num_neighbors += inst.edges[i][j] > 0;
         }
-        node_sizes.emplace_back(neighbors, i);
+        node_sizes.emplace_back(num_neighbors, i);
     }
 
     sort(node_sizes.begin(), node_sizes.end(), greater<>());
@@ -824,15 +852,16 @@ auto star_bound_packing(const Instance &inst, int limit) {
         // Calc neighbor candidates
         auto candidates = bound.potential.free_edges(u);
         // Build neighborhood graph
-        auto neighborgraph = map<int, vector<int>>();
-        for (auto cand1 : candidates) {
-            for (auto cand2 : candidates)
+        robin_hood::unordered_map<int, vector<int>> neighbor_graph;
+        candidates.for_each([&](auto cand1) {
+            candidates.for_each([&](auto cand2) {
                 if (cand1 != cand2)
                     if (bound.potential.pair_used(cand1, cand2) || bound.potential[cand1][cand2] >= 0) // > or >= ?
-                        neighborgraph[cand1].push_back(cand2);
-        }
+                        neighbor_graph[cand1].push_back(cand2);
+            });
+        });
         // Build stars based on neighborhood coloring
-        auto stars = coloring(neighborgraph);
+        auto stars = coloring(neighbor_graph);
         for (const auto &star_leaves : stars) {
             if (size(star_leaves) < 2)
                 continue;
