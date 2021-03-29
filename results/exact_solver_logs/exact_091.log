@@ -1,0 +1,29 @@
+solving instance with n=180
+upper bound 3234
+INITIAL REDUCTION FINISHED
+time:  39.397 s
+size:  180
+lower: 3026
+upper: 3234
+gap:   208
+STARTING BRANCH AND BOUND
+split into 1 CCs
+start solving CC of size 180 first bound 3026
+3026	 (total: 3026)3027	 (total: 3027)3028	 (total: 3028)3029	 (total: 3029)3030	 (total: 3030)3031	 (total: 3031)3032	 (total: 3032)3033	 (total: 3033)3034	 (total: 3034)3035	 (total: 3035)3036	 (total: 3036)3037	 (total: 3037)3038	 (total: 3038)3039	 (total: 3039)3040	 (total: 3040)3041	 (total: 3041)3042	 (total: 3042)3043	 (total: 3043)3044	 (total: 3044)3045	 (total: 3045)3046	 (total: 3046)3047	 (total: 3047)3048	 (total: 3048)3049	 (total: 3049)3050	 (total: 3050)3051	 (total: 3051)3052	 (total: 3052)3053	 (total: 3053)3054	 (total: 3054)3055	 (total: 3055)3056	 (total: 3056)3057	 (total: 3057)
+time limit exceeded
+branching nodes: 187
+reductions:      21
+	forced (star): 25
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  1
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          218
+
+0
+k=1000000000
+1801.1

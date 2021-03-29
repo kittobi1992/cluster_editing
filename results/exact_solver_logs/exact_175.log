@@ -1,0 +1,151 @@
+solving instance with n=313
+upper bound 557
+reduced to n=83 -INFs=6642 spent=549 with force star
+reduced to n=79 -INFs=6064 spent=549 with force star
+reduced to n=79 -INFs=6078 spent=551 with force star
+reduced to n=62 -INFs=3770 spent=552 with force p3
+reduced to n=61 -INFs=3652 spent=556 with twin complex
+reduced to n=60 -INFs=3534 spent=556 with twin simple
+reduced to n=59 -INFs=3420 spent=557 with twin complex
+reduced to n=58 -INFs=3306 spent=557 with twin simple
+reduced to n=58 -INFs=3364 spent=557 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  1.157 s
+size:  58
+lower: 557
+upper: 557
+gap:   0
+STARTING BRANCH AND BOUND
+split into 58 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+start solving CC of size 1 first bound 0
+0	 (total: 557)
+branching nodes: 0
+reductions:      0
+	forced (star): 0
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  0
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          0
+
+1
+k=557
+1.15819

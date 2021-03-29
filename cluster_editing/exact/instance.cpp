@@ -48,3 +48,11 @@ Instance load_exact_instance(int num) {
     inst.orig = res;
     return inst;
 }
+
+int forbiddenEdges(const Instance &inst) {
+    int res = 0;
+    for(auto& row : inst.edges)
+        for(auto val : row)
+            res += (val==-INF);
+    return res;
+}

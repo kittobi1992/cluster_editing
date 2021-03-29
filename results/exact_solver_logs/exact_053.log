@@ -1,0 +1,35 @@
+solving instance with n=120
+upper bound 1481
+reduced to n=119 -INFs=132 spent=14 with forced single merge
+reduced to n=119 -INFs=136 spent=14 with force star
+reduced to n=118 -INFs=136 spent=31 with forced single merge
+reduced to n=117 -INFs=136 spent=51 with forced single merge
+reduced to n=117 -INFs=138 spent=51 with force star
+reduced to n=116 -INFs=138 spent=62 with forced single merge
+reduced to n=116 -INFs=142 spent=62 with force star
+INITIAL REDUCTION FINISHED
+time:  34.244 s
+size:  116
+lower: 1458
+upper: 1481
+gap:   23
+STARTING BRANCH AND BOUND
+split into 1 CCs
+start solving CC of size 116 first bound 1396
+1396	 (total: 1458)1397	 (total: 1459)1398	 (total: 1460)1399	 (total: 1461)1400	 (total: 1462)1401	 (total: 1463)1402	 (total: 1464)1403	 (total: 1465)1404	 (total: 1466)1405	 (total: 1467)1406	 (total: 1468)1407	 (total: 1469)1408	 (total: 1470)1409	 (total: 1471)1410	 (total: 1472)1411	 (total: 1473)1412	 (total: 1474)1413	 (total: 1475)1414	 (total: 1476)1415	 (total: 1477)1416	 (total: 1478)1417	 (total: 1479)1418	 (total: 1480)1419	 (total: 1481)
+branching nodes: 149
+reductions:      220
+	forced (star): 621
+	forced (p3):   34
+	twin simple:   1
+	twin complex:  90
+	icx:           1
+	h edge (b):    1
+	h edge (s):    5
+	h non edge:    5
+disconnects:     0
+prunes:          153
+
+1
+k=1481
+1048.47

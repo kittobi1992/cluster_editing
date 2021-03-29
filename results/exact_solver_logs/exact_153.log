@@ -1,0 +1,30 @@
+solving instance with n=250
+upper bound 6
+reduced to n=1 -INFs=0 spent=6 with force star
+reduced to n=1 -INFs=1 spent=6 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  2.475 s
+size:  1
+lower: 6
+upper: 6
+gap:   0
+STARTING BRANCH AND BOUND
+split into 1 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 6)
+branching nodes: 0
+reductions:      0
+	forced (star): 0
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  0
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          0
+
+1
+k=6
+2.47619

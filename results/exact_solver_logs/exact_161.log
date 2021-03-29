@@ -1,0 +1,181 @@
+solving instance with n=279
+upper bound 333
+reduced to n=146 -INFs=20214 spent=257 with force star
+reduced to n=133 -INFs=16776 spent=259 with force p3
+reduced to n=131 -INFs=16300 spent=260 with force p3
+reduced to n=131 -INFs=16302 spent=260 with force star
+reduced to n=131 -INFs=16304 spent=260 with force p3
+reduced to n=92 -INFs=7942 spent=260 with twin simple
+reduced to n=91 -INFs=7790 spent=262 with force p3
+reduced to n=89 -INFs=7470 spent=266 with force star
+reduced to n=83 -INFs=6520 spent=271 with twin complex
+reduced to n=82 -INFs=6386 spent=274 with twin complex
+reduced to n=81 -INFs=6228 spent=290 with twin complex
+reduced to n=80 -INFs=6092 spent=291 with twin complex
+reduced to n=80 -INFs=6094 spent=291 with force star
+reduced to n=79 -INFs=5958 spent=295 with force p3
+reduced to n=78 -INFs=5828 spent=300 with force p3
+reduced to n=77 -INFs=5690 spent=305 with twin complex
+reduced to n=77 -INFs=5692 spent=305 with force p3
+reduced to n=76 -INFs=5554 spent=306 with twin complex
+reduced to n=75 -INFs=5422 spent=307 with twin complex
+reduced to n=74 -INFs=5288 spent=308 with twin complex
+reduced to n=74 -INFs=5304 spent=311 with force star
+reduced to n=72 -INFs=5086 spent=317 with force p3
+reduced to n=70 -INFs=4808 spent=317 with twin simple
+reduced to n=69 -INFs=4674 spent=321 with twin complex
+reduced to n=68 -INFs=4546 spent=326 with twin complex
+reduced to n=68 -INFs=4548 spent=326 with force star
+reduced to n=68 -INFs=4612 spent=326 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  0.634 s
+size:  68
+lower: 326
+upper: 333
+gap:   7
+STARTING BRANCH AND BOUND
+split into 64 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 1 first bound 0
+0	 (total: 326)
+start solving CC of size 5 first bound 0
+0	 (total: 326)1	 (total: 327)2	 (total: 328)3	 (total: 329)4	 (total: 330)5	 (total: 331)6	 (total: 332)7	 (total: 333)
+branching nodes: 1
+reductions:      7
+	forced (star): 7
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  0
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          7
+
+1
+k=333
+0.635384

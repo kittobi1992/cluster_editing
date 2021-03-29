@@ -11,6 +11,8 @@ set(ExactSources
     lower_bounds.cpp
     star_bound.h
     star_bound.cpp
+        kab_bounds.h
+        kab_bounds.cpp
 )
 
 

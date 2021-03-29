@@ -1,0 +1,28 @@
+solving instance with n=50
+upper bound 236
+INITIAL REDUCTION FINISHED
+time:  3.207 s
+size:  50
+lower: 228
+upper: 236
+gap:   8
+STARTING BRANCH AND BOUND
+split into 1 CCs
+start solving CC of size 50 first bound 228
+228	 (total: 228)229	 (total: 229)230	 (total: 230)231	 (total: 231)232	 (total: 232)233	 (total: 233)234	 (total: 234)235	 (total: 235)236	 (total: 236)
+branching nodes: 176
+reductions:      105
+	forced (star): 222
+	forced (p3):   44
+	twin simple:   0
+	twin complex:  63
+	icx:           0
+	h edge (b):    3
+	h edge (s):    3
+	h non edge:    10
+disconnects:     0
+prunes:          182
+
+1
+k=236
+40.9899

@@ -1,0 +1,29 @@
+solving instance with n=120
+upper bound 1619
+INITIAL REDUCTION FINISHED
+time:  10.952 s
+size:  120
+lower: 1490
+upper: 1619
+gap:   129
+STARTING BRANCH AND BOUND
+split into 1 CCs
+start solving CC of size 120 first bound 1490
+1490	 (total: 1490)1491	 (total: 1491)1492	 (total: 1492)1493	 (total: 1493)1494	 (total: 1494)1495	 (total: 1495)1496	 (total: 1496)1497	 (total: 1497)1498	 (total: 1498)1499	 (total: 1499)1500	 (total: 1500)1501	 (total: 1501)1502	 (total: 1502)1503	 (total: 1503)1504	 (total: 1504)1505	 (total: 1505)1506	 (total: 1506)1507	 (total: 1507)1508	 (total: 1508)1509	 (total: 1509)1510	 (total: 1510)1511	 (total: 1511)1512	 (total: 1512)1513	 (total: 1513)1514	 (total: 1514)1515	 (total: 1515)1516	 (total: 1516)1517	 (total: 1517)1518	 (total: 1518)
+time limit exceeded
+branching nodes: 639
+reductions:      74
+	forced (star): 78
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  0
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          666
+
+0
+k=1000000000
+1800.01

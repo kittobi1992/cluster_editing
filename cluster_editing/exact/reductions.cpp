@@ -260,11 +260,12 @@ std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, boo
     vector<tuple<int,int,int>> forced;
     for(int u=0; u<n; ++u) {
         for(int v=u+1; v<n; ++v) {
+            if(inst.edges[u][v]==-INF) continue;
 
             // remove triple
             auto old = potential[u][v];
-            if(tripleMap[u][v]==-2) continue; // TODO for now only try edges that have 0 or 1 assinged triples
-            if(tripleMap[u][v] != -1) {
+            //if(tripleMap[u][v]==-2) continue; // TODO for now only try edges that have 0 or 1 assinged triples
+            if(tripleMap[u][v] >= 0) {
                 auto t = packing[tripleMap[u][v]];
                 lower += t.apply(potential,true);
                 old = potential[u][v];
@@ -272,9 +273,9 @@ std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, boo
 
             // see what happens if i set uv to permanent or forbidden
             for(auto choice : {INF, -INF}) {
-                int increase = 0;
+                int increase = tripleMap[u][v]==-2 ? -abs(inst.edges[u][v]-old) : 0;
                 auto uv_cost = inst.edges[u][v];
-                if(choice==INF && uv_cost<0) increase += uv_cost;
+                if(choice==INF && uv_cost<0) increase += abs(uv_cost);
                 if(choice==-INF && uv_cost>0) increase += uv_cost;
                 potential[u][v] = potential[v][u] = choice;
                 for(int x=0; x<n; ++x) {
@@ -287,7 +288,7 @@ std::optional<Instance> forcedChoices(const Instance& inst, int upper_bound, boo
 
             // reapply triple
             potential[u][v] = potential[v][u] = old;
-            if(tripleMap[u][v] != -1) {
+            if(tripleMap[u][v] >= 0) {
                 auto t = packing[tripleMap[u][v]];
                 lower += t.apply(potential);
             }

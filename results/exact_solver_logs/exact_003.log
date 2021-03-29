@@ -1,0 +1,29 @@
+solving instance with n=20
+upper bound 42
+reduced to n=20 -INFs=59 spent=0 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  0.284 s
+size:  20
+lower: 40
+upper: 42
+gap:   2
+STARTING BRANCH AND BOUND
+split into 1 CCs
+start solving CC of size 20 first bound 40
+40	 (total: 40)41	 (total: 41)42	 (total: 42)
+branching nodes: 6
+reductions:      5
+	forced (star): 6
+	forced (p3):   6
+	twin simple:   0
+	twin complex:  4
+	icx:           1
+	h edge (b):    1
+	h edge (s):    0
+	h non edge:    3
+disconnects:     0
+prunes:          7
+
+1
+k=42
+0.418145

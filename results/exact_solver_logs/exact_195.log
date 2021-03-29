@@ -1,0 +1,170 @@
+solving instance with n=620
+upper bound 2531
+reduced to n=610 -INFs=344924 spent=6 with twin simple
+reduced to n=609 -INFs=343722 spent=7 with twin complex
+reduced to n=608 -INFs=342520 spent=8 with twin complex
+reduced to n=606 -INFs=340108 spent=10 with twin complex
+reduced to n=605 -INFs=338922 spent=11 with twin complex
+reduced to n=604 -INFs=337730 spent=12 with twin complex
+reduced to n=604 -INFs=338273 spent=12 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  56.166 s
+size:  604
+lower: 2433
+upper: 2531
+gap:   98
+STARTING BRANCH AND BOUND
+split into 71 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 1 first bound 0
+0	 (total: 12)
+start solving CC of size 26 first bound 35
+35	 (total: 47)36	 (total: 48)
+start solving CC of size 34 first bound 93
+93	 (total: 141)94	 (total: 142)95	 (total: 143)96	 (total: 144)97	 (total: 145)
+start solving CC of size 56 first bound 167
+167	 (total: 312)168	 (total: 313)169	 (total: 314)170	 (total: 315)171	 (total: 316)172	 (total: 317)
+start solving CC of size 60 first bound 239
+239	 (total: 556)240	 (total: 557)241	 (total: 558)242	 (total: 559)243	 (total: 560)244	 (total: 561)245	 (total: 562)246	 (total: 563)247	 (total: 564)248	 (total: 565)249	 (total: 566)250	 (total: 567)
+start solving CC of size 72 first bound 411
+411	 (total: 978)412	 (total: 979)413	 (total: 980)414	 (total: 981)415	 (total: 982)416	 (total: 983)417	 (total: 984)418	 (total: 985)419	 (total: 986)420	 (total: 987)421	 (total: 988)422	 (total: 989)423	 (total: 990)424	 (total: 991)425	 (total: 992)426	 (total: 993)427	 (total: 994)428	 (total: 995)429	 (total: 996)430	 (total: 997)431	 (total: 998)
+time limit exceeded
+branching nodes: 3424
+reductions:      2406
+	forced (star): 3481
+	forced (p3):   306
+	twin simple:   4
+	twin complex:  462
+	icx:           9
+	h edge (b):    35
+	h edge (s):    41
+	h non edge:    1104
+disconnects:     145
+prunes:          3449
+
+0
+k=1000000000
+1800.21

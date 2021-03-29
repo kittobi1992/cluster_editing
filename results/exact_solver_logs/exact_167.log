@@ -1,0 +1,29 @@
+solving instance with n=300
+upper bound 9861
+INITIAL REDUCTION FINISHED
+time:  309.326 s
+size:  300
+lower: 9360
+upper: 9861
+gap:   501
+STARTING BRANCH AND BOUND
+split into 1 CCs
+start solving CC of size 300 first bound 9360
+9360	 (total: 9360)9361	 (total: 9361)9362	 (total: 9362)9363	 (total: 9363)9364	 (total: 9364)9365	 (total: 9365)9366	 (total: 9366)9367	 (total: 9367)9368	 (total: 9368)9369	 (total: 9369)9370	 (total: 9370)9371	 (total: 9371)9372	 (total: 9372)9373	 (total: 9373)9374	 (total: 9374)9375	 (total: 9375)9376	 (total: 9376)9377	 (total: 9377)9378	 (total: 9378)9379	 (total: 9379)9380	 (total: 9380)9381	 (total: 9381)9382	 (total: 9382)
+time limit exceeded
+branching nodes: 13
+reductions:      10
+	forced (star): 12
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  1
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          36
+
+0
+k=1000000000
+1808.56

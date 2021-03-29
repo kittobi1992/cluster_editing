@@ -1,0 +1,32 @@
+solving instance with n=70
+upper bound 285
+reduced to n=2 -INFs=2 spent=285 with force star
+reduced to n=2 -INFs=4 spent=285 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  0.168 s
+size:  2
+lower: 285
+upper: 285
+gap:   0
+STARTING BRANCH AND BOUND
+split into 2 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 285)
+start solving CC of size 1 first bound 0
+0	 (total: 285)
+branching nodes: 0
+reductions:      0
+	forced (star): 0
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  0
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          0
+
+1
+k=285
+0.168998

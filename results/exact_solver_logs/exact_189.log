@@ -1,0 +1,83 @@
+solving instance with n=347
+upper bound 8563
+reduced to n=84 -INFs=1820 spent=8350 with force star
+reduced to n=34 -INFs=662 spent=8494 with force star
+reduced to n=34 -INFs=736 spent=8515 with force star
+reduced to n=33 -INFs=708 spent=8516 with force star
+reduced to n=33 -INFs=710 spent=8516 with force star
+reduced to n=33 -INFs=738 spent=8516 with force p3
+reduced to n=32 -INFs=704 spent=8516 with twin simple
+reduced to n=32 -INFs=728 spent=8516 with force star
+reduced to n=32 -INFs=764 spent=8516 with force p3
+reduced to n=31 -INFs=724 spent=8516 with twin simple
+reduced to n=25 -INFs=492 spent=8541 with twin complex
+reduced to n=25 -INFs=510 spent=8544 with force star
+reduced to n=25 -INFs=560 spent=8544 with force p3
+reduced to n=23 -INFs=476 spent=8560 with twin complex
+reduced to n=22 -INFs=440 spent=8561 with twin complex
+reduced to n=21 -INFs=404 spent=8562 with twin complex
+reduced to n=21 -INFs=412 spent=8562 with force p3
+reduced to n=20 -INFs=374 spent=8562 with twin simple
+reduced to n=19 -INFs=340 spent=8563 with twin complex
+reduced to n=18 -INFs=306 spent=8563 with twin simple
+reduced to n=18 -INFs=324 spent=8563 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  42.012 s
+size:  18
+lower: 8563
+upper: 8563
+gap:   0
+STARTING BRANCH AND BOUND
+split into 18 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+start solving CC of size 1 first bound 0
+0	 (total: 8563)
+branching nodes: 0
+reductions:      0
+	forced (star): 0
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  0
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          0
+
+1
+k=8563
+42.0134

@@ -1,0 +1,34 @@
+solving instance with n=140
+upper bound 1612
+reduced to n=3 -INFs=6 spent=1612 with force star
+reduced to n=3 -INFs=9 spent=1612 with heavy non-edge
+INITIAL REDUCTION FINISHED
+time:  1.192 s
+size:  3
+lower: 1612
+upper: 1612
+gap:   0
+STARTING BRANCH AND BOUND
+split into 3 CCs
+start solving CC of size 1 first bound 0
+0	 (total: 1612)
+start solving CC of size 1 first bound 0
+0	 (total: 1612)
+start solving CC of size 1 first bound 0
+0	 (total: 1612)
+branching nodes: 0
+reductions:      0
+	forced (star): 0
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  0
+	icx:           0
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    0
+disconnects:     0
+prunes:          0
+
+1
+k=1612
+1.19269

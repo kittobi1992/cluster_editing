@@ -9,7 +9,7 @@ using IDMap = std::vector<std::vector<int>>; // for every node in current graph,
 const int INF = 1e9;
 
 struct Instance {
-    Edges orig;
+  Edges orig;
   Edges edges;
   IDMap idmap;
 
@@ -23,5 +23,7 @@ struct Instance {
     orig = edges;
   }
 };
+
+int forbiddenEdges(const Instance& inst);
 
 Instance load_exact_instance(int num);

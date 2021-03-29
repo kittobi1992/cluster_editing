@@ -10,6 +10,7 @@
 #include <cluster_editing/exact/lower_bounds.h>
 #include <cluster_editing/exact/thomas.h>
 #include <cluster_editing/exact/star_bound.h>
+#include <cluster_editing/flat.h>
 
 #include "cluster_editing/multilevel.h"
 #include "cluster_editing/io/graph_io.h"
@@ -140,19 +141,44 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
         for(auto val : row)
             isUnweighted &= val==1 || val==-1;
     if(isUnweighted) {
+        auto t1 = chrono::steady_clock::now();
         auto upper = solve_heuristic(inst).cost;
         if(verbose) cout << "upper bound " << upper << endl;
         if(auto opt = thomas(inst); opt) inst = *opt; // TODO multiple thomas reductions
         if(auto opt = distance4Reduction(inst); opt) inst = *opt;
-        if(auto opt = simpleTwin(inst); opt) inst = *opt;
-        //if(auto opt = forcedChoices(inst, upper); opt) inst = *opt;
+        while(true) {
+            string applied = "";
+            if(empty(applied)) if(auto opt = forcedChoicesStarBound(inst, upper, false); opt) inst = *opt, applied = "force star";
+            if(empty(applied)) if(auto opt = forcedChoices(inst, upper); opt) inst = *opt, applied = "force p3";
+            if(empty(applied)) if(auto opt = simpleTwin(inst); opt) inst = *opt, applied = "twin simple";
+            if(empty(applied)) if(auto opt = complexTwin(inst,true); opt) inst = *opt, applied = "twin complex";
+            if(empty(applied)) if(auto opt = icxReductions(inst, upper); opt) inst = *opt, applied = "icx";
+            if(empty(applied)) if(auto opt = thomas_pairs(inst); opt) inst = *opt, applied = "heavy edge (b)";
+            if(empty(applied)) if(auto opt = heavy_edge_single_end(inst); opt) inst = *opt, applied = "heavy edge (s)";
+            if(empty(applied)) if(auto opt = heavy_non_edge_single_end(inst); opt) inst = *opt, applied = "heavy non-edge";
+            if(empty(applied)) if(auto opt = forcedChoicesSingleMerge(inst, upper, false); opt) inst = *opt, applied = "forced single merge";
+            if(empty(applied)) break;
+            else if(verbose) cout << "reduced to n=" << size(inst.edges)
+                << " -INFs=" << forbiddenEdges(inst)
+                << " spent=" << inst.spendCost
+                << " with " << applied << endl;
+        }
+        auto t2 = chrono::steady_clock::now();
+        if(verbose) {
+            cout << "INITIAL REDUCTION FINISHED" << endl;
+            cout << "time:  " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() * 0.001 << " s\n";
+            cout << "size:  " << size(inst.edges) << endl;
+            int lower = star_bound(inst,upper);
+            cout << "lower: " << inst.spendCost + lower << endl;
+            cout << "upper: " << upper << endl;
+            cout << "gap:   " << upper-lower-inst.spendCost << endl;
+            cout << "STARTING BRANCH AND BOUND" << endl;
+        }
     }
 
     Solution s_comb;
     s_comb.cost = inst.spendCost;
 
-    if(verbose) cout << "cost of initial reductions " << s_comb.cost << endl;
-    if(verbose) cout << "instance size after reductions n=" << size(inst.edges) << endl;
     auto comps = constructConnectedComponents(inst);
     sort(begin(comps), end(comps), [](auto& a, auto& b){ return size(a.edges)<size(b.edges); });
     if(verbose) cout << "split into " << size(comps) << " CCs" << endl;
@@ -163,7 +189,7 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
         if(verbose) cout << "start solving CC of size " << size(comp.edges) << " first bound " << lower << endl;
 
         for (int budget = lower; !s.worked && s_comb.cost+budget<=budget_limit; ++budget) {
-            if(verbose) cout << budget << "   \r" << flush;
+            if(verbose) cout << budget << "\t (total: " << s_comb.cost + budget << ")\r" << flush;
             s = solve_internal(comp, budget);
 
             if(chrono::steady_clock::now()>time_limit) {
@@ -212,33 +238,55 @@ Solution solve_heuristic(const Instance &inst) {
             adj[j].push_back(i);
         }
     }
+    cluster_editing::Graph graph = cluster_editing::ds::GraphFactory::construct(adj);
+
+    // TODO bring over evo
+    // TODO stop if lower bound reached
 
     cluster_editing::Context context;
     context.coarsening.algorithm = cluster_editing::CoarseningAlgorithm::lp_coarsener;
-    context.refinement.lp.maximum_lp_iterations = 5;
-    cluster_editing::Graph graph = cluster_editing::ds::GraphFactory::construct(adj);
+    context.refinement.lp.maximum_lp_iterations = 500;
+    context.refinement.lp.activate_all_cliques_after_rounds = 10;
+    context.refinement.lp.random_shuffle_each_round = true;
+    context.refinement.lp.node_order = cluster_editing::NodeOrdering::random_shuffle;
     context.general.verbose_output = false;
+    context.refinement.use_lp_refiner = true;
 
-    cluster_editing::multilevel::solve(graph, context);
+    size_t num_reps = 200;
+    size_t best_num_edits = graph.numEdges();
+    vector<int> clique_assignment(n);
+    auto update = [&] {
+        size_t num_edits = cluster_editing::metrics::edits(graph);
+        if (num_edits < best_num_edits) {
+            best_num_edits = num_edits;
+            for (auto u : graph.nodes()) {
+                clique_assignment[u] = graph.clique(u);
+            }
+        }
+        graph.reset();
+    };
+
+    auto t_begin = std::chrono::steady_clock::now();
+    for (size_t i = 0; i < num_reps; ++i) {
+        cluster_editing::flat::solve(graph, context);
+        update();
+    }
+    auto t_flat = std::chrono::steady_clock::now();
+    for (size_t i = 0; i < num_reps; ++i) {
+        cluster_editing::multilevel::solve(graph, context);
+        update();
+    }
+    auto t_end = std::chrono::steady_clock::now();
 
     // build the solution
     Solution solution;
-    const size_t edge_insertions = cluster_editing::metrics::edge_insertions(graph);
-    const size_t edge_deletions = cluster_editing::metrics::edge_deletions(graph);
-    solution.cost = inst.spendCost + edge_deletions + edge_insertions;
+    solution.cost = inst.spendCost + best_num_edits;
 
-    vector<int> clique(n);
-    int maxclq = 0;
-    for (auto node: graph.nodes()) {
-        clique[node] = graph.clique(node);
-        if (clique[node] > maxclq)
-            maxclq = clique[node];
-    }
+    int maxclq = *std::max_element(clique_assignment.begin(), clique_assignment.end());
     vector<vector<int>> clusters(maxclq + 1);
     for (int i = 0; i < n; ++i)
-        clusters[clique[i]].push_back(i);
+        clusters[clique_assignment[i]].push_back(i);
     solution.cliques = clusters;
-
     return solution;
 }
 
