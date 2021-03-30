@@ -888,6 +888,9 @@ auto star_bound_packing(const Instance &inst, int limit) {
         // Build neighborhood graph
         robin_hood::unordered_map<int, vector<int>> neighbor_graph;
         ds::AdjacencyRow::for_each(u_row_adj.num_blocks(), get_block_candidate, [&](auto cand1) {
+            neighbor_graph[cand1] = vector<int>();
+        });
+        ds::AdjacencyRow::for_each(u_row_adj.num_blocks(), get_block_candidate, [&](auto cand1) {
             ds::AdjacencyRow::for_each(u_row_adj.num_blocks(), get_block_candidate,[&](auto cand2) {
                 if (cand1 != cand2)
                     if (bound.potential.pair_used(cand1, cand2) || bound.potential[cand1][cand2] >= 0) // > or >= ?
