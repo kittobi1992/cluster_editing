@@ -31,3 +31,5 @@ std::optional<Instance> complexTwin(const Instance& inst, bool calc_dp);
 std::optional<Instance> mergeCliques(const Instance& inst);
 
 std::optional<Instance> weightedKernel(const Instance& inst);
+
+std::optional<Instance> force_small_components(const Instance& inst);

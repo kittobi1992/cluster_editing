@@ -77,7 +77,7 @@ struct Star {
         return nodes == rhs.nodes;
     }
 
-    bool includes_edge(int u, int v) {
+    bool includes_edge(int u, int v) const {
         auto has_u = nodes[0]==u || binary_search(begin(nodes)+1, end(nodes), u);
         auto has_v = nodes[0]==v || binary_search(begin(nodes)+1, end(nodes), v);
         return has_u && has_v;
@@ -756,7 +756,13 @@ public:
     }
     StarDiff removeStarsForEdge(int u, int v) {
         StarDiff res;
-        for(auto star : stars_in_random_order()) {
+        vector<Star> relevantStars;
+        for(int c=0; c<n; ++c)
+            for(const auto& star : stars_for_edge[pair(c, c!=v ? v : u)])
+                if(star.includes_edge(u,v))
+                    relevantStars.push_back(star);
+
+        for(auto& star : relevantStars) {
             if(!star.includes_edge(u,v)) continue;
             res.removed.emplace_back(star, stars_in_bound[star]);
             remove_star(star,stars_in_bound[star]);
@@ -917,8 +923,10 @@ int star_bound(const Instance &inst, int limit) {
 }
 
 std::optional<Instance> forcedChoicesStarBound(const Instance& inst, int upper_bound, bool verbose, int min_time) {
+    auto t1 = chrono::steady_clock::now();
     auto bound = star_bound_packing(inst, upper_bound, min_time);
     int n=size(inst.edges);
+    auto t2 = chrono::steady_clock::now();
 
     if(verbose) {
         int fpos = 0;
@@ -1024,11 +1032,15 @@ std::optional<Instance> forcedChoicesStarBound(const Instance& inst, int upper_b
             }
         }
     }
+    auto t3 = chrono::steady_clock::now();
+
     if(verbose) {
         int perms = 0;
         for(auto [u,v,c] : forced) perms += (c==INF);
         cout << "num close " << close << endl;
         cout << "num pushed " << pushed << endl;
+        cout << "time bound " << chrono::duration_cast<chrono::duration<double>>(t2-t1).count() << endl;
+        cout << "time check " << chrono::duration_cast<chrono::duration<double>>(t3-t2).count() << endl;
         cout << "Forced: " << size(forced) << "\tPerm: " << perms << "\tForb: " << size(forced)-perms << endl;
     }
 

@@ -6,7 +6,6 @@
 #include <iomanip>
 
 #include <cluster_editing/exact/instance.h>
-#include <cluster_editing/exact/lower_bounds.h>
 #include <cluster_editing/exact/reductions.h>
 #include <cluster_editing/exact/thomas.h>
 #include <cluster_editing/exact/solver.h>
@@ -15,42 +14,41 @@
 using namespace std;
 
 set not_solved {
-    43,
-    45,
+    43, // did it once; 984 is solution
     51,
-    53,
     69,
-    81,
     83,
     91,
     93,
-    99,
     101,
     103,
-    141,
+    105, // was solved by threshold editing; needs faster branching :)
     167,
     169,
     179,
     181,
     183,
-    187,
     191,
-    193,
     195,
     197,
 };
 
 bool reduce(Instance& inst, int upper) {
-    bool changed = false;
-    if(auto opt = forcedChoicesStarBound(inst, upper, false); opt) inst = *opt, changed = true;
-    if(auto opt = complexTwin(inst,true); opt) inst = *opt, changed = true;
-    if(auto opt = forcedChoices(inst, upper, false); opt) inst = *opt, changed = true;
-    if(auto opt = icxReductions(inst, upper); opt) inst = *opt, changed = true;
-    if(auto opt = thomas_pairs(inst); opt) inst = *opt, changed = true;
-    if(auto opt = heavy_edge_single_end(inst); opt) inst = *opt, changed = true;
-    if(auto opt = heavy_non_edge_single_end(inst); opt) inst = *opt, changed = true;
-    if(auto opt = forcedChoicesSingleMerge(inst, upper, false); opt) inst = *opt, changed = true;
-    return changed;
+    string applied = "";
+    if(empty(applied)) if(auto opt = force_small_components(inst); opt) inst = *opt, applied = "small clean up";
+    if(empty(applied)) if(auto opt = forcedChoicesStarBound(inst, upper, false); opt) inst = *opt, applied = "force star";
+    if(empty(applied)) if(auto opt = forcedChoices(inst, upper); opt) inst = *opt, applied = "force p3";
+    if(empty(applied)) if(auto opt = simpleTwin(inst); opt) inst = *opt, applied = "twin simple";
+    if(empty(applied)) if(auto opt = complexTwin(inst,true); opt) inst = *opt, applied = "twin complex";
+    if(empty(applied)) if(auto opt = icxReductions(inst, upper); opt) inst = *opt, applied = "icx";
+    if(empty(applied)) if(auto opt = thomas_pairs(inst); opt) inst = *opt, applied = "heavy edge (b)";
+    if(empty(applied)) if(auto opt = heavy_edge_single_end(inst); opt) inst = *opt, applied = "heavy edge (s)";
+    if(empty(applied)) if(auto opt = heavy_non_edge_single_end(inst); opt) inst = *opt, applied = "heavy non-edge";
+    //if(empty(applied)) if(auto opt = forcedChoicesStarBound(inst, upper, true, 60); opt) inst = *opt, applied = "force star (slow)";
+    if(empty(applied)) if(auto opt = forcedChoicesSingleMerge(inst, upper, false); opt) inst = *opt, applied = "forced single merge";
+    if(empty(applied)) if(auto opt = weightedKernel(inst); opt) inst = *opt, applied = "weighted kernel";
+    //if(applied!="") cout << "reduced to n=" << size(inst.edges) << " -INFs=" << forbiddenEdges(inst) << " spent=" << inst.spendCost << " with " << applied << endl;
+    return !empty(applied);
 }
 
 int real_inst_size(const Instance& inst) {

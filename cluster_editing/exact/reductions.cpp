@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include <cluster_editing/exact/lower_bounds.h>
+#include <cluster_editing/exact/solver.h>
 
 using namespace std;
 
@@ -542,4 +543,46 @@ std::optional<Instance> weightedKernel(const Instance &inst) {
         return res;
     }
     return {};
+}
+
+std::optional<Instance> force_small_components(const Instance &inst) {
+    int n = inst.edges.size();
+    auto compNum = connectedComponents(inst.edges);
+    auto numComps = *max_element(begin(compNum), end(compNum)) + 1;
+    if(numComps==1) return {};
+
+    vector<vector<int>> nodesPerComp(numComps);
+    for(int i=0; i<n; ++i) nodesPerComp[compNum[i]].push_back(i);
+
+    // solve all components that are smaller than 21 nodes
+    Instance res = inst;
+    vector<int> to_delete;
+    int rem_comps = numComps;
+    for(int c=0; c<numComps && rem_comps>1; ++c) {
+        if(nodesPerComp[c].size()>20) continue;
+        rem_comps--;
+
+        // build sub-instance
+        Instance comp(nodesPerComp[c].size());
+        for (int u = 0; u < size(nodesPerComp[c]); ++u) {
+            comp.idmap[u] = inst.idmap[nodesPerComp[c][u]];
+            for (int v = 0; v < nodesPerComp[c].size(); ++v) {
+                comp.edges[u][v] = inst.edges[nodesPerComp[c][u]][nodesPerComp[c][v]];
+                comp.orig[u][v] = inst.orig[nodesPerComp[c][u]][nodesPerComp[c][v]];
+            }
+        }
+
+        // solve it
+        auto s = solve_exact(comp);
+
+        // add clusters to global solution and remove component from instance
+        res.spendCost += s.cost;
+        for(auto& cluster : s.cliques) res.done_clusters.push_back(cluster);
+        for(auto v : nodesPerComp[c]) to_delete.push_back(v);
+    }
+
+    if(rem_comps == numComps) return {};
+
+    res = remove_nodes(res, to_delete);
+    return res;
 }
