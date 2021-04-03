@@ -54,5 +54,5 @@ int forbiddenEdges(const Instance &inst) {
     for(auto& row : inst.edges)
         for(auto val : row)
             res += (val==-INF);
-    return res;
+    return res/2;
 }

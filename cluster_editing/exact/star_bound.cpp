@@ -15,6 +15,7 @@
 #include <unordered_set>
 #include <iostream>
 #include <optional>
+#include <chrono>
 
 using namespace std;
 
@@ -313,6 +314,16 @@ public:
 
     const Edges& get_potential() const {
         return potential;
+    }
+
+    void setEdgePotential(int u, int v, int new_potential) {
+        if(new_potential>0) free_edges_g[u].insert(v), free_edges_g[v].insert(u);
+        if(new_potential<=0) {
+            if(free_edges_g[u].count(v)) free_edges_g[u].erase(v);
+            if(free_edges_g[v].count(u)) free_edges_g[v].erase(u);
+        }
+        potential[u][v] = potential[v][u] = new_potential;
+        potential_is_zero[u][v] = potential_is_zero[v][u] = (new_potential==0);
     }
 };
 
@@ -734,6 +745,30 @@ public:
     const auto& get_stars_in_bound() const {
         return stars_in_bound;
     }
+
+    struct StarDiff {
+        vector<pair<Star,int>> removed;
+        vector<pair<Star,int>> applied;
+    };
+    void revert(const StarDiff& diff) {
+        for(auto& [star,w] : diff.applied) remove_star(star,w);
+        for(auto& [star,w] : diff.removed) add_star(star,w);
+    }
+    StarDiff removeStarsForEdge(int u, int v) {
+        StarDiff res;
+        for(auto star : stars_in_random_order()) {
+            if(!star.includes_edge(u,v)) continue;
+            res.removed.emplace_back(star, stars_in_bound[star]);
+            remove_star(star,stars_in_bound[star]);
+            if(star.nodes.size()==3) continue;
+            int leaf = star.center()==u ? v : u;
+            star.nodes.erase(std::remove(begin(star.nodes), end(star.nodes), leaf), end(star.nodes));
+            assert(potential.calculate_costs(star) > 0);
+            int w = add_star(star,-1);
+            res.applied.emplace_back(star,w);
+        }
+        return res;
+    }
 };
 
 vector<int> degeneracyOrdering(const map<int, vector<int>> &g) {
@@ -802,7 +837,7 @@ vector<vector<int>> coloring(const map<int, vector<int>> &g) {
     return ans;
 }
 
-auto star_bound_packing(const Instance &inst, int limit) {
+auto star_bound_packing(const Instance &inst, int limit, int min_seconds=0) {
     auto bound = StarBound(inst.edges);
 
     int n = size(inst.edges);
@@ -847,11 +882,15 @@ auto star_bound_packing(const Instance &inst, int limit) {
     }
     int old_bound = 0;
     int num_unchanged = 0;
+    auto min_time = chrono::steady_clock::now() + chrono::seconds(min_seconds);
+
     while (old_bound < bound.potential.get_bound() || num_unchanged < 5) {
         if (old_bound < bound.potential.get_bound())
             num_unchanged = 0;
         else
             num_unchanged++;
+        if(chrono::steady_clock::now()<min_time)
+            num_unchanged = 0;
 
         old_bound = bound.potential.get_bound();
         //cout << bound.bound << endl;
@@ -877,11 +916,38 @@ int star_bound(const Instance &inst, int limit) {
     return star_bound_packing(inst, limit).potential.get_bound();
 }
 
-std::optional<Instance> forcedChoicesStarBound(const Instance& inst, int upper_bound, bool verbose) {
-    auto bound = star_bound_packing(inst, upper_bound);
-    Edges potential = bound.potential.get_potential();
-
+std::optional<Instance> forcedChoicesStarBound(const Instance& inst, int upper_bound, bool verbose, int min_time) {
+    auto bound = star_bound_packing(inst, upper_bound, min_time);
     int n=size(inst.edges);
+
+    if(verbose) {
+        int fpos = 0;
+        int fneg = 0;
+        for(int i=0; i<n; ++i)
+            for(int j=i+1; j<n; ++j) {
+                fpos += bound.potential.get_potential()[i][j]>0;
+                fneg += bound.potential.get_potential()[i][j]<0;
+            }
+        map<int,int> sizes;
+        for(auto& star : bound.stars_in_random_order())
+            sizes[size(star.nodes)]++;
+
+        cout << endl;
+        cout << "##### forced choices stats: #####" << endl;
+        cout << "lower bound " << inst.spendCost + bound.potential.get_bound() << endl;
+        cout << "upper bound " << upper_bound << endl;
+        cout << "free edges " << fpos << endl;
+        cout << "free non-edges " << fneg << endl;
+        cout << "star sizes " << endl;
+        for(auto [k,v] : sizes)
+        cout << '\t' << k << ' ' << v << endl;
+    }
+
+
+    int close = 0;
+    int pushed = 0;
+
+    auto old_bound = bound.potential.get_bound();
 
     vector<tuple<int,int,int>> forced;
     for(int u=0; u<n; ++u) {
@@ -889,40 +955,83 @@ std::optional<Instance> forcedChoicesStarBound(const Instance& inst, int upper_b
             if(inst.edges[u][v]==-INF) continue;
 
             auto old_edge = inst.edges[u][v];
-            // we think that not removing the stars overlapping with the modified edge
-            // never gives us triples that we are not allowed to take
 
             // see what happens if i set uv to permanent or forbidden
             for(auto choice : {INF, -INF}) {
 
-                // remove stuff that uses this edge (we omit this and only check weights)
-                auto new_bound = bound.potential.get_bound();
+                int edit_cost = 0;
+                if(choice==INF && old_edge<0) edit_cost += abs(old_edge);
+                if(choice==-INF && old_edge>0) edit_cost += abs(old_edge);
 
-                if (!((old_edge > 0 && choice == INF) || (old_edge < 0 && choice == -INF))) {
-                    new_bound -= abs(old_edge - potential[u][v]);
+                // remove stuff that uses this edge
+                StarBound::StarDiff diff;
+                if (!((old_edge > 0 && choice == INF) || (old_edge < 0 && choice == -INF)))
+                    diff = bound.removeStarsForEdge(u,v);
+
+                // update potential
+                auto old_potential = bound.potential.get_potential()[u][v];
+                bound.potential.setEdgePotential(u,v,choice);
+
+                // here we try to fill up the potential gain
+                auto cands = bound.get_candidates(u,v);
+                reverse(begin(cands), end(cands));
+                vector<pair<decltype(cands)::value_type,int>> applied;
+                for(auto& c : bound.get_candidates(u,v)) {
+                    if(!bound.can_add_candidate(c)) continue;
+                    int w = bound.add_candidate(c);
+                    applied.emplace_back(c,w);
+                }
+                auto new_bound = inst.spendCost + edit_cost + bound.potential.get_bound();
+
+                // help the close ones out
+                bool helped = false;
+                if(new_bound <= upper_bound && new_bound > upper_bound-3) {
+                    helped = true;
+                    vector<pair<int,int>> pairs_to_fill;
+                    for(auto x : bound.potential.free_edges(u)) pairs_to_fill.emplace_back(x,u);
+                    for(auto x : bound.potential.free_edges(v)) pairs_to_fill.emplace_back(x,v);
+
+                    for(auto [x,y] : pairs_to_fill) {
+                        for(auto& c : bound.get_candidates(x,y)) {
+                            if(!bound.can_add_candidate(c)) continue;
+                            int w = bound.add_candidate(c);
+                            applied.emplace_back(c,w);
+                        }
+                    }
+                    new_bound = inst.spendCost + edit_cost + bound.potential.get_bound();
                 }
 
-                auto uv_cost = potential[u][v];
-                if(choice==INF && uv_cost<0) new_bound += uv_cost;
-                if(choice==-INF && uv_cost>0) new_bound += uv_cost;
-                potential[u][v] = potential[v][u] = choice;
-                for(int x=0; x<n; ++x) {
-                    auto t = Triple(u, v, x, potential);
-                    if (t.valid) new_bound += t.cost;
-                }
-                potential[u][v] = potential[v][u] = uv_cost;
+                // revert the fill-up
+                for(auto& [c,w] : applied) bound.remove_candidate(c,w);
 
-                // reapply triple structures (we omit this)
+                // revert the changed potential
+                bound.potential.setEdgePotential(u,v,old_potential);
 
-                if(new_bound+inst.spendCost > upper_bound)
+                // revert the removed stars that overlapped with (u,v)
+                bound.revert(diff);
+
+                assert(bound.potential.get_bound() == old_bound);
+
+                if(new_bound > upper_bound) {
                     forced.emplace_back(u,v,-choice);
+                    if(helped) pushed++;
+                    //cout << "done " << u << ' ' << v << ' ' << old_edge << " -> " << choice << " new bound " << new_bound << endl;
+                }
+                else if(new_bound + inst.spendCost > upper_bound-3) {
+                    //cout << "close " << u << ' ' << v << ' ' << old_edge << " -> " << choice << " new bound " << new_bound << endl;
+                    close++;
+                }
             }
         }
     }
+    if(verbose) {
+        int perms = 0;
+        for(auto [u,v,c] : forced) perms += (c==INF);
+        cout << "num close " << close << endl;
+        cout << "num pushed " << pushed << endl;
+        cout << "Forced: " << size(forced) << "\tPerm: " << perms << "\tForb: " << size(forced)-perms << endl;
+    }
 
-    int perms = 0;
-    for(auto [u,v,c] : forced) perms += (c==INF);
-    if(verbose) cout << "Forced: " << size(forced) << "\tPerm: " << perms << "\tForb: " << size(forced)-perms << endl;
     if(empty(forced)) return {};
 
     // apply all forced choices
