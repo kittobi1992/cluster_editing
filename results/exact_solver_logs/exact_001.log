@@ -1,9 +1,8 @@
 solving instance with n=10
 upper bound 3
-reduced to n=5 -INFs=20 spent=3 with force star
-reduced to n=5 -INFs=25 spent=3 with heavy non-edge
+reduced to n=5 -INFs=10 spent=3 with force star
 INITIAL REDUCTION FINISHED
-time:  0.014 s
+time:  0.015 s
 size:  5
 lower: 3
 upper: 3
@@ -35,4 +34,4 @@ prunes:          0
 
 1
 k=3
-0.016726
+0.0170963

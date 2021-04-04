@@ -1,9 +1,8 @@
 solving instance with n=80
 upper bound 385
-reduced to n=3 -INFs=6 spent=385 with force star
-reduced to n=3 -INFs=9 spent=385 with heavy non-edge
+reduced to n=3 -INFs=3 spent=385 with force star
 INITIAL REDUCTION FINISHED
-time:  0.228 s
+time:  0.536 s
 size:  3
 lower: 385
 upper: 385
@@ -31,4 +30,4 @@ prunes:          0
 
 1
 k=385
-0.228967
+0.536262

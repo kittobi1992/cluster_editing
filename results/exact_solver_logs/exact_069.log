@@ -1,7 +1,7 @@
 solving instance with n=140
 upper bound 2140
 INITIAL REDUCTION FINISHED
-time:  21.897 s
+time:  22.333 s
 size:  140
 lower: 1976
 upper: 2140
@@ -9,11 +9,11 @@ gap:   164
 STARTING BRANCH AND BOUND
 split into 1 CCs
 start solving CC of size 140 first bound 1976
-1976	 (total: 1976)1977	 (total: 1977)1978	 (total: 1978)1979	 (total: 1979)1980	 (total: 1980)1981	 (total: 1981)1982	 (total: 1982)1983	 (total: 1983)1984	 (total: 1984)1985	 (total: 1985)1986	 (total: 1986)1987	 (total: 1987)1988	 (total: 1988)
+1976	 (total: 1976)1977	 (total: 1977)1978	 (total: 1978)1979	 (total: 1979)1980	 (total: 1980)1981	 (total: 1981)1982	 (total: 1982)1983	 (total: 1983)1984	 (total: 1984)1985	 (total: 1985)1986	 (total: 1986)1987	 (total: 1987)1988	 (total: 1988)1989	 (total: 1989)1990	 (total: 1990)1991	 (total: 1991)
 time limit exceeded
-branching nodes: 428
-reductions:      19
-	forced (star): 20
+branching nodes: 290
+reductions:      103
+	forced (star): 140
 	forced (p3):   0
 	twin simple:   0
 	twin complex:  0
@@ -22,8 +22,8 @@ reductions:      19
 	h edge (s):    0
 	h non edge:    0
 disconnects:     0
-prunes:          439
+prunes:          305
 
 0
 k=1000000000
-1803.35
+1802.19

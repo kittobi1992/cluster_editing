@@ -1,11 +1,8 @@
 solving instance with n=215
 upper bound 416
-reduced to n=61 -INFs=3588 spent=416 with force star
-reduced to n=59 -INFs=3372 spent=416 with force star
-reduced to n=59 -INFs=3422 spent=416 with force p3
-reduced to n=59 -INFs=3481 spent=416 with heavy non-edge
+reduced to n=59 -INFs=1711 spent=416 with force star
 INITIAL REDUCTION FINISHED
-time:  0.409 s
+time:  0.707 s
 size:  59
 lower: 416
 upper: 416
@@ -145,4 +142,4 @@ prunes:          0
 
 1
 k=416
-0.41016
+0.707717

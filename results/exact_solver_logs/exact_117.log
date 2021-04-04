@@ -1,24 +1,18 @@
 solving instance with n=211
 upper bound 2777
-reduced to n=60 -INFs=1858 spent=2505 with force star
-reduced to n=55 -INFs=1846 spent=2605 with force star
-reduced to n=44 -INFs=1384 spent=2665 with force star
-reduced to n=34 -INFs=886 spent=2678 with force star
-reduced to n=32 -INFs=782 spent=2681 with force star
-reduced to n=30 -INFs=706 spent=2683 with force star
-reduced to n=25 -INFs=498 spent=2726 with force star
-reduced to n=23 -INFs=436 spent=2739 with force star
-reduced to n=23 -INFs=440 spent=2739 with force p3
-reduced to n=22 -INFs=412 spent=2740 with twin complex
-reduced to n=22 -INFs=430 spent=2744 with force star
-reduced to n=22 -INFs=450 spent=2744 with force p3
-reduced to n=21 -INFs=410 spent=2744 with twin simple
-reduced to n=20 -INFs=374 spent=2776 with twin complex
-reduced to n=19 -INFs=340 spent=2777 with twin complex
-reduced to n=18 -INFs=306 spent=2777 with twin simple
-reduced to n=18 -INFs=324 spent=2777 with heavy non-edge
+reduced to n=58 -INFs=1241 spent=2570 with force star
+reduced to n=45 -INFs=822 spent=2685 with force star
+reduced to n=32 -INFs=466 spent=2703 with force star
+reduced to n=32 -INFs=467 spent=2703 with force star
+reduced to n=24 -INFs=265 spent=2714 with force p3
+reduced to n=23 -INFs=245 spent=2743 with force p3
+reduced to n=22 -INFs=225 spent=2775 with twin complex
+reduced to n=21 -INFs=206 spent=2776 with twin complex
+reduced to n=20 -INFs=187 spent=2776 with twin simple
+reduced to n=19 -INFs=170 spent=2777 with twin complex
+reduced to n=18 -INFs=153 spent=2777 with twin simple
 INITIAL REDUCTION FINISHED
-time:  4.174 s
+time:  5.87 s
 size:  18
 lower: 2777
 upper: 2777
@@ -76,4 +70,4 @@ prunes:          0
 
 1
 k=2777
-4.17473
+5.87086

@@ -1,8 +1,6 @@
 solving instance with n=30
 upper bound 81
-reduced to n=4 -INFs=8 spent=81 with force star
-reduced to n=3 -INFs=6 spent=81 with force star
-reduced to n=3 -INFs=9 spent=81 with heavy non-edge
+reduced to n=3 -INFs=3 spent=81 with force star
 INITIAL REDUCTION FINISHED
 time:  0.549 s
 size:  3
@@ -32,4 +30,4 @@ prunes:          0
 
 1
 k=81
-0.54929
+0.54928

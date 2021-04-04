@@ -1,10 +1,9 @@
 solving instance with n=60
 upper bound 281
-reduced to n=23 -INFs=214 spent=254 with force star
-reduced to n=5 -INFs=20 spent=281 with force star
-reduced to n=5 -INFs=25 spent=281 with heavy non-edge
+reduced to n=19 -INFs=78 spent=256 with force star
+reduced to n=5 -INFs=10 spent=281 with force star
 INITIAL REDUCTION FINISHED
-time:  1.123 s
+time:  1.217 s
 size:  5
 lower: 281
 upper: 281
@@ -36,4 +35,4 @@ prunes:          0
 
 1
 k=281
-1.12407
+1.21775

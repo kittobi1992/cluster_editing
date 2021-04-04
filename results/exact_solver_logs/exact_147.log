@@ -1,15 +1,11 @@
 solving instance with n=250
 upper bound 3975
-reduced to n=42 -INFs=338 spent=3765 with force star
-reduced to n=14 -INFs=110 spent=3965 with force star
-reduced to n=12 -INFs=80 spent=3967 with force star
-reduced to n=10 -INFs=70 spent=3973 with force star
-reduced to n=9 -INFs=62 spent=3973 with force star
-reduced to n=9 -INFs=68 spent=3973 with force p3
-reduced to n=8 -INFs=56 spent=3975 with twin complex
-reduced to n=8 -INFs=64 spent=3975 with heavy non-edge
+reduced to n=30 -INFs=203 spent=3846 with force star
+reduced to n=12 -INFs=46 spent=3967 with force star
+reduced to n=9 -INFs=34 spent=3973 with force star
+reduced to n=8 -INFs=28 spent=3975 with twin complex
 INITIAL REDUCTION FINISHED
-time:  9.4 s
+time:  16.388 s
 size:  8
 lower: 3975
 upper: 3975
@@ -47,4 +43,4 @@ prunes:          0
 
 1
 k=3975
-9.4005
+16.3886

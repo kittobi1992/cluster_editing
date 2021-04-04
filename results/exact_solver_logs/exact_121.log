@@ -1,10 +1,8 @@
 solving instance with n=213
 upper bound 742
-reduced to n=6 -INFs=28 spent=742 with force star
-reduced to n=5 -INFs=20 spent=742 with force star
-reduced to n=5 -INFs=25 spent=742 with heavy non-edge
+reduced to n=5 -INFs=10 spent=742 with force star
 INITIAL REDUCTION FINISHED
-time:  1.06 s
+time:  6.319 s
 size:  5
 lower: 742
 upper: 742
@@ -36,4 +34,4 @@ prunes:          0
 
 1
 k=742
-1.06077
+6.31995

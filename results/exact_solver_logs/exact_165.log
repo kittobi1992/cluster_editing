@@ -1,12 +1,8 @@
 solving instance with n=279
 upper bound 6094
-reduced to n=13 -INFs=116 spent=6093 with force star
-reduced to n=9 -INFs=56 spent=6094 with force star
-reduced to n=8 -INFs=48 spent=6094 with force star
-reduced to n=8 -INFs=56 spent=6094 with force p3
-reduced to n=8 -INFs=64 spent=6094 with heavy non-edge
+reduced to n=8 -INFs=28 spent=6094 with force star
 INITIAL REDUCTION FINISHED
-time:  9.514 s
+time:  58.221 s
 size:  8
 lower: 6094
 upper: 6094
@@ -44,4 +40,4 @@ prunes:          0
 
 1
 k=6094
-9.5148
+58.222

@@ -1,7 +1,7 @@
 solving instance with n=160
 upper bound 2939
 INITIAL REDUCTION FINISHED
-time:  39.318 s
+time:  39.871 s
 size:  160
 lower: 2789
 upper: 2939
@@ -9,21 +9,21 @@ gap:   150
 STARTING BRANCH AND BOUND
 split into 1 CCs
 start solving CC of size 160 first bound 2789
-2789	 (total: 2789)2790	 (total: 2790)2791	 (total: 2791)2792	 (total: 2792)2793	 (total: 2793)2794	 (total: 2794)2795	 (total: 2795)2796	 (total: 2796)2797	 (total: 2797)2798	 (total: 2798)
+2789	 (total: 2789)2790	 (total: 2790)2791	 (total: 2791)2792	 (total: 2792)2793	 (total: 2793)2794	 (total: 2794)2795	 (total: 2795)2796	 (total: 2796)2797	 (total: 2797)2798	 (total: 2798)2799	 (total: 2799)2800	 (total: 2800)2801	 (total: 2801)
 time limit exceeded
-branching nodes: 224
-reductions:      23
-	forced (star): 33
+branching nodes: 144
+reductions:      75
+	forced (star): 115
 	forced (p3):   0
 	twin simple:   0
-	twin complex:  2
+	twin complex:  1
 	icx:           0
 	h edge (b):    0
-	h edge (s):    1
+	h edge (s):    0
 	h non edge:    0
 disconnects:     0
-prunes:          232
+prunes:          155
 
 0
 k=1000000000
-1801.98
+1800.79

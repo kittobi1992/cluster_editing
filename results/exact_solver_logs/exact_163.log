@@ -1,15 +1,14 @@
 solving instance with n=279
 upper bound 1538
-reduced to n=49 -INFs=2180 spent=1495 with force star
-reduced to n=47 -INFs=2056 spent=1505 with force star
-reduced to n=42 -INFs=1662 spent=1533 with force star
-reduced to n=41 -INFs=1584 spent=1533 with force star
-reduced to n=32 -INFs=982 spent=1534 with force p3
-reduced to n=31 -INFs=926 spent=1535 with twin complex
-reduced to n=30 -INFs=870 spent=1538 with twin complex
-reduced to n=30 -INFs=900 spent=1538 with heavy non-edge
+reduced to n=49 -INFs=1120 spent=1499 with force star
+reduced to n=47 -INFs=1031 spent=1503 with force star
+reduced to n=47 -INFs=1042 spent=1504 with force star
+reduced to n=46 -INFs=1000 spent=1532 with force star
+reduced to n=32 -INFs=491 spent=1534 with force p3
+reduced to n=31 -INFs=463 spent=1535 with twin complex
+reduced to n=30 -INFs=435 spent=1538 with twin complex
 INITIAL REDUCTION FINISHED
-time:  1.692 s
+time:  3.745 s
 size:  30
 lower: 1538
 upper: 1538
@@ -91,4 +90,4 @@ prunes:          0
 
 1
 k=1538
-1.69357
+3.74629

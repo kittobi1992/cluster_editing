@@ -1,25 +1,15 @@
 solving instance with n=70
 upper bound 432
-reduced to n=70 -INFs=364 spent=7 with force star
-reduced to n=70 -INFs=684 spent=19 with force star
-reduced to n=64 -INFs=508 spent=57 with force star
-reduced to n=59 -INFs=260 spent=93 with force star
-reduced to n=55 -INFs=180 spent=125 with force star
-reduced to n=54 -INFs=210 spent=143 with force star
-reduced to n=51 -INFs=220 spent=167 with force star
-reduced to n=44 -INFs=218 spent=235 with force star
-reduced to n=41 -INFs=226 spent=262 with force star
-reduced to n=39 -INFs=240 spent=300 with force star
-reduced to n=38 -INFs=322 spent=318 with force star
-reduced to n=29 -INFs=222 spent=345 with force star
-reduced to n=21 -INFs=182 spent=382 with force star
-reduced to n=14 -INFs=104 spent=388 with force star
-reduced to n=13 -INFs=104 spent=414 with force star
-reduced to n=7 -INFs=40 spent=432 with force star
-reduced to n=6 -INFs=30 spent=432 with force star
-reduced to n=6 -INFs=36 spent=432 with heavy non-edge
+reduced to n=68 -INFs=472 spent=25 with force star
+reduced to n=51 -INFs=300 spent=169 with force star
+reduced to n=44 -INFs=302 spent=233 with force star
+reduced to n=41 -INFs=299 spent=282 with force star
+reduced to n=36 -INFs=257 spent=319 with force star
+reduced to n=17 -INFs=74 spent=385 with force star
+reduced to n=9 -INFs=27 spent=413 with force star
+reduced to n=6 -INFs=15 spent=432 with force star
 INITIAL REDUCTION FINISHED
-time:  2.498 s
+time:  1.999 s
 size:  6
 lower: 432
 upper: 432
@@ -53,4 +43,4 @@ prunes:          0
 
 1
 k=432
-2.49855
+1.99944

@@ -1,7 +1,7 @@
 solving instance with n=50
 upper bound 298
 INITIAL REDUCTION FINISHED
-time:  2.37 s
+time:  2.493 s
 size:  50
 lower: 282
 upper: 298
@@ -10,19 +10,19 @@ STARTING BRANCH AND BOUND
 split into 1 CCs
 start solving CC of size 50 first bound 282
 282	 (total: 282)283	 (total: 283)284	 (total: 284)285	 (total: 285)286	 (total: 286)287	 (total: 287)288	 (total: 288)289	 (total: 289)290	 (total: 290)291	 (total: 291)292	 (total: 292)293	 (total: 293)294	 (total: 294)295	 (total: 295)296	 (total: 296)297	 (total: 297)298	 (total: 298)
-branching nodes: 445
-reductions:      252
-	forced (star): 416
-	forced (p3):   89
+branching nodes: 271
+reductions:      282
+	forced (star): 604
+	forced (p3):   46
 	twin simple:   0
-	twin complex:  34
+	twin complex:  30
 	icx:           0
-	h edge (b):    1
-	h edge (s):    2
-	h non edge:    3
+	h edge (b):    0
+	h edge (s):    0
+	h non edge:    1
 disconnects:     0
-prunes:          457
+prunes:          285
 
 1
 k=298
-115.926
+125.882

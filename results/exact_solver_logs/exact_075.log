@@ -1,9 +1,8 @@
 solving instance with n=144
 upper bound 132
-reduced to n=43 -INFs=1806 spent=132 with force star
-reduced to n=43 -INFs=1849 spent=132 with heavy non-edge
+reduced to n=43 -INFs=903 spent=132 with force star
 INITIAL REDUCTION FINISHED
-time:  0.155 s
+time:  0.318 s
 size:  43
 lower: 132
 upper: 132
@@ -111,4 +110,4 @@ prunes:          0
 
 1
 k=132
-0.156175
+0.319393

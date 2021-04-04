@@ -1,26 +1,31 @@
 solving instance with n=250
 upper bound 697
-reduced to n=232 -INFs=46968 spent=165 with force star
-reduced to n=215 -INFs=39692 spent=165 with force star
-reduced to n=185 -INFs=28162 spent=165 with twin simple
-reduced to n=176 -INFs=25058 spent=174 with twin complex
-reduced to n=175 -INFs=24710 spent=174 with twin simple
-reduced to n=172 -INFs=23734 spent=180 with twin complex
-reduced to n=170 -INFs=23092 spent=185 with twin complex
-reduced to n=167 -INFs=22116 spent=195 with twin complex
-reduced to n=166 -INFs=21786 spent=195 with twin simple
-reduced to n=165 -INFs=21464 spent=197 with twin complex
-reduced to n=164 -INFs=21148 spent=197 with twin complex
-reduced to n=163 -INFs=20842 spent=199 with twin complex
-reduced to n=162 -INFs=20546 spent=200 with twin complex
-reduced to n=161 -INFs=20250 spent=201 with twin complex
-reduced to n=160 -INFs=19940 spent=202 with twin complex
-reduced to n=159 -INFs=19700 spent=203 with twin complex
-reduced to n=158 -INFs=19390 spent=204 with twin complex
-reduced to n=157 -INFs=19084 spent=206 with heavy edge (b)
-reduced to n=157 -INFs=19258 spent=206 with heavy non-edge
+reduced to n=232 -INFs=23490 spent=165 with force star
+reduced to n=215 -INFs=19862 spent=165 with force star
+reduced to n=215 -INFs=19863 spent=165 with force star
+reduced to n=185 -INFs=14098 spent=165 with twin simple
+reduced to n=185 -INFs=14100 spent=165 with force star
+reduced to n=176 -INFs=12548 spent=174 with twin complex
+reduced to n=175 -INFs=12374 spent=174 with twin simple
+reduced to n=175 -INFs=12385 spent=174 with force star
+reduced to n=172 -INFs=11897 spent=180 with twin complex
+reduced to n=170 -INFs=11576 spent=185 with twin complex
+reduced to n=167 -INFs=11088 spent=195 with twin complex
+reduced to n=166 -INFs=10923 spent=195 with twin simple
+reduced to n=165 -INFs=10762 spent=197 with twin complex
+reduced to n=164 -INFs=10604 spent=197 with twin complex
+reduced to n=164 -INFs=10605 spent=197 with force star
+reduced to n=163 -INFs=10452 spent=199 with twin complex
+reduced to n=162 -INFs=10304 spent=200 with twin complex
+reduced to n=161 -INFs=10156 spent=201 with twin complex
+reduced to n=160 -INFs=10001 spent=202 with twin complex
+reduced to n=159 -INFs=9879 spent=203 with twin complex
+reduced to n=158 -INFs=9724 spent=204 with twin complex
+reduced to n=157 -INFs=9571 spent=206 with heavy edge (b)
+reduced to n=157 -INFs=9572 spent=206 with force star
+reduced to n=157 -INFs=9635 spent=206 with heavy non-edge
 INITIAL REDUCTION FINISHED
-time:  8.632 s
+time:  11.042 s
 size:  157
 lower: 682
 upper: 697
@@ -99,19 +104,19 @@ start solving CC of size 19 first bound 46
 46	 (total: 276)47	 (total: 277)
 start solving CC of size 90 first bound 408
 408	 (total: 685)409	 (total: 686)410	 (total: 687)411	 (total: 688)412	 (total: 689)413	 (total: 690)414	 (total: 691)415	 (total: 692)416	 (total: 693)417	 (total: 694)418	 (total: 695)419	 (total: 696)420	 (total: 697)
-branching nodes: 199
-reductions:      200
-	forced (star): 406
-	forced (p3):   80
-	twin simple:   5
-	twin complex:  161
-	icx:           5
-	h edge (b):    52
-	h edge (s):    35
-	h non edge:    203
-disconnects:     183
-prunes:          201
+branching nodes: 35
+reductions:      64
+	forced (star): 195
+	forced (p3):   12
+	twin simple:   6
+	twin complex:  59
+	icx:           0
+	h edge (b):    18
+	h edge (s):    14
+	h non edge:    63
+disconnects:     32
+prunes:          41
 
 1
 k=697
-122.906
+51.9827

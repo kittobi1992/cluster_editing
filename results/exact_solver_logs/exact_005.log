@@ -1,43 +1,52 @@
 solving instance with n=20
 upper bound 46
-reduced to n=20 -INFs=78 spent=2 with force p3
-reduced to n=20 -INFs=96 spent=2 with force p3
-reduced to n=19 -INFs=60 spent=2 with twin simple
-reduced to n=18 -INFs=56 spent=3 with twin complex
-reduced to n=17 -INFs=54 spent=6 with force star
-reduced to n=16 -INFs=46 spent=8 with force star
-reduced to n=16 -INFs=50 spent=8 with force star
-reduced to n=16 -INFs=54 spent=8 with force p3
-reduced to n=15 -INFs=52 spent=9 with twin complex
-reduced to n=15 -INFs=54 spent=9 with force p3
-reduced to n=14 -INFs=44 spent=10 with twin complex
-reduced to n=14 -INFs=50 spent=10 with force p3
-reduced to n=14 -INFs=51 spent=10 with heavy non-edge
+reduced to n=20 -INFs=39 spent=2 with force p3
+reduced to n=20 -INFs=47 spent=2 with force star
+reduced to n=20 -INFs=49 spent=2 with force star
+reduced to n=20 -INFs=51 spent=2 with force p3
+reduced to n=20 -INFs=52 spent=2 with force p3
+reduced to n=19 -INFs=34 spent=2 with twin simple
+reduced to n=19 -INFs=39 spent=2 with force star
+reduced to n=18 -INFs=35 spent=3 with twin complex
+reduced to n=18 -INFs=38 spent=3 with force star
+reduced to n=13 -INFs=18 spent=16 with force star
+reduced to n=9 -INFs=12 spent=23 with force star
+reduced to n=8 -INFs=12 spent=37 with force star
+reduced to n=8 -INFs=13 spent=38 with force star
+reduced to n=8 -INFs=15 spent=38 with force star
+reduced to n=8 -INFs=16 spent=38 with force star
+reduced to n=6 -INFs=10 spent=39 with force star
+reduced to n=5 -INFs=8 spent=43 with twin complex
+reduced to n=4 -INFs=6 spent=46 with twin complex
 INITIAL REDUCTION FINISHED
-time:  0.141 s
-size:  14
-lower: 44
+time:  0.118 s
+size:  4
+lower: 46
 upper: 46
-gap:   2
+gap:   0
 STARTING BRANCH AND BOUND
-split into 2 CCs
+split into 4 CCs
 start solving CC of size 1 first bound 0
-0	 (total: 10)
-start solving CC of size 13 first bound 34
-34	 (total: 44)35	 (total: 45)36	 (total: 46)
-branching nodes: 2
-reductions:      4
-	forced (star): 4
-	forced (p3):   3
+0	 (total: 46)
+start solving CC of size 1 first bound 0
+0	 (total: 46)
+start solving CC of size 1 first bound 0
+0	 (total: 46)
+start solving CC of size 1 first bound 0
+0	 (total: 46)
+branching nodes: 0
+reductions:      0
+	forced (star): 0
+	forced (p3):   0
 	twin simple:   0
-	twin complex:  3
+	twin complex:  0
 	icx:           0
 	h edge (b):    0
-	h edge (s):    1
-	h non edge:    1
+	h edge (s):    0
+	h non edge:    0
 disconnects:     0
-prunes:          2
+prunes:          0
 
 1
 k=46
-0.161524
+0.118859

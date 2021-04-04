@@ -1,7 +1,7 @@
 solving instance with n=200
 upper bound 4198
 INITIAL REDUCTION FINISHED
-time:  74.811 s
+time:  75.676 s
 size:  200
 lower: 4105
 upper: 4198
@@ -9,21 +9,21 @@ gap:   93
 STARTING BRANCH AND BOUND
 split into 1 CCs
 start solving CC of size 200 first bound 4105
-4105	 (total: 4105)4106	 (total: 4106)4107	 (total: 4107)4108	 (total: 4108)4109	 (total: 4109)4110	 (total: 4110)4111	 (total: 4111)4112	 (total: 4112)4113	 (total: 4113)4114	 (total: 4114)4115	 (total: 4115)4116	 (total: 4116)4117	 (total: 4117)4118	 (total: 4118)4119	 (total: 4119)4120	 (total: 4120)4121	 (total: 4121)4122	 (total: 4122)4123	 (total: 4123)4124	 (total: 4124)4125	 (total: 4125)4126	 (total: 4126)4127	 (total: 4127)
+4105	 (total: 4105)4106	 (total: 4106)4107	 (total: 4107)4108	 (total: 4108)4109	 (total: 4109)4110	 (total: 4110)4111	 (total: 4111)4112	 (total: 4112)4113	 (total: 4113)4114	 (total: 4114)4115	 (total: 4115)4116	 (total: 4116)4117	 (total: 4117)4118	 (total: 4118)4119	 (total: 4119)4120	 (total: 4120)4121	 (total: 4121)4122	 (total: 4122)4123	 (total: 4123)4124	 (total: 4124)4125	 (total: 4125)4126	 (total: 4126)4127	 (total: 4127)4128	 (total: 4128)4129	 (total: 4129)4130	 (total: 4130)4131	 (total: 4131)
 time limit exceeded
-branching nodes: 47
-reductions:      46
-	forced (star): 102
+branching nodes: 13
+reductions:      39
+	forced (star): 135
 	forced (p3):   1
 	twin simple:   0
-	twin complex:  18
+	twin complex:  31
 	icx:           0
 	h edge (b):    0
-	h edge (s):    1
+	h edge (s):    0
 	h non edge:    0
 disconnects:     0
-prunes:          67
+prunes:          38
 
 0
 k=1000000000
-1803.78
+1804.4

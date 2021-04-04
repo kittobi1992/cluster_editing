@@ -1,9 +1,8 @@
 solving instance with n=90
 upper bound 184
-reduced to n=2 -INFs=2 spent=184 with force star
-reduced to n=2 -INFs=4 spent=184 with heavy non-edge
+reduced to n=2 -INFs=1 spent=184 with force star
 INITIAL REDUCTION FINISHED
-time:  0.261 s
+time:  0.953 s
 size:  2
 lower: 184
 upper: 184
@@ -29,4 +28,4 @@ prunes:          0
 
 1
 k=184
-0.262116
+0.95338

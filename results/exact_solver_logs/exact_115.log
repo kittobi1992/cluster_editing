@@ -1,15 +1,10 @@
 solving instance with n=211
 upper bound 306
-reduced to n=106 -INFs=10498 spent=238 with force star
-reduced to n=87 -INFs=7200 spent=259 with force star
-reduced to n=86 -INFs=7080 spent=271 with force star
-reduced to n=56 -INFs=3040 spent=299 with force star
-reduced to n=56 -INFs=3050 spent=306 with force star
-reduced to n=53 -INFs=2746 spent=306 with force star
-reduced to n=53 -INFs=2756 spent=306 with force p3
-reduced to n=53 -INFs=2809 spent=306 with heavy non-edge
+reduced to n=106 -INFs=5289 spent=238 with force star
+reduced to n=73 -INFs=2598 spent=306 with force star
+reduced to n=53 -INFs=1378 spent=306 with force star
 INITIAL REDUCTION FINISHED
-time:  0.761 s
+time:  0.944 s
 size:  53
 lower: 306
 upper: 306
@@ -137,4 +132,4 @@ prunes:          0
 
 1
 k=306
-0.761682
+0.944978

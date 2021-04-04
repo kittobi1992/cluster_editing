@@ -1,19 +1,15 @@
 solving instance with n=204
 upper bound 2436
-reduced to n=73 -INFs=2354 spent=2366 with force star
-reduced to n=51 -INFs=1618 spent=2417 with force star
-reduced to n=51 -INFs=1652 spent=2418 with force star
-reduced to n=51 -INFs=1656 spent=2418 with force star
-reduced to n=47 -INFs=2126 spent=2420 with force p3
-reduced to n=47 -INFs=2128 spent=2421 with force star
-reduced to n=45 -INFs=1960 spent=2426 with force p3
-reduced to n=42 -INFs=1714 spent=2435 with force p3
-reduced to n=41 -INFs=1634 spent=2435 with force p3
-reduced to n=40 -INFs=1558 spent=2436 with twin complex
-reduced to n=39 -INFs=1482 spent=2436 with twin simple
-reduced to n=39 -INFs=1521 spent=2436 with heavy non-edge
+reduced to n=72 -INFs=1725 spent=2381 with force star
+reduced to n=61 -INFs=1334 spent=2400 with force star
+reduced to n=56 -INFs=1092 spent=2416 with force star
+reduced to n=45 -INFs=980 spent=2426 with force p3
+reduced to n=42 -INFs=857 spent=2435 with force p3
+reduced to n=41 -INFs=817 spent=2435 with force p3
+reduced to n=40 -INFs=779 spent=2436 with twin complex
+reduced to n=39 -INFs=741 spent=2436 with twin simple
 INITIAL REDUCTION FINISHED
-time:  2.632 s
+time:  4.766 s
 size:  39
 lower: 2436
 upper: 2436
@@ -113,4 +109,4 @@ prunes:          0
 
 1
 k=2436
-2.63283
+4.76685

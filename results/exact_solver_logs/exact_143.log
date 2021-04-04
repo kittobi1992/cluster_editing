@@ -1,102 +1,67 @@
 solving instance with n=250
 upper bound 1475
-reduced to n=197 -INFs=27206 spent=186 with force star
-reduced to n=168 -INFs=21200 spent=649 with force star
-reduced to n=143 -INFs=15792 spent=946 with force star
-reduced to n=129 -INFs=12860 spent=1053 with force star
-reduced to n=129 -INFs=12882 spent=1056 with force star
-reduced to n=129 -INFs=12886 spent=1056 with force star
-reduced to n=129 -INFs=12944 spent=1056 with force star
-reduced to n=129 -INFs=12972 spent=1057 with force star
-reduced to n=129 -INFs=12982 spent=1057 with force star
-reduced to n=128 -INFs=12780 spent=1058 with force star
-reduced to n=125 -INFs=12170 spent=1071 with force star
-reduced to n=124 -INFs=11966 spent=1073 with force star
-reduced to n=123 -INFs=11756 spent=1075 with force star
-reduced to n=120 -INFs=11202 spent=1110 with force star
-reduced to n=118 -INFs=10806 spent=1116 with force star
-reduced to n=118 -INFs=10812 spent=1116 with force p3
-reduced to n=113 -INFs=9846 spent=1116 with twin simple
-reduced to n=109 -INFs=9096 spent=1145 with force star
-reduced to n=109 -INFs=9100 spent=1145 with force star
-reduced to n=106 -INFs=8536 spent=1165 with force star
-reduced to n=100 -INFs=7562 spent=1187 with force star
-reduced to n=92 -INFs=6218 spent=1212 with twin complex
-reduced to n=91 -INFs=6076 spent=1214 with force star
-reduced to n=88 -INFs=5638 spent=1226 with twin complex
-reduced to n=88 -INFs=5640 spent=1227 with force star
-reduced to n=86 -INFs=5360 spent=1234 with force star
-reduced to n=84 -INFs=5060 spent=1245 with twin complex
-reduced to n=83 -INFs=4910 spent=1247 with twin complex
-reduced to n=81 -INFs=4618 spent=1248 with twin complex
-reduced to n=79 -INFs=4330 spent=1251 with twin complex
-reduced to n=77 -INFs=4050 spent=1254 with twin complex
-reduced to n=76 -INFs=3928 spent=1259 with force star
-reduced to n=75 -INFs=3806 spent=1267 with force star
-reduced to n=74 -INFs=3684 spent=1267 with twin simple
-reduced to n=72 -INFs=3432 spent=1274 with twin complex
-reduced to n=70 -INFs=3196 spent=1279 with twin complex
-reduced to n=69 -INFs=3076 spent=1294 with twin complex
-reduced to n=68 -INFs=2956 spent=1294 with twin simple
-reduced to n=66 -INFs=2716 spent=1299 with twin complex
-reduced to n=65 -INFs=2596 spent=1304 with twin complex
-reduced to n=64 -INFs=2480 spent=1304 with twin complex
-reduced to n=63 -INFs=2364 spent=1305 with heavy edge (b)
-reduced to n=63 -INFs=2366 spent=1305 with force star
-reduced to n=62 -INFs=2250 spent=1306 with twin complex
-reduced to n=62 -INFs=2274 spent=1308 with force star
-reduced to n=62 -INFs=2290 spent=1309 with force star
-reduced to n=62 -INFs=2292 spent=1309 with force star
-reduced to n=61 -INFs=2242 spent=1310 with twin complex
-reduced to n=60 -INFs=2170 spent=1316 with twin complex
-reduced to n=60 -INFs=2174 spent=1316 with force star
-reduced to n=59 -INFs=2064 spent=1316 with heavy edge (b)
-reduced to n=59 -INFs=2230 spent=1316 with heavy non-edge
-reduced to n=58 -INFs=2119 spent=1321 with twin complex
-reduced to n=58 -INFs=2125 spent=1323 with force star
-reduced to n=57 -INFs=2015 spent=1324 with twin complex
-reduced to n=57 -INFs=2025 spent=1327 with force star
-reduced to n=57 -INFs=2027 spent=1328 with force star
-reduced to n=57 -INFs=2029 spent=1328 with force star
-reduced to n=57 -INFs=2031 spent=1328 with heavy non-edge
-reduced to n=56 -INFs=1987 spent=1333 with forced single merge
-reduced to n=56 -INFs=1993 spent=1333 with force star
-reduced to n=56 -INFs=2069 spent=1336 with force star
-reduced to n=56 -INFs=2077 spent=1336 with force star
-reduced to n=55 -INFs=2027 spent=1338 with forced single merge
-reduced to n=55 -INFs=2061 spent=1344 with force star
-reduced to n=55 -INFs=2073 spent=1347 with force star
-reduced to n=55 -INFs=2121 spent=1352 with force star
-reduced to n=55 -INFs=2131 spent=1352 with force star
-reduced to n=54 -INFs=2059 spent=1353 with twin complex
-reduced to n=54 -INFs=2087 spent=1354 with force star
-reduced to n=53 -INFs=2053 spent=1369 with force star
-reduced to n=52 -INFs=2005 spent=1373 with force star
-reduced to n=50 -INFs=1907 spent=1385 with force star
-reduced to n=48 -INFs=1789 spent=1389 with force star
-reduced to n=48 -INFs=1791 spent=1389 with force star
-reduced to n=47 -INFs=1717 spent=1391 with twin complex
-reduced to n=46 -INFs=1645 spent=1395 with twin complex
-reduced to n=46 -INFs=1647 spent=1395 with heavy non-edge
-reduced to n=45 -INFs=1587 spent=1401 with forced single merge
-reduced to n=44 -INFs=1537 spent=1405 with force star
-reduced to n=38 -INFs=1221 spent=1444 with force star
-reduced to n=36 -INFs=1139 spent=1451 with force star
-reduced to n=35 -INFs=1091 spent=1455 with force star
-reduced to n=35 -INFs=1095 spent=1456 with force star
-reduced to n=35 -INFs=1111 spent=1456 with force p3
-reduced to n=33 -INFs=1003 spent=1462 with twin complex
-reduced to n=32 -INFs=949 spent=1463 with twin complex
-reduced to n=32 -INFs=951 spent=1463 with force star
-reduced to n=31 -INFs=909 spent=1471 with force p3
-reduced to n=30 -INFs=863 spent=1473 with force star
-reduced to n=30 -INFs=869 spent=1475 with force star
-reduced to n=28 -INFs=767 spent=1475 with force star
-reduced to n=28 -INFs=773 spent=1475 with force p3
-reduced to n=27 -INFs=723 spent=1475 with heavy edge (s)
-reduced to n=27 -INFs=729 spent=1475 with heavy non-edge
+reduced to n=189 -INFs=13143 spent=298 with force star
+reduced to n=159 -INFs=9800 spent=811 with force star
+reduced to n=126 -INFs=6222 spent=1077 with force star
+reduced to n=120 -INFs=5664 spent=1103 with force star
+reduced to n=120 -INFs=5681 spent=1105 with force star
+reduced to n=108 -INFs=4583 spent=1150 with force star
+reduced to n=108 -INFs=4584 spent=1151 with force star
+reduced to n=99 -INFs=3817 spent=1176 with force star
+reduced to n=99 -INFs=3818 spent=1176 with force star
+reduced to n=94 -INFs=3387 spent=1176 with twin simple
+reduced to n=92 -INFs=3235 spent=1192 with force star
+reduced to n=91 -INFs=3163 spent=1198 with force star
+reduced to n=90 -INFs=3086 spent=1198 with twin simple
+reduced to n=83 -INFs=2547 spent=1217 with twin complex
+reduced to n=83 -INFs=2557 spent=1219 with force star
+reduced to n=80 -INFs=2349 spent=1240 with twin complex
+reduced to n=77 -INFs=2158 spent=1268 with twin complex
+reduced to n=74 -INFs=1957 spent=1272 with twin complex
+reduced to n=72 -INFs=1828 spent=1273 with twin complex
+reduced to n=70 -INFs=1701 spent=1276 with twin complex
+reduced to n=68 -INFs=1579 spent=1279 with twin complex
+reduced to n=67 -INFs=1518 spent=1281 with twin complex
+reduced to n=66 -INFs=1458 spent=1296 with twin complex
+reduced to n=65 -INFs=1398 spent=1301 with twin complex
+reduced to n=64 -INFs=1338 spent=1303 with twin complex
+reduced to n=63 -INFs=1278 spent=1306 with twin complex
+reduced to n=63 -INFs=1313 spent=1308 with force star
+reduced to n=63 -INFs=1323 spent=1308 with force star
+reduced to n=62 -INFs=1277 spent=1309 with twin complex
+reduced to n=62 -INFs=1287 spent=1310 with force star
+reduced to n=62 -INFs=1293 spent=1311 with force star
+reduced to n=61 -INFs=1238 spent=1317 with twin complex
+reduced to n=61 -INFs=1239 spent=1317 with force star
+reduced to n=60 -INFs=1183 spent=1318 with heavy edge (b)
+reduced to n=60 -INFs=1189 spent=1318 with force star
+reduced to n=59 -INFs=1134 spent=1319 with twin complex
+reduced to n=59 -INFs=1183 spent=1322 with force star
+reduced to n=59 -INFs=1212 spent=1322 with heavy non-edge
+reduced to n=58 -INFs=1156 spent=1327 with twin complex
+reduced to n=58 -INFs=1162 spent=1328 with force star
+reduced to n=58 -INFs=1169 spent=1331 with force star
+reduced to n=58 -INFs=1176 spent=1332 with force star
+reduced to n=58 -INFs=1185 spent=1333 with force star
+reduced to n=58 -INFs=1186 spent=1334 with force star
+reduced to n=58 -INFs=1193 spent=1334 with force star
+reduced to n=58 -INFs=1195 spent=1335 with force star
+reduced to n=58 -INFs=1203 spent=1337 with force star
+reduced to n=57 -INFs=1148 spent=1338 with twin complex
+reduced to n=57 -INFs=1162 spent=1340 with force star
+reduced to n=57 -INFs=1176 spent=1342 with force star
+reduced to n=57 -INFs=1182 spent=1344 with force star
+reduced to n=57 -INFs=1184 spent=1346 with force star
+reduced to n=53 -INFs=1076 spent=1375 with force star
+reduced to n=47 -INFs=885 spent=1392 with force star
+reduced to n=42 -INFs=741 spent=1417 with force star
+reduced to n=37 -INFs=601 spent=1450 with force star
+reduced to n=34 -INFs=524 spent=1460 with force star
+reduced to n=29 -INFs=400 spent=1473 with force star
+reduced to n=28 -INFs=376 spent=1475 with force star
+reduced to n=27 -INFs=351 spent=1475 with heavy edge (s)
 INITIAL REDUCTION FINISHED
-time:  6.931 s
+time:  5.546 s
 size:  27
 lower: 1475
 upper: 1475
@@ -172,4 +137,4 @@ prunes:          0
 
 1
 k=1475
-6.93201
+5.54724

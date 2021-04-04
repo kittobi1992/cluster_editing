@@ -1,10 +1,8 @@
 solving instance with n=213
 upper bound 184
-reduced to n=84 -INFs=6966 spent=184 with force star
-reduced to n=83 -INFs=6806 spent=184 with force star
-reduced to n=83 -INFs=6889 spent=184 with heavy non-edge
+reduced to n=83 -INFs=3403 spent=184 with force star
 INITIAL REDUCTION FINISHED
-time:  0.259 s
+time:  0.53 s
 size:  83
 lower: 184
 upper: 184
@@ -192,4 +190,4 @@ prunes:          0
 
 1
 k=184
-0.260923
+0.532022
