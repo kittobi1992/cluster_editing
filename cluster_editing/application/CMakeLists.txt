@@ -40,4 +40,9 @@ target_link_libraries(test_exact_matches_previous_results ${Boost_LIBRARIES})
 set_property(TARGET test_exact_matches_previous_results PROPERTY CXX_STANDARD 17)
 set_property(TARGET test_exact_matches_previous_results PROPERTY CXX_STANDARD_REQUIRED ON)
 
-set(TARGETS_WANTING_ALL_SOURCES ${TARGETS_WANTING_ALL_SOURCES} ClusterEditing DrawGraph exact time_all compute_lower_bounds test_reductions test_exact_matches_previous_results PARENT_SCOPE)
+add_executable(exact_parameter_tuning exact_parameter_tuning.cc)
+target_link_libraries(exact_parameter_tuning ${Boost_LIBRARIES})
+set_property(TARGET exact_parameter_tuning PROPERTY CXX_STANDARD 17)
+set_property(TARGET exact_parameter_tuning PROPERTY CXX_STANDARD_REQUIRED ON)
+
+set(TARGETS_WANTING_ALL_SOURCES ${TARGETS_WANTING_ALL_SOURCES} ClusterEditing DrawGraph exact time_all compute_lower_bounds test_reductions test_exact_matches_previous_results exact_parameter_tuning PARENT_SCOPE)
