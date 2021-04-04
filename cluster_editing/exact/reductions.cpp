@@ -121,6 +121,7 @@ Instance merge(const Instance& inst, int u, int v) {
   Instance result{merged, mergedmap};
   result.spendCost = inst.spendCost + mergeCost;
   result.orig = merged_orig;
+  result.done_clusters = inst.done_clusters;
 
   // debug checks
   for(int i=0; i<n-1; ++i)

@@ -88,6 +88,7 @@ Solution ExactSolver::solve_internal(Instance graph, int budget) {
             Solution solution;
             solution.cost = graph.spendCost;
             solution.worked = true;
+            solution.cliques = graph.done_clusters;
             for(auto& cl : *opt) {
                 vector<int> expandedNodeSet;
                 for(auto v : cl)
@@ -148,6 +149,7 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
         if(auto opt = distance4Reduction(inst); opt) inst = *opt;
         while(true) {
             string applied = "";
+            if(empty(applied)) if(auto opt = force_small_components(inst); opt) inst = *opt, applied = "small clean up";
             if(empty(applied)) if(auto opt = forcedChoices(inst, upper); opt) inst = *opt, applied = "force p3";
             if(empty(applied)) if(auto opt = forcedChoicesStarBound(inst, upper, false); opt) inst = *opt, applied = "force star";
             if(empty(applied)) if(auto opt = simpleTwin(inst); opt) inst = *opt, applied = "twin simple";
@@ -178,6 +180,7 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
 
     Solution s_comb;
     s_comb.cost = inst.spendCost;
+    s_comb.cliques = inst.done_clusters;
 
     auto comps = constructConnectedComponents(inst);
     sort(begin(comps), end(comps), [](auto& a, auto& b){ return size(a.edges)<size(b.edges); });

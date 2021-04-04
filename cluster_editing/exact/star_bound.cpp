@@ -890,7 +890,9 @@ auto star_bound_packing(const Instance &inst, int limit, int min_seconds=0) {
     int num_unchanged = 0;
     auto min_time = chrono::steady_clock::now() + chrono::seconds(min_seconds);
 
-    while (old_bound < bound.potential.get_bound() || num_unchanged < 5) {
+    int rounds = 0;
+    int improvements = 0;
+    while (5*improvements>=rounds) {
         if (old_bound < bound.potential.get_bound())
             num_unchanged = 0;
         else
@@ -913,6 +915,8 @@ auto star_bound_packing(const Instance &inst, int limit, int min_seconds=0) {
             }
         }
 
+        rounds ++;
+        improvements += old_bound<bound.potential.get_bound();
         assert(bound.is_consistent());
     }
     return bound;

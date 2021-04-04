@@ -7,6 +7,8 @@
 #include <random>
 #include <set>
 #include <chrono>
+#include <map>
+#include <iostream>
 
 using namespace std;
 
@@ -397,8 +399,8 @@ struct Kab_bound {
         assert(real_cost == cost);
     }
 
-    int compute_bound(int time_limit) {
-
+    int compute_bound(int time_limit, bool verbose) {
+        auto t1 = chrono::steady_clock::now();
         auto end_time = chrono::steady_clock::now() + chrono::seconds(time_limit);
 
         // start with simple P3 packing
@@ -418,13 +420,17 @@ struct Kab_bound {
             }
         }
 
+        int rounds = 0;
+        int improvements = 0;
         int num_stall=0;
         while(cost<limit) {
-            if(num_stall>=5 && chrono::steady_clock::now()>end_time)
+            if(5*improvements<rounds && chrono::steady_clock::now()>end_time)
                 break;
             bool improved = false;
+            rounds++;
 
             verify();
+            shuffle(begin(packing), end(packing), gen);
             constructKABperNodeStructure();
             vector<KAB> nextPacking;
             for(auto& kab : packing) {
@@ -441,6 +447,34 @@ struct Kab_bound {
             verify();
 
             num_stall = improved ? 0 : num_stall+1;
+            improvements += improved;
+        }
+
+        auto t2 = chrono::steady_clock::now();
+
+        if(verbose) {
+            int fpos = 0;
+            int fneg = 0;
+            for(int i=0; i<n; ++i)
+                for(int j=i+1; j<n; ++j) {
+                    fpos += potential[i][j]>0;
+                    fneg += potential[i][j]<0;
+                }
+            map<pair<int,int>, int> sizes;
+            for(const auto& kab : packing) {
+                int a = size(kab.A), b = size(kab.B);
+                sizes[minmax(a,b)]++;
+            }
+            auto duration = chrono::duration_cast<chrono::duration<double>>(t2-t1).count();
+            cout << endl;
+            cout << "free edges " << fpos << endl;
+            cout << "free non-edges " << fneg << endl;
+            cout << "rounds " << rounds << endl;
+            cout << "improvements " << improvements << endl;
+            cout << "time needed " << duration << endl;
+            cout << "time/round " << duration/rounds << endl;
+            cout << "packing sizes " << endl;
+            for(auto [k,v] : sizes) cout << "\t( " << k.first << " / " << k.second << " ) " << v << endl;
         }
 
         return cost;
@@ -448,7 +482,7 @@ struct Kab_bound {
 
 };
 
-int kab_bound(const Instance &inst, int limit, int time_limit) {
+int kab_bound(const Instance &inst, int limit, bool verbose, int time_limit) {
     Kab_bound bound(inst,limit);
-    return bound.compute_bound(time_limit);
+    return bound.compute_bound(time_limit,verbose);
 }
