@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.5)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 project(ClusterEditing CXX C)
@@ -57,7 +57,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPARANOID ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ltbb")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ltbbmalloc_proxy")
 
@@ -87,11 +87,21 @@ message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 message(STATUS "CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
 message(STATUS "CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 
-include(gmock)
-enable_testing()
+# include(gmock)
+# enable_testing()
+
+# add_subdirectory(tests)
+
+add_executable(ClusterEditing ${PROJECT_SOURCE_DIR}/cluster_editing/application/cluster_editing.cc)
+target_link_libraries(ClusterEditing ${Boost_LIBRARIES})
+
+set_property(TARGET ClusterEditing PROPERTY CXX_STANDARD_REQUIRED ON)
+
+if(ENABLE_PROFILE MATCHES ON)
+  target_link_libraries(ClusterEditing ${PROFILE_FLAGS})
+endif()
 
 add_subdirectory(cluster_editing/application)
-add_subdirectory(tests)
 
 # This adds the source files. It's important that this happens after the compile targets have been added
 add_subdirectory(cluster_editing)

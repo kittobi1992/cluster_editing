@@ -2,7 +2,8 @@
 
 #include "cluster_editing/definitions.h"
 
-namespace cluster_editing::metrics {
+namespace cluster_editing {
+namespace metrics {
 
 inline EdgeWeight edge_insertions(const Graph& graph) {
   EdgeWeight insertions = 0;
@@ -44,5 +45,5 @@ inline EdgeWeight edge_deletions(const Graph& graph) {
 inline EdgeWeight edits(const Graph& graph) {
 	return edge_deletions(graph) + edge_insertions(graph);
 }
-
+}
 } // namespace metrics

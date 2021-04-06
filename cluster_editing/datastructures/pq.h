@@ -37,7 +37,7 @@ template<typename KeyT, typename IdT, typename Comparator = std::less<KeyT>, uin
 class Heap {
 static constexpr bool enable_heavy_assert = false;
 public:
-  static_assert(arity > 1);
+  static_assert(arity > 1, "Arity smaller or equal to one");
 
   explicit Heap(PosT* positions, size_t positions_size) : comp(), heap(), positions(positions), positions_size(positions_size) { }
 
@@ -215,7 +215,7 @@ protected:
     while (first < size() && first != pos) {
       PosT largestChild;
 
-      if constexpr (arity > 2) {
+      if (arity > 2) {
         largestChild = first;
         KeyT largestChildKey = heap[largestChild].key;
 

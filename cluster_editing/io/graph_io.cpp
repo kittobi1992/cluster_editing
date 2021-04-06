@@ -9,7 +9,8 @@
 #include "cluster_editing/macros.h"
 #include "cluster_editing/datastructures/graph_factory.h"
 
-namespace cluster_editing::io {
+namespace cluster_editing {
+namespace io {
 
 using AdjacencyList = std::vector<std::vector<NodeID>>;
 
@@ -73,5 +74,5 @@ Graph readGraphFile(const std::string& filename) {
 
   return ds::GraphFactory::construct(adj_list);
 }
-
+}
 } // namespace cluster_editing::io

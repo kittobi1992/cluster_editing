@@ -2,7 +2,8 @@
 
 #include "cluster_editing/macros.h"
 
-namespace cluster_editing::ds {
+namespace cluster_editing {
+namespace ds {
 
   using AdjacencyList = std::vector<std::vector<NodeID>>;
 
@@ -33,5 +34,5 @@ namespace cluster_editing::ds {
 
     return graph;
   }
-
+}
 } // namespace cluster_editing::ds

@@ -1,6 +1,6 @@
 set(RefinementSources
-      lp_refiner.cpp
-        fm_refiner.cpp
+      ${PROJECT_SOURCE_DIR}/cluster_editing/refinement/lp_refiner.cpp
+      ${PROJECT_SOURCE_DIR}/cluster_editing/refinement/fm_refiner.cpp
       )
 
 foreach(modtarget IN LISTS TARGETS_WANTING_ALL_SOURCES)

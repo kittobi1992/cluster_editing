@@ -8,7 +8,8 @@
 #include "cluster_editing/utils/math.h"
 #include "cluster_editing/metrics.h"
 
-namespace cluster_editing::io {
+namespace cluster_editing {
+namespace io {
 
 namespace internal {
   struct Statistic {
@@ -279,4 +280,5 @@ namespace internal {
     LOG << R"(+                                                                |___/        +)";
     LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
   }
+}
 } // namespace cluster_editing::io

@@ -6,7 +6,8 @@
 #include "cluster_editing/datastructures/sparse_map.h"
 #include "cluster_editing/utils/timer.h"
 
-namespace cluster_editing::ds {
+namespace cluster_editing {
+namespace ds {
 
   std::pair<Graph, std::vector<NodeID>> Graph::contract() const {
     Graph c_graph;
@@ -87,5 +88,5 @@ namespace cluster_editing::ds {
       _nodes[u].setClique(u);
     }
   }
-
+}
 } // namespace cluster_editing::ds

@@ -25,7 +25,8 @@
 #include "cluster_editing/definitions.h"
 #include "cluster_editing/context/context.h"
 
-namespace cluster_editing::io {
+namespace cluster_editing {
+namespace io {
 
   void printObjectives(const Graph& graph,
                        const std::chrono::duration<double>& elapsed_seconds);
@@ -46,4 +47,5 @@ namespace cluster_editing::io {
   void printCoarseningBanner(const Context& context);
   void printFlatBanner(const Context& context);
   void printUncoarseningBanner(const Context& context);
+}
 }  // namespace cluster_editing::io

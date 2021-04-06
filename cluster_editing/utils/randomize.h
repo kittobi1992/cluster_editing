@@ -26,7 +26,8 @@
 #include <random>
 #include <vector>
 
-namespace cluster_editing::utils {
+namespace cluster_editing {
+namespace utils {
 class Randomize {
  public:
   Randomize(const Randomize&) = delete;
@@ -98,4 +99,5 @@ class Randomize {
   std::uniform_real_distribution<float> _float_dist;
   std::normal_distribution<float> _norm_dist;
 };
+}
 }  // namespace cluster_editing::utils

@@ -39,10 +39,6 @@ class Timer {
 
  public:
   static constexpr int MAX_LINE_LENGTH = 45;
-  static char TOP_LEVEL_PREFIX[];
-  static constexpr size_t TOP_LEVEL_PREFIX_LENGTH = 3;
-  static char SUB_LEVEL_PREFIX[];
-  static constexpr size_t SUB_LEVEL_PREFIX_LENGTH = 3;
 
  private:
   struct Key {
@@ -282,9 +278,6 @@ class Timer {
   size_t _max_output_depth;
 };
 
-inline char Timer::TOP_LEVEL_PREFIX[] = " + ";
-inline char Timer::SUB_LEVEL_PREFIX[] = " + ";
-
 inline std::ostream & operator<< (std::ostream& str, const Timer& timer) {
   std::vector<Timer::Timing> timings;
   for (const auto& timing : timer._timings) {
@@ -297,10 +290,9 @@ inline std::ostream & operator<< (std::ostream& str, const Timer& timer) {
 
   auto print = [&](std::ostream& str, const Timer::Timing& timing, int level) {
                  std::string prefix = "";
-                 prefix += level == 0 ? std::string(Timer::TOP_LEVEL_PREFIX, Timer::TOP_LEVEL_PREFIX_LENGTH) :
-                           std::string(Timer::TOP_LEVEL_PREFIX_LENGTH, ' ');
-                 prefix += level > 0 ? std::string(Timer::SUB_LEVEL_PREFIX_LENGTH * (level - 1), ' ') : "";
-                 prefix += level > 0 ? std::string(Timer::SUB_LEVEL_PREFIX, Timer::SUB_LEVEL_PREFIX_LENGTH) : "";
+                 prefix += level == 0 ? " + " : "   ";
+                 prefix += level > 0 ? std::string(3 * (level - 1), ' ') : "";
+                 prefix += level > 0 ? " + " : "";
                  size_t length = prefix.size() + timing.description().size();
                  str << prefix
                      << timing.description();

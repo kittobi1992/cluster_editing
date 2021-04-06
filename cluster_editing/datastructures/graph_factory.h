@@ -4,7 +4,8 @@
 
 #include "cluster_editing/datastructures/graph.h"
 
-namespace cluster_editing::ds {
+namespace cluster_editing {
+namespace ds {
 
 class GraphFactory {
 
@@ -17,4 +18,5 @@ class GraphFactory {
   GraphFactory() { }
 };
 
+}
 } // namespace cluster_editing::ds

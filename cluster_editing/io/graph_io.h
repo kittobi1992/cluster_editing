@@ -4,8 +4,10 @@
 
 #include "cluster_editing/definitions.h"
 
-namespace cluster_editing::io {
+namespace cluster_editing {
+namespace io {
 
 Graph readGraphFile(const std::string& filename);
 
+}
 } // namespace cluster_editing::io

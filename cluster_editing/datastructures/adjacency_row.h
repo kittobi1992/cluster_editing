@@ -9,7 +9,8 @@
 
 #include "graph_common.h"
 
-namespace cluster_editing::ds {
+namespace cluster_editing {
+namespace ds {
     namespace detail {
         [[nodiscard]] constexpr int ctz(unsigned long long n) noexcept {
             assert(n != 0);
@@ -371,6 +372,7 @@ namespace cluster_editing::ds {
             return m_blocks.back();
         }
     };
+}
 }
 
 
