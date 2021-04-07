@@ -1,6 +1,4 @@
-#include <algorithm>
 #include <iostream>
-#include <map>
 #include <iomanip>
 
 #include <cluster_editing/exact/instance.h>
@@ -14,6 +12,7 @@ struct Result {
     int k;
     bool solved;
 };
+// 2021-03-23-exact_with_star_bound.csv
 constexpr Result results[] = {
         {1,   3,     true},
         {3,   42,    true},
@@ -36,12 +35,12 @@ constexpr Result results[] = {
         {37,  703,   true},
         {39,  665,   true},
         {41,  184,   true},
-        {43,  899,   false},
-        {45,  1066,  false},
+        {43,  979,   false},
+        {45,  1085,  true},
         {47,  749,   true},
         {49,  854,   true},
-        {51,  1219,  false},
-        {53,  1389,  false},
+        {51,  1519,  false},
+        {53,  1477,  false},
         {55,  1410,  true},
         {57,  122,   true},
         {59,  976,   true},
@@ -49,24 +48,24 @@ constexpr Result results[] = {
         {63,  665,   true},
         {65,  128,   true},
         {67,  792,   true},
-        {69,  1562,  false},
+        {69,  1989,  false},
         {71,  2131,  true},
         {73,  1612,  true},
         {75,  132,   true},
         {77,  78,    true},
         {79,  48,    true},
-        {81,  1882,  false},
-        {83,  2243,  false},
+        {81,  2042,  true},
+        {83,  2798,  false},
         {85,  1047,  true},
         {87,  3243,  true},
         {89,  534,   true},
-        {91,  2419,  false},
-        {93,  3373,  false},
+        {91,  3057,  false},
+        {93,  3830,  false},
         {95,  358,   true},
         {97,  95,    true},
-        {99,  644,   false},
-        {101, 3490,  false},
-        {103, 3658,  false},
+        {99,  650,   true},
+        {101, 4128,  false},
+        {103, 4366,  false},
         {105, 5320,  true},
         {107, 274,   true},
         {109, 2436,  true},
@@ -85,7 +84,7 @@ constexpr Result results[] = {
         {135, 772,   true},
         {137, 16,    true},
         {139, 5514,  true},
-        {141, 682,   false},
+        {141, 697,   true},
         {143, 1475,  true},
         {145, 1761,  true},
         {147, 3975,  true},
@@ -98,34 +97,30 @@ constexpr Result results[] = {
         {161, 333,   true},
         {163, 1538,  true},
         {165, 6094,  true},
-        {167, 7235,  false},
-        {169, 7864,  false},
+        {167, 9390,  false},
+        {169, 9342,  false},
         {171, 2901,  true},
         {173, 100,   true},
         {175, 557,   true},
         {177, 4089,  true},
-        {179, 620,   false},
-        {181, 1445,  false},
-        {183, 2609,  false},
+        {179, 627,   false},
+        {181, 1527,  false},
+        {183, 2727,  false},
         {185, 203,   true},
-        {187, 3654,  false},
+        {187, 3814,  true},
         {189, 8563,  true},
-        {191, 15757, false},
-        {193, 20403, false},
-        {195, 2068,  false},
-        {197, 14841, false}
+        {191, 18211, false},
+        {193, 20405, false},
+        {195, 996,   false},
+        {197, 15752, false},
+        {199, 27073, true},
 };
 
 int main(int argc, char *argv[]) {
     int time_limit = 60;
     if (argc > 1) time_limit = atoi(argv[1]);
 
-    std::map<int, Result> results_map;
-    for (auto result : results) {
-        results_map[result.nr] = result;
-    }
-
-    for (auto[nr, result] : results_map) {
+    for (auto[nr, k, solved] : results) {
         auto inst = load_exact_instance(nr);
 
         ExactSolver solver;
@@ -140,14 +135,15 @@ int main(int argc, char *argv[]) {
         std::cout << std::fixed << std::setw(3) << nr << "\t\t";
         std::cout << "current: k=" << std::fixed << std::setw(10) << solution.cost << " solved=" << std::boolalpha
                   << solution.worked << "\t";
-        std::cout << "previous: k=" << std::fixed << std::setw(10) << result.k << " solved=" << std::boolalpha
-                  << result.solved << "\t\t";
+        std::cout << "previous: k=" << std::fixed << std::setw(10) << k << " solved=" << std::boolalpha
+                  << solved << "\t\t";
         std::cout << "took=" << timer.get("solving") << std::endl;
+        timer.clear();
 
-        if (solution.worked && result.solved && solution.cost != result.k) {
+        if (solution.worked && solved && solution.cost != k) {
             throw std::runtime_error("mismatch");
         }
-        if (solution.worked && !result.solved && solution.cost < result.k) {
+        if (solution.worked && !solved && solution.cost < k) {
             throw std::runtime_error("mismatch");
         }
     }

@@ -1,9 +1,8 @@
 solving instance with n=159
 upper bound 48
-reduced to n=63 -INFs=3906 spent=48 with force star
-reduced to n=63 -INFs=3969 spent=48 with heavy non-edge
+reduced to n=63 -INFs=1953 spent=48 with force star
 INITIAL REDUCTION FINISHED
-time:  0.095 s
+time:  0.112 s
 size:  63
 lower: 48
 upper: 48
@@ -151,4 +150,4 @@ prunes:          0
 
 1
 k=48
-0.0963264
+0.113005

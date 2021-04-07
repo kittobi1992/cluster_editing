@@ -11,6 +11,6 @@ inline StarBoundConfig global_star_bound_config;
 
 int star_bound(const Instance& inst, int limit);
 
-std::optional<Instance> forcedChoicesStarBound(const Instance& inst, int upper_bound, bool verbose);
+std::optional<Instance> forcedChoicesStarBound(const Instance& inst, int upper_bound, bool verbose, int min_time=0);
 
 std::optional<Instance> forcedChoicesSingleMerge(const Instance& inst, int upper_bound, bool verbose);

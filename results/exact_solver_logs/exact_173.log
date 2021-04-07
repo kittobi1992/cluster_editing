@@ -1,9 +1,8 @@
 solving instance with n=313
 upper bound 100
-reduced to n=116 -INFs=13340 spent=100 with force star
-reduced to n=116 -INFs=13456 spent=100 with heavy non-edge
+reduced to n=116 -INFs=6670 spent=100 with force star
 INITIAL REDUCTION FINISHED
-time:  0.343 s
+time:  0.759 s
 size:  116
 lower: 100
 upper: 100
@@ -257,4 +256,4 @@ prunes:          0
 
 1
 k=100
-0.344785
+0.76101

@@ -1,14 +1,12 @@
 solving instance with n=129
 upper bound 665
-reduced to n=37 -INFs=1018 spent=642 with force star
-reduced to n=30 -INFs=742 spent=653 with force star
-reduced to n=20 -INFs=356 spent=661 with force star
-reduced to n=19 -INFs=322 spent=665 with force star
-reduced to n=19 -INFs=340 spent=665 with force p3
-reduced to n=18 -INFs=306 spent=665 with twin simple
-reduced to n=18 -INFs=324 spent=665 with heavy non-edge
+reduced to n=35 -INFs=493 spent=645 with force star
+reduced to n=29 -INFs=367 spent=656 with force star
+reduced to n=28 -INFs=343 spent=665 with force star
+reduced to n=19 -INFs=170 spent=665 with force star
+reduced to n=18 -INFs=153 spent=665 with twin simple
 INITIAL REDUCTION FINISHED
-time:  0.502 s
+time:  0.783 s
 size:  18
 lower: 665
 upper: 665
@@ -66,4 +64,4 @@ prunes:          0
 
 1
 k=665
-0.502709
+0.783451

@@ -5,6 +5,7 @@
 
 using Edges = std::vector<std::vector<int>>; // adj matrix
 using IDMap = std::vector<std::vector<int>>; // for every node in current graph, a list of original nodes that it represents
+using Clust = std::vector<std::vector<int>>; // clusters that were already solved
 
 const int INF = 1e9;
 
@@ -14,6 +15,7 @@ struct Instance {
   IDMap idmap;
 
   int spendCost = 0;
+  Clust done_clusters;
 
   Instance() : spendCost(1e9) {}; // unsolvable instance
   Instance(const Edges& _edges, const IDMap& _idmap) : edges(_edges), idmap(_idmap) {};
@@ -27,3 +29,5 @@ struct Instance {
 int forbiddenEdges(const Instance& inst);
 
 Instance load_exact_instance(int num);
+
+Instance remove_nodes(const Instance& inst, const std::vector<int>& nodes);

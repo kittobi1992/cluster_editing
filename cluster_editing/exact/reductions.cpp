@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include <cluster_editing/exact/lower_bounds.h>
+#include <cluster_editing/exact/solver.h>
 
 using namespace std;
 
@@ -120,6 +121,7 @@ Instance merge(const Instance& inst, int u, int v) {
   Instance result{merged, mergedmap};
   result.spendCost = inst.spendCost + mergeCost;
   result.orig = merged_orig;
+  result.done_clusters = inst.done_clusters;
 
   // debug checks
   for(int i=0; i<n-1; ++i)
@@ -481,5 +483,107 @@ std::optional<Instance> mergeCliques(const Instance &inst) {
             if(compId[v]==compId[u] && isClique[compId[v]])
                 res.edges[v][u] = INF;
     mergeAllINF(res);
+    return res;
+}
+
+std::optional<Instance> weightedKernel(const Instance &inst) {
+    int n = size(inst.edges);
+    const auto& g = inst.edges;
+
+    for(int v=0; v<n; ++v) {
+
+        vector<int> Nv{v};
+        for(int x=0; x<n; ++x)
+            if(x!=v && g[v][x]>0)
+                Nv.push_back(x);
+
+        if(size(Nv) == 1) continue;
+
+        long long deficiency = 0;
+        int cut = 0;
+        bool hasZero = false;
+        for(int u : Nv) {
+            // edges to outside
+            for(int x=0; x<n; ++x)
+                if(x!=v && g[v][x]<=0) // x is not in Nv
+                    if(g[u][x]>0) // x connected to u
+                        cut += g[u][x];
+
+            // anti-edges inside
+            for(auto w : Nv) {
+                if(u<=w) continue; // we only want to look at pairs u>w
+                if(g[u][w]==0) hasZero = true;
+                if(g[u][w]<0) deficiency += abs(g[u][w]);
+            }
+        }
+
+        if(hasZero) continue;
+        if(deficiency>=INF) continue;
+        int pv = 2*deficiency + cut;
+        assert(pv<INF);
+        if(pv >= size(Nv)) continue;
+        // we are reducible
+
+        // merge Nv and make the smallest index in Nv the representative
+        auto res = inst;
+        sort(begin(Nv), end(Nv));
+        int rep = Nv.front();
+        while(size(Nv)>1) res = merge(res, rep, Nv.back()), Nv.pop_back();
+
+        int single_connected = -1;
+        for(int x=0; x<size(res.edges); ++x) {
+            if(x==rep) continue;
+            if(res.edges[x][rep]>0) {
+                assert(single_connected==-1);
+                single_connected = x;
+            } else {
+                res.edges[rep][x] = res.edges[x][rep] = -INF;
+            }
+        }
+
+        return res;
+    }
+    return {};
+}
+
+std::optional<Instance> force_small_components(const Instance &inst) {
+    int n = inst.edges.size();
+    auto compNum = connectedComponents(inst.edges);
+    auto numComps = *max_element(begin(compNum), end(compNum)) + 1;
+    if(numComps==1) return {};
+
+    vector<vector<int>> nodesPerComp(numComps);
+    for(int i=0; i<n; ++i) nodesPerComp[compNum[i]].push_back(i);
+
+    // solve all components that are smaller than 21 nodes
+    Instance res = inst;
+    vector<int> to_delete;
+    int rem_comps = numComps;
+    for(int c=0; c<numComps && rem_comps>1; ++c) {
+        if(nodesPerComp[c].size()>20) continue;
+        rem_comps--;
+
+        // build sub-instance
+        Instance comp(nodesPerComp[c].size());
+        for (int u = 0; u < size(nodesPerComp[c]); ++u) {
+            comp.idmap[u] = inst.idmap[nodesPerComp[c][u]];
+            for (int v = 0; v < nodesPerComp[c].size(); ++v) {
+                comp.edges[u][v] = inst.edges[nodesPerComp[c][u]][nodesPerComp[c][v]];
+                comp.orig[u][v] = inst.orig[nodesPerComp[c][u]][nodesPerComp[c][v]];
+            }
+        }
+
+        // solve it
+        auto s = solve_exact(comp);
+
+        // add clusters to global solution and remove component from instance
+        res.spendCost += s.cost;
+        for(auto& cluster : s.cliques) res.done_clusters.push_back(cluster);
+        for(auto v : nodesPerComp[c]) to_delete.push_back(v);
+    }
+
+    if(rem_comps == numComps) return {};
+
+    res = remove_nodes(res, to_delete);
     return res;
 }

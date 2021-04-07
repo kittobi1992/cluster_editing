@@ -1,11 +1,9 @@
 solving instance with n=250
 upper bound 5807
-reduced to n=26 -INFs=62 spent=5743 with force star
-reduced to n=5 -INFs=12 spent=5807 with force star
-reduced to n=3 -INFs=6 spent=5807 with force star
-reduced to n=3 -INFs=9 spent=5807 with heavy non-edge
+reduced to n=17 -INFs=23 spent=5758 with force star
+reduced to n=3 -INFs=3 spent=5807 with force star
 INITIAL REDUCTION FINISHED
-time:  13.387 s
+time:  19.362 s
 size:  3
 lower: 5807
 upper: 5807
@@ -33,4 +31,4 @@ prunes:          0
 
 1
 k=5807
-13.3875
+19.3626

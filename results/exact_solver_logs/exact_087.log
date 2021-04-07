@@ -1,18 +1,15 @@
 solving instance with n=160
 upper bound 3243
-reduced to n=55 -INFs=2 spent=1457 with force star
-reduced to n=54 -INFs=2 spent=2592 with force p3
-reduced to n=44 -INFs=2 spent=2872 with force star
-reduced to n=43 -INFs=14 spent=2877 with force star
-reduced to n=43 -INFs=24 spent=2879 with force star
-reduced to n=42 -INFs=40 spent=2922 with force star
-reduced to n=28 -INFs=30 spent=3111 with force star
-reduced to n=12 -INFs=12 spent=3182 with force star
-reduced to n=6 -INFs=10 spent=3239 with force star
-reduced to n=3 -INFs=6 spent=3243 with force star
-reduced to n=3 -INFs=9 spent=3243 with heavy non-edge
+reduced to n=54 -INFs=1 spent=1459 with force star
+reduced to n=53 -INFs=1 spent=2623 with force star
+reduced to n=44 -INFs=1 spent=2872 with force star
+reduced to n=40 -INFs=17 spent=2947 with force star
+reduced to n=27 -INFs=26 spent=3122 with force star
+reduced to n=12 -INFs=10 spent=3181 with force star
+reduced to n=7 -INFs=6 spent=3215 with force star
+reduced to n=3 -INFs=3 spent=3243 with force star
 INITIAL REDUCTION FINISHED
-time:  2.967 s
+time:  3.526 s
 size:  3
 lower: 3243
 upper: 3243
@@ -40,4 +37,4 @@ prunes:          0
 
 1
 k=3243
-2.96802
+3.52656

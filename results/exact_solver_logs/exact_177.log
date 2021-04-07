@@ -1,26 +1,24 @@
 solving instance with n=313
 upper bound 4089
-reduced to n=48 -INFs=308 spent=3679 with force star
-reduced to n=35 -INFs=216 spent=3679 with twin simple
-reduced to n=27 -INFs=158 spent=3757 with twin complex
-reduced to n=27 -INFs=160 spent=3757 with force p3
-reduced to n=27 -INFs=162 spent=3757 with force p3
-reduced to n=22 -INFs=130 spent=3804 with twin complex
-reduced to n=22 -INFs=132 spent=3804 with force p3
-reduced to n=20 -INFs=120 spent=3825 with twin complex
-reduced to n=19 -INFs=112 spent=3828 with force star
-reduced to n=19 -INFs=114 spent=3848 with force star
-reduced to n=18 -INFs=114 spent=3918 with force star
-reduced to n=17 -INFs=100 spent=3921 with force star
-reduced to n=17 -INFs=128 spent=3921 with force p3
-reduced to n=17 -INFs=130 spent=3921 with force p3
-reduced to n=15 -INFs=110 spent=3931 with twin complex
-reduced to n=12 -INFs=80 spent=3985 with twin complex
-reduced to n=9 -INFs=64 spent=4089 with force star
-reduced to n=6 -INFs=30 spent=4089 with force star
-reduced to n=6 -INFs=36 spent=4089 with heavy non-edge
+reduced to n=48 -INFs=155 spent=3679 with force star
+reduced to n=36 -INFs=112 spent=3679 with twin simple
+reduced to n=27 -INFs=80 spent=3757 with twin complex
+reduced to n=27 -INFs=81 spent=3757 with force star
+reduced to n=27 -INFs=82 spent=3757 with force star
+reduced to n=22 -INFs=66 spent=3804 with twin complex
+reduced to n=21 -INFs=63 spent=3810 with force star
+reduced to n=20 -INFs=59 spent=3825 with force star
+reduced to n=20 -INFs=64 spent=3825 with force star
+reduced to n=16 -INFs=47 spent=3922 with twin complex
+reduced to n=16 -INFs=65 spent=3923 with force star
+reduced to n=16 -INFs=67 spent=3925 with force star
+reduced to n=16 -INFs=68 spent=3926 with force star
+reduced to n=16 -INFs=69 spent=3926 with force star
+reduced to n=13 -INFs=47 spent=3926 with twin simple
+reduced to n=11 -INFs=38 spent=3978 with force star
+reduced to n=6 -INFs=15 spent=4089 with force star
 INITIAL REDUCTION FINISHED
-time:  12.159 s
+time:  20.575 s
 size:  6
 lower: 4089
 upper: 4089
@@ -54,4 +52,4 @@ prunes:          0
 
 1
 k=4089
-12.1604
+20.5755

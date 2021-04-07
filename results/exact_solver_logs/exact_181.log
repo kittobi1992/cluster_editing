@@ -1,29 +1,31 @@
 solving instance with n=330
 upper bound 1566
-reduced to n=319 -INFs=84872 spent=0 with twin simple
-reduced to n=319 -INFs=84884 spent=0 with force star
-reduced to n=312 -INFs=81366 spent=13 with twin complex
-reduced to n=310 -INFs=80408 spent=109 with force star
-reduced to n=310 -INFs=80418 spent=109 with force star
-reduced to n=303 -INFs=77000 spent=140 with twin complex
-reduced to n=303 -INFs=77004 spent=140 with force star
-reduced to n=299 -INFs=75062 spent=188 with twin complex
-reduced to n=291 -INFs=71074 spent=292 with twin complex
-reduced to n=288 -INFs=69470 spent=295 with twin complex
-reduced to n=287 -INFs=69000 spent=296 with twin complex
-reduced to n=286 -INFs=68528 spent=297 with twin complex
-reduced to n=285 -INFs=68060 spent=299 with twin complex
-reduced to n=284 -INFs=67596 spent=301 with twin complex
-reduced to n=283 -INFs=67142 spent=302 with twin complex
-reduced to n=282 -INFs=66688 spent=303 with twin complex
-reduced to n=281 -INFs=66188 spent=304 with twin complex
-reduced to n=281 -INFs=66213 spent=304 with heavy non-edge
-reduced to n=280 -INFs=65743 spent=308 with twin complex
-reduced to n=279 -INFs=65239 spent=309 with twin complex
-reduced to n=279 -INFs=65242 spent=309 with heavy non-edge
-reduced to n=278 -INFs=64772 spent=310 with twin complex
+reduced to n=319 -INFs=42436 spent=0 with twin simple
+reduced to n=318 -INFs=42201 spent=45 with force star
+reduced to n=318 -INFs=42213 spent=45 with force star
+reduced to n=314 -INFs=41182 spent=50 with twin complex
+reduced to n=313 -INFs=40937 spent=83 with force star
+reduced to n=311 -INFs=40460 spent=123 with force star
+reduced to n=306 -INFs=39236 spent=134 with twin complex
+reduced to n=306 -INFs=39238 spent=134 with force star
+reduced to n=299 -INFs=37536 spent=168 with twin complex
+reduced to n=298 -INFs=37292 spent=202 with force star
+reduced to n=298 -INFs=37293 spent=202 with force star
+reduced to n=290 -INFs=35303 spent=293 with twin complex
+reduced to n=287 -INFs=34501 spent=296 with twin complex
+reduced to n=286 -INFs=34265 spent=297 with twin complex
+reduced to n=285 -INFs=34031 spent=299 with twin complex
+reduced to n=284 -INFs=33799 spent=301 with twin complex
+reduced to n=283 -INFs=33572 spent=302 with twin complex
+reduced to n=282 -INFs=33345 spent=303 with twin complex
+reduced to n=281 -INFs=33095 spent=304 with twin complex
+reduced to n=281 -INFs=33106 spent=304 with heavy non-edge
+reduced to n=280 -INFs=32871 spent=308 with twin complex
+reduced to n=279 -INFs=32619 spent=309 with twin complex
+reduced to n=279 -INFs=32620 spent=309 with heavy non-edge
+reduced to n=278 -INFs=32385 spent=310 with twin complex
 INITIAL REDUCTION FINISHED
-time:  33.902 s
+time:  42.336 s
 size:  278
 lower: 1500
 upper: 1566
@@ -33,21 +35,21 @@ split into 2 CCs
 start solving CC of size 1 first bound 0
 0	 (total: 310)
 start solving CC of size 277 first bound 1198
-1198	 (total: 1508)1199	 (total: 1509)1200	 (total: 1510)1201	 (total: 1511)1202	 (total: 1512)1203	 (total: 1513)1204	 (total: 1514)1205	 (total: 1515)1206	 (total: 1516)1207	 (total: 1517)1208	 (total: 1518)1209	 (total: 1519)1210	 (total: 1520)1211	 (total: 1521)1212	 (total: 1522)1213	 (total: 1523)1214	 (total: 1524)1215	 (total: 1525)1216	 (total: 1526)1217	 (total: 1527)
+1198	 (total: 1508)1199	 (total: 1509)1200	 (total: 1510)1201	 (total: 1511)1202	 (total: 1512)1203	 (total: 1513)1204	 (total: 1514)1205	 (total: 1515)1206	 (total: 1516)1207	 (total: 1517)1208	 (total: 1518)1209	 (total: 1519)1210	 (total: 1520)1211	 (total: 1521)1212	 (total: 1522)1213	 (total: 1523)1214	 (total: 1524)1215	 (total: 1525)1216	 (total: 1526)1217	 (total: 1527)1218	 (total: 1528)
 time limit exceeded
-branching nodes: 615
-reductions:      637
-	forced (star): 888
-	forced (p3):   59
-	twin simple:   3
-	twin complex:  521
+branching nodes: 390
+reductions:      580
+	forced (star): 1071
+	forced (p3):   0
+	twin simple:   0
+	twin complex:  477
 	icx:           0
-	h edge (b):    22
-	h edge (s):    40
-	h non edge:    265
-disconnects:     287
-prunes:          623
+	h edge (b):    23
+	h edge (s):    42
+	h non edge:    105
+disconnects:     175
+prunes:          405
 
 0
 k=1000000000
-1800.22
+1800.34

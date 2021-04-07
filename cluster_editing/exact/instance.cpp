@@ -54,5 +54,29 @@ int forbiddenEdges(const Instance &inst) {
     for(auto& row : inst.edges)
         for(auto val : row)
             res += (val==-INF);
+    return res/2;
+}
+
+Instance remove_nodes(const Instance &inst, const vector<int>& nodes) {
+    int old_n = size(inst.edges);
+
+    vector<bool> keep(old_n,true);
+    for(auto v : nodes) keep[v] = false;
+
+    vector<int> rem_nodes;
+    for(int v=0; v<old_n; ++v) if(keep[v]) rem_nodes.push_back(v);
+
+    Instance res(size(rem_nodes));
+    res.done_clusters = inst.done_clusters;
+    res.spendCost = inst.spendCost;
+
+    for(int i=0; i<size(rem_nodes); ++i) {
+        res.idmap[i] = inst.idmap[rem_nodes[i]];
+        for(int j=0; j<size(rem_nodes); ++j) {
+            res.edges[i][j] = inst.edges[rem_nodes[i]][rem_nodes[j]];
+            res.orig[i][j] = inst.orig[rem_nodes[i]][rem_nodes[j]];
+        }
+    }
+
     return res;
 }

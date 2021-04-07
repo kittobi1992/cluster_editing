@@ -1,10 +1,9 @@
 solving instance with n=160
 upper bound 1047
-reduced to n=4 -INFs=8 spent=995 with force star
-reduced to n=3 -INFs=6 spent=1047 with twin complex
-reduced to n=3 -INFs=9 spent=1047 with heavy non-edge
+reduced to n=4 -INFs=4 spent=995 with force star
+reduced to n=3 -INFs=3 spent=1047 with twin complex
 INITIAL REDUCTION FINISHED
-time:  1.24 s
+time:  4.403 s
 size:  3
 lower: 1047
 upper: 1047
@@ -32,4 +31,4 @@ prunes:          0
 
 1
 k=1047
-1.24108
+4.40378

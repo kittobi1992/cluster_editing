@@ -1,7 +1,7 @@
 solving instance with n=200
 upper bound 4572
 INITIAL REDUCTION FINISHED
-time:  85.728 s
+time:  86.725 s
 size:  200
 lower: 4350
 upper: 4572
@@ -9,21 +9,21 @@ gap:   222
 STARTING BRANCH AND BOUND
 split into 1 CCs
 start solving CC of size 200 first bound 4350
-4350	 (total: 4350)4351	 (total: 4351)4352	 (total: 4352)4353	 (total: 4353)4354	 (total: 4354)4355	 (total: 4355)4356	 (total: 4356)4357	 (total: 4357)4358	 (total: 4358)4359	 (total: 4359)4360	 (total: 4360)4361	 (total: 4361)4362	 (total: 4362)4363	 (total: 4363)4364	 (total: 4364)4365	 (total: 4365)
+4350	 (total: 4350)4351	 (total: 4351)4352	 (total: 4352)4353	 (total: 4353)4354	 (total: 4354)4355	 (total: 4355)4356	 (total: 4356)4357	 (total: 4357)4358	 (total: 4358)4359	 (total: 4359)4360	 (total: 4360)4361	 (total: 4361)4362	 (total: 4362)4363	 (total: 4363)4364	 (total: 4364)4365	 (total: 4365)4366	 (total: 4366)4367	 (total: 4367)4368	 (total: 4368)
 time limit exceeded
-branching nodes: 59
-reductions:      33
-	forced (star): 54
+branching nodes: 29
+reductions:      35
+	forced (star): 83
 	forced (p3):   0
 	twin simple:   0
-	twin complex:  7
+	twin complex:  3
 	icx:           0
 	h edge (b):    0
-	h edge (s):    2
-	h non edge:    2
+	h edge (s):    0
+	h non edge:    0
 disconnects:     0
-prunes:          73
+prunes:          46
 
 0
 k=1000000000
-1800.89
+1812.62

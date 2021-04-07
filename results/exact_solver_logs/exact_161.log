@@ -1,34 +1,38 @@
 solving instance with n=279
 upper bound 333
-reduced to n=146 -INFs=20214 spent=257 with force star
-reduced to n=133 -INFs=16776 spent=259 with force p3
-reduced to n=131 -INFs=16300 spent=260 with force p3
-reduced to n=131 -INFs=16302 spent=260 with force star
-reduced to n=131 -INFs=16304 spent=260 with force p3
-reduced to n=92 -INFs=7942 spent=260 with twin simple
-reduced to n=91 -INFs=7790 spent=262 with force p3
-reduced to n=89 -INFs=7470 spent=266 with force star
-reduced to n=83 -INFs=6520 spent=271 with twin complex
-reduced to n=82 -INFs=6386 spent=274 with twin complex
-reduced to n=81 -INFs=6228 spent=290 with twin complex
-reduced to n=80 -INFs=6092 spent=291 with twin complex
-reduced to n=80 -INFs=6094 spent=291 with force star
-reduced to n=79 -INFs=5958 spent=295 with force p3
-reduced to n=78 -INFs=5828 spent=300 with force p3
-reduced to n=77 -INFs=5690 spent=305 with twin complex
-reduced to n=77 -INFs=5692 spent=305 with force p3
-reduced to n=76 -INFs=5554 spent=306 with twin complex
-reduced to n=75 -INFs=5422 spent=307 with twin complex
-reduced to n=74 -INFs=5288 spent=308 with twin complex
-reduced to n=74 -INFs=5304 spent=311 with force star
-reduced to n=72 -INFs=5086 spent=317 with force p3
-reduced to n=70 -INFs=4808 spent=317 with twin simple
-reduced to n=69 -INFs=4674 spent=321 with twin complex
-reduced to n=68 -INFs=4546 spent=326 with twin complex
-reduced to n=68 -INFs=4548 spent=326 with force star
-reduced to n=68 -INFs=4612 spent=326 with heavy non-edge
+reduced to n=143 -INFs=9711 spent=258 with force star
+reduced to n=143 -INFs=9722 spent=258 with force star
+reduced to n=97 -INFs=4386 spent=258 with twin simple
+reduced to n=94 -INFs=4152 spent=264 with force star
+reduced to n=94 -INFs=4153 spent=264 with force star
+reduced to n=91 -INFs=3895 spent=264 with twin simple
+reduced to n=90 -INFs=3820 spent=265 with force star
+reduced to n=85 -INFs=3411 spent=267 with twin complex
+reduced to n=84 -INFs=3337 spent=270 with twin complex
+reduced to n=83 -INFs=3256 spent=286 with twin complex
+reduced to n=82 -INFs=3188 spent=287 with twin complex
+reduced to n=80 -INFs=3056 spent=297 with force p3
+reduced to n=78 -INFs=2920 spent=300 with force p3
+reduced to n=77 -INFs=2851 spent=305 with twin complex
+reduced to n=76 -INFs=2781 spent=306 with twin complex
+reduced to n=76 -INFs=2785 spent=308 with force star
+reduced to n=76 -INFs=2786 spent=308 with force star
+reduced to n=76 -INFs=2787 spent=308 with force p3
+reduced to n=75 -INFs=2720 spent=309 with twin complex
+reduced to n=75 -INFs=2721 spent=310 with force star
+reduced to n=75 -INFs=2727 spent=310 with force p3
+reduced to n=74 -INFs=2655 spent=314 with twin complex
+reduced to n=74 -INFs=2656 spent=314 with force star
+reduced to n=73 -INFs=2588 spent=314 with twin complex
+reduced to n=73 -INFs=2589 spent=314 with force star
+reduced to n=73 -INFs=2590 spent=314 with force star
+reduced to n=72 -INFs=2526 spent=315 with twin complex
+reduced to n=71 -INFs=2462 spent=316 with force star
+reduced to n=70 -INFs=2406 spent=321 with force star
+reduced to n=69 -INFs=2338 spent=321 with twin simple
+reduced to n=68 -INFs=2274 spent=326 with twin complex
 INITIAL REDUCTION FINISHED
-time:  0.634 s
+time:  0.953 s
 size:  68
 lower: 326
 upper: 333
@@ -178,4 +182,4 @@ prunes:          7
 
 1
 k=333
-0.635384
+0.954983

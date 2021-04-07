@@ -1,9 +1,8 @@
 solving instance with n=250
 upper bound 1258
 reduced to n=1 -INFs=0 spent=1258 with force star
-reduced to n=1 -INFs=1 spent=1258 with heavy non-edge
 INITIAL REDUCTION FINISHED
-time:  5.26 s
+time:  138.805 s
 size:  1
 lower: 1258
 upper: 1258
@@ -27,4 +26,4 @@ prunes:          0
 
 1
 k=1258
-5.26113
+138.806

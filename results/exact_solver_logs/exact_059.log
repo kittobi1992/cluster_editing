@@ -1,69 +1,65 @@
 solving instance with n=121
 upper bound 976
-reduced to n=56 -INFs=1148 spent=859 with force star
-reduced to n=41 -INFs=764 spent=930 with force star
-reduced to n=26 -INFs=350 spent=954 with force star
-reduced to n=23 -INFs=348 spent=958 with force p3
-reduced to n=23 -INFs=350 spent=958 with force star
-reduced to n=21 -INFs=286 spent=958 with twin simple
-reduced to n=21 -INFs=288 spent=958 with force p3
-reduced to n=20 -INFs=268 spent=959 with twin complex
-reduced to n=20 -INFs=270 spent=959 with icx
-reduced to n=20 -INFs=272 spent=959 with icx
-reduced to n=20 -INFs=274 spent=959 with icx
-reduced to n=20 -INFs=276 spent=959 with icx
-reduced to n=20 -INFs=278 spent=959 with icx
-reduced to n=20 -INFs=280 spent=959 with icx
-reduced to n=20 -INFs=282 spent=959 with icx
-reduced to n=20 -INFs=284 spent=959 with icx
-reduced to n=19 -INFs=268 spent=961 with heavy edge (b)
-reduced to n=19 -INFs=270 spent=961 with icx
-reduced to n=19 -INFs=340 spent=961 with heavy non-edge
+reduced to n=55 -INFs=655 spent=878 with force star
+reduced to n=28 -INFs=314 spent=944 with force star
+reduced to n=20 -INFs=182 spent=970 with force star
+reduced to n=19 -INFs=165 spent=973 with twin complex
+reduced to n=18 -INFs=150 spent=974 with twin complex
+reduced to n=17 -INFs=135 spent=976 with twin complex
+reduced to n=16 -INFs=120 spent=976 with twin simple
 INITIAL REDUCTION FINISHED
-time:  1.508 s
-size:  19
-lower: 961
+time:  1.872 s
+size:  16
+lower: 976
 upper: 976
-gap:   15
+gap:   0
 STARTING BRANCH AND BOUND
-split into 12 CCs
+split into 16 CCs
 start solving CC of size 1 first bound 0
-0	 (total: 961)
+0	 (total: 976)
 start solving CC of size 1 first bound 0
-0	 (total: 961)
+0	 (total: 976)
 start solving CC of size 1 first bound 0
-0	 (total: 961)
+0	 (total: 976)
 start solving CC of size 1 first bound 0
-0	 (total: 961)
+0	 (total: 976)
 start solving CC of size 1 first bound 0
-0	 (total: 961)
+0	 (total: 976)
 start solving CC of size 1 first bound 0
-0	 (total: 961)
+0	 (total: 976)
 start solving CC of size 1 first bound 0
-0	 (total: 961)
+0	 (total: 976)
 start solving CC of size 1 first bound 0
-0	 (total: 961)
+0	 (total: 976)
 start solving CC of size 1 first bound 0
-0	 (total: 961)
+0	 (total: 976)
 start solving CC of size 1 first bound 0
-0	 (total: 961)
+0	 (total: 976)
 start solving CC of size 1 first bound 0
-0	 (total: 961)
-start solving CC of size 8 first bound 0
-0	 (total: 961)1	 (total: 962)2	 (total: 963)3	 (total: 964)4	 (total: 965)5	 (total: 966)6	 (total: 967)7	 (total: 968)8	 (total: 969)9	 (total: 970)10	 (total: 971)11	 (total: 972)12	 (total: 973)13	 (total: 974)14	 (total: 975)15	 (total: 976)
-branching nodes: 1
-reductions:      16
-	forced (star): 16
-	forced (p3):   4
+0	 (total: 976)
+start solving CC of size 1 first bound 0
+0	 (total: 976)
+start solving CC of size 1 first bound 0
+0	 (total: 976)
+start solving CC of size 1 first bound 0
+0	 (total: 976)
+start solving CC of size 1 first bound 0
+0	 (total: 976)
+start solving CC of size 1 first bound 0
+0	 (total: 976)
+branching nodes: 0
+reductions:      0
+	forced (star): 0
+	forced (p3):   0
 	twin simple:   0
-	twin complex:  1
-	icx:           1
+	twin complex:  0
+	icx:           0
 	h edge (b):    0
 	h edge (s):    0
-	h non edge:    1
+	h non edge:    0
 disconnects:     0
-prunes:          15
+prunes:          0
 
 1
 k=976
-1.50966
+1.87299

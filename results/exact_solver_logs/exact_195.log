@@ -1,14 +1,14 @@
 solving instance with n=620
 upper bound 2531
-reduced to n=610 -INFs=344924 spent=6 with twin simple
-reduced to n=609 -INFs=343722 spent=7 with twin complex
-reduced to n=608 -INFs=342520 spent=8 with twin complex
-reduced to n=606 -INFs=340108 spent=10 with twin complex
-reduced to n=605 -INFs=338922 spent=11 with twin complex
-reduced to n=604 -INFs=337730 spent=12 with twin complex
-reduced to n=604 -INFs=338273 spent=12 with heavy non-edge
+reduced to n=610 -INFs=172462 spent=6 with twin simple
+reduced to n=609 -INFs=171861 spent=7 with twin complex
+reduced to n=608 -INFs=171260 spent=8 with twin complex
+reduced to n=606 -INFs=170054 spent=10 with twin complex
+reduced to n=605 -INFs=169461 spent=11 with twin complex
+reduced to n=604 -INFs=168865 spent=12 with twin complex
+reduced to n=604 -INFs=169092 spent=12 with heavy non-edge
 INITIAL REDUCTION FINISHED
-time:  56.166 s
+time:  62.035 s
 size:  604
 lower: 2433
 upper: 2531
@@ -152,19 +152,19 @@ start solving CC of size 60 first bound 239
 start solving CC of size 72 first bound 411
 411	 (total: 978)412	 (total: 979)413	 (total: 980)414	 (total: 981)415	 (total: 982)416	 (total: 983)417	 (total: 984)418	 (total: 985)419	 (total: 986)420	 (total: 987)421	 (total: 988)422	 (total: 989)423	 (total: 990)424	 (total: 991)425	 (total: 992)426	 (total: 993)427	 (total: 994)428	 (total: 995)429	 (total: 996)430	 (total: 997)431	 (total: 998)
 time limit exceeded
-branching nodes: 3424
-reductions:      2406
-	forced (star): 3481
-	forced (p3):   306
-	twin simple:   4
-	twin complex:  462
-	icx:           9
-	h edge (b):    35
-	h edge (s):    41
-	h non edge:    1104
-disconnects:     145
-prunes:          3449
+branching nodes: 1670
+reductions:      2311
+	forced (star): 5014
+	forced (p3):   113
+	twin simple:   6
+	twin complex:  232
+	icx:           4
+	h edge (b):    16
+	h edge (s):    15
+	h non edge:    424
+disconnects:     88
+prunes:          1699
 
 0
 k=1000000000
-1800.21
+1800.18

@@ -1,69 +1,77 @@
 solving instance with n=184
 upper bound 650
-reduced to n=162 -INFs=17728 spent=131 with force star
-reduced to n=158 -INFs=16878 spent=141 with force star
-reduced to n=158 -INFs=16896 spent=142 with force star
-reduced to n=148 -INFs=14838 spent=173 with force star
-reduced to n=148 -INFs=14872 spent=174 with force star
-reduced to n=146 -INFs=14614 spent=196 with force star
-reduced to n=145 -INFs=14362 spent=216 with force star
-reduced to n=145 -INFs=14400 spent=219 with force star
-reduced to n=145 -INFs=14496 spent=228 with force star
-reduced to n=144 -INFs=14238 spent=236 with force star
-reduced to n=119 -INFs=8184 spent=236 with twin simple
-reduced to n=114 -INFs=7566 spent=248 with twin complex
-reduced to n=114 -INFs=7606 spent=248 with force star
-reduced to n=112 -INFs=7338 spent=254 with twin complex
-reduced to n=111 -INFs=7188 spent=257 with twin complex
-reduced to n=110 -INFs=6992 spent=260 with twin complex
-reduced to n=108 -INFs=6594 spent=270 with twin complex
-reduced to n=107 -INFs=6416 spent=271 with twin complex
-reduced to n=107 -INFs=6420 spent=271 with force star
-reduced to n=106 -INFs=6238 spent=272 with twin complex
-reduced to n=106 -INFs=6240 spent=272 with force star
-reduced to n=105 -INFs=6156 spent=273 with twin complex
-reduced to n=104 -INFs=6056 spent=274 with twin complex
-reduced to n=103 -INFs=5926 spent=275 with twin complex
-reduced to n=103 -INFs=6041 spent=275 with heavy non-edge
+reduced to n=149 -INFs=7962 spent=176 with force star
+reduced to n=144 -INFs=7411 spent=244 with force star
+reduced to n=144 -INFs=7434 spent=247 with force star
+reduced to n=143 -INFs=7322 spent=251 with force star
+reduced to n=143 -INFs=7326 spent=251 with force star
+reduced to n=121 -INFs=4530 spent=251 with twin simple
+reduced to n=114 -INFs=3973 spent=255 with twin complex
+reduced to n=114 -INFs=3977 spent=255 with force star
+reduced to n=110 -INFs=3623 spent=266 with twin complex
+reduced to n=110 -INFs=3637 spent=268 with force star
+reduced to n=110 -INFs=3643 spent=268 with force star
+reduced to n=106 -INFs=3258 spent=279 with twin complex
+reduced to n=106 -INFs=3273 spent=279 with force star
+reduced to n=106 -INFs=3274 spent=279 with force star
+reduced to n=104 -INFs=3085 spent=281 with twin complex
+reduced to n=104 -INFs=3088 spent=281 with force star
+reduced to n=104 -INFs=3090 spent=281 with force star
+reduced to n=104 -INFs=3091 spent=281 with force star
+reduced to n=103 -INFs=3031 spent=283 with twin complex
+reduced to n=103 -INFs=3032 spent=283 with force star
+reduced to n=102 -INFs=2990 spent=284 with twin complex
+reduced to n=102 -INFs=3064 spent=287 with force star
+reduced to n=102 -INFs=3070 spent=287 with force star
+reduced to n=101 -INFs=3012 spent=288 with twin complex
+reduced to n=101 -INFs=3053 spent=288 with force star
+reduced to n=101 -INFs=3059 spent=288 with force star
+reduced to n=100 -INFs=2981 spent=289 with twin complex
+reduced to n=100 -INFs=2982 spent=289 with force star
+reduced to n=100 -INFs=3017 spent=289 with heavy non-edge
 INITIAL REDUCTION FINISHED
-time:  7.13 s
-size:  103
+time:  7.394 s
+size:  100
 lower: 639
 upper: 650
 gap:   11
 STARTING BRANCH AND BOUND
-split into 9 CCs
+split into 11 CCs
 start solving CC of size 1 first bound 0
-0	 (total: 275)
+0	 (total: 289)
 start solving CC of size 1 first bound 0
-0	 (total: 275)
+0	 (total: 289)
 start solving CC of size 1 first bound 0
-0	 (total: 275)
+0	 (total: 289)
 start solving CC of size 1 first bound 0
-0	 (total: 275)
+0	 (total: 289)
 start solving CC of size 1 first bound 0
-0	 (total: 275)
+0	 (total: 289)
 start solving CC of size 1 first bound 0
-0	 (total: 275)
+0	 (total: 289)
 start solving CC of size 1 first bound 0
-0	 (total: 275)
+0	 (total: 289)
+start solving CC of size 1 first bound 0
+0	 (total: 289)
+start solving CC of size 1 first bound 0
+0	 (total: 289)
 start solving CC of size 4 first bound 0
-0	 (total: 275)1	 (total: 276)2	 (total: 277)
-start solving CC of size 92 first bound 365
-365	 (total: 642)366	 (total: 643)367	 (total: 644)368	 (total: 645)369	 (total: 646)370	 (total: 647)371	 (total: 648)372	 (total: 649)373	 (total: 650)
-branching nodes: 36
-reductions:      62
-	forced (star): 165
-	forced (p3):   31
-	twin simple:   3
-	twin complex:  95
-	icx:           4
-	h edge (b):    30
-	h edge (s):    16
-	h non edge:    108
-disconnects:     27
-prunes:          33
+0	 (total: 289)1	 (total: 290)2	 (total: 291)
+start solving CC of size 87 first bound 349
+349	 (total: 640)350	 (total: 641)351	 (total: 642)352	 (total: 643)353	 (total: 644)354	 (total: 645)355	 (total: 646)356	 (total: 647)357	 (total: 648)358	 (total: 649)359	 (total: 650)
+branching nodes: 16
+reductions:      35
+	forced (star): 132
+	forced (p3):   6
+	twin simple:   1
+	twin complex:  57
+	icx:           2
+	h edge (b):    26
+	h edge (s):    10
+	h non edge:    56
+disconnects:     12
+prunes:          20
 
 1
 k=650
-33.7641
+26.8901

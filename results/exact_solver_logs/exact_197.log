@@ -1,48 +1,37 @@
 solving instance with n=620
 upper bound 15831
-reduced to n=620 -INFs=119198 spent=86 with force star
-reduced to n=620 -INFs=119200 spent=86 with force star
-reduced to n=611 -INFs=119948 spent=286 with force star
-reduced to n=611 -INFs=119958 spent=286 with force star
-reduced to n=609 -INFs=118430 spent=287 with twin complex
-reduced to n=597 -INFs=110408 spent=520 with force star
-reduced to n=555 -INFs=84944 spent=1523 with force star
-reduced to n=553 -INFs=84112 spent=1546 with force star
-reduced to n=549 -INFs=82852 spent=1637 with force star
-reduced to n=544 -INFs=82412 spent=1776 with force star
-reduced to n=544 -INFs=82418 spent=1776 with force star
-reduced to n=531 -INFs=73570 spent=2033 with twin complex
-reduced to n=531 -INFs=73600 spent=2035 with force star
-reduced to n=530 -INFs=75382 spent=2111 with force star
-reduced to n=530 -INFs=75538 spent=2112 with force star
-reduced to n=530 -INFs=75566 spent=2114 with force star
-reduced to n=529 -INFs=77346 spent=2178 with force star
-reduced to n=529 -INFs=77404 spent=2178 with force star
-reduced to n=529 -INFs=77406 spent=2178 with force star
-reduced to n=509 -INFs=70244 spent=2855 with force star
-reduced to n=509 -INFs=70614 spent=2859 with force star
-reduced to n=509 -INFs=70898 spent=2861 with force star
-reduced to n=509 -INFs=70900 spent=2861 with force star
-reduced to n=493 -INFs=60304 spent=3101 with twin complex
-reduced to n=493 -INFs=60568 spent=3103 with force star
-reduced to n=490 -INFs=62232 spent=3165 with force star
-reduced to n=490 -INFs=62534 spent=3171 with force star
-reduced to n=452 -INFs=41256 spent=3427 with force star
-reduced to n=429 -INFs=26198 spent=3621 with twin complex
-reduced to n=426 -INFs=24708 spent=3669 with twin complex
-reduced to n=425 -INFs=24060 spent=3670 with heavy edge (b)
-reduced to n=424 -INFs=23398 spent=3670 with twin complex
-reduced to n=424 -INFs=23428 spent=3670 with heavy non-edge
+reduced to n=615 -INFs=77739 spent=358 with force star
+reduced to n=549 -INFs=57595 spent=1951 with force star
+reduced to n=538 -INFs=54866 spent=2244 with force star
+reduced to n=517 -INFs=49922 spent=2978 with force star
+reduced to n=514 -INFs=49882 spent=3074 with force star
+reduced to n=469 -INFs=36630 spent=3412 with force star
+reduced to n=469 -INFs=36659 spent=3414 with force star
+reduced to n=469 -INFs=36666 spent=3414 with force star
+reduced to n=463 -INFs=35087 spent=3468 with force star
+reduced to n=463 -INFs=35270 spent=3497 with force star
+reduced to n=463 -INFs=35288 spent=3497 with force star
+reduced to n=461 -INFs=34426 spent=3497 with twin simple
+reduced to n=460 -INFs=34035 spent=3509 with force star
+reduced to n=428 -INFs=21046 spent=3754 with twin complex
+reduced to n=426 -INFs=20413 spent=3773 with twin complex
+reduced to n=425 -INFs=20082 spent=3774 with heavy edge (b)
+reduced to n=424 -INFs=19742 spent=3774 with twin complex
+reduced to n=424 -INFs=19818 spent=3775 with force star
+reduced to n=424 -INFs=19846 spent=3776 with force star
+reduced to n=424 -INFs=19851 spent=3776 with force star
+reduced to n=424 -INFs=19898 spent=3777 with force star
+reduced to n=424 -INFs=19907 spent=3777 with heavy non-edge
 INITIAL REDUCTION FINISHED
-time:  2419.58 s
+time:  1811.59 s
 size:  424
-lower: 15758
+lower: 15755
 upper: 15831
-gap:   73
+gap:   76
 STARTING BRANCH AND BOUND
-split into 2 CCs
+split into 3 CCs
 start solving CC of size 1 first bound 0
-0	 (total: 3670)
+0	 (total: 3777)
 time limit exceeded
 branching nodes: 0
 reductions:      0
@@ -59,4 +48,4 @@ prunes:          0
 
 0
 k=1000000000
-2466.56
+1838.65

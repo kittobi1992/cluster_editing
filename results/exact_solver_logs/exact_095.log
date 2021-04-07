@@ -1,9 +1,8 @@
 solving instance with n=180
 upper bound 358
-reduced to n=3 -INFs=6 spent=358 with force star
-reduced to n=3 -INFs=9 spent=358 with heavy non-edge
+reduced to n=3 -INFs=3 spent=358 with force star
 INITIAL REDUCTION FINISHED
-time:  0.839 s
+time:  7.987 s
 size:  3
 lower: 358
 upper: 358
@@ -31,4 +30,4 @@ prunes:          0
 
 1
 k=358
-0.839297
+7.98818
