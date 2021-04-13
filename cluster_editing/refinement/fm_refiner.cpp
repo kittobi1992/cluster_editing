@@ -32,17 +32,15 @@ bool FMRefiner::refineImpl(Graph& graph) {
   EdgeWeight start_metric = metrics::edits(graph);
   EdgeWeight current_metric = start_metric;
   EdgeWeight round_delta = -1;
-  bool converged = false;
 
   utils::ProgressBar fm_progress(
-    _context.refinement.maximum_fm_iterations, start_metric,
+    _context.refinement.fm.maximum_fm_iterations, start_metric,
     _context.general.verbose_output && !_context.general.use_multilevel && !debug);
 
   utils::Timer::instance().start_timer("fm", "FM");
-  for ( int round = 0; round < _context.refinement.maximum_fm_iterations && !converged; ++round ) {
+  for ( int round = 0; round < _context.refinement.fm.maximum_fm_iterations; ++round ) {
     round_delta = 0;
     EdgeWeight best_delta = 0;
-    converged = true;
 
     // init PQ and empty cliques
     _empty_cliques.clear();
@@ -59,7 +57,8 @@ bool FMRefiner::refineImpl(Graph& graph) {
     }
 
     // perform moves
-    while (!pq.empty()) {
+    size_t num_fruitless_moves = 0;
+    while (!pq.empty() && num_fruitless_moves <= _context.refinement.fm.max_fruitless_moves) {
       EdgeWeight estimated_gain = pq.topKey();
       NodeID u = pq.top();
 
@@ -86,10 +85,11 @@ bool FMRefiner::refineImpl(Graph& graph) {
         best_delta = round_delta;
         // permanently keep all moves up to here
         moves.clear();
-        converged = false;
+        num_fruitless_moves = 0;
       } else {
         // store for rollback later
         moves.push_back({ u, from, to });
+        ++num_fruitless_moves;
       }
       assert(from != graph.clique(u));
 
@@ -213,6 +213,12 @@ bool FMRefiner::refineImpl(Graph& graph) {
       #endif
     }
 
+    while ( !pq.empty() ) {
+      const NodeID u = pq.top();
+      pq.deleteTop();
+      removeFromTargetClique(u);
+    }
+
     #ifndef NDEBUG
     checkCliqueWeights(graph);
     #endif
@@ -244,7 +250,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
     fm_progress.setObjective(current_metric);
     fm_progress += 1;
   }
-  fm_progress += (_context.refinement.maximum_fm_iterations - fm_progress.count());
+  fm_progress += (_context.refinement.fm.maximum_fm_iterations - fm_progress.count());
   utils::Timer::instance().stop_timer("fm");
 
   return current_metric < start_metric;

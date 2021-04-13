@@ -18,15 +18,16 @@ int main(int argc, char* argv[]) {
   processCommandLineInput(context, argc, argv);
   utils::Randomize::instance().setSeed(context.general.seed);
 
+  utils::Timer::instance().start_timer("import_graph", "Import Graph");
+  Graph graph = io::readGraphFile(context.general.graph_filename);
+  utils::Timer::instance().stop_timer("import_graph");
+  context.computeParameters(graph.numNodes());
+
   if ( context.general.verbose_output ) {
     io::printBanner();
     // Print context description
     LOG << context;
   }
-
-  utils::Timer::instance().start_timer("import_graph", "Import Graph");
-  Graph graph = io::readGraphFile(context.general.graph_filename);
-  utils::Timer::instance().stop_timer("import_graph");
   io::printInputInfo(graph, context);
 
   // Preprocessing
