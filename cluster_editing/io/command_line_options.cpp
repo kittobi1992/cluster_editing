@@ -57,7 +57,9 @@ namespace cluster_editing {
             ("use-multilevel", po::value<bool>(&context.general.use_multilevel)->value_name("<bool>")->default_value(false),
              "If true, than multilevel paradigm is used.")
             ("num-repititions", po::value<int>(&context.general.num_repititions)->value_name("<int>"),
-             "Number of Repititions");
+             "Number of Repititions")
+            ("num-fruitless-repititions", po::value<int>(&context.general.num_fruitless_repititions)->value_name("<int>"),
+             "If for specified number of repititions no improvement is found, then the algorithm terminates.");
     return options;
   }
 
@@ -101,6 +103,8 @@ namespace cluster_editing {
              " - random_shuffle\n"
              " - degree_increasing\n"
              " - degree_decreasing\n")
+            ("r-lp-min-improvement", po::value<int>(&context.refinement.lp.min_improvement)->value_name("<int>"),
+             "Minimal improvement per round, if FM refiner is also activated")
             ("r-fm-fraction-fruitless-moves", po::value<double>(&context.refinement.fm.fraction_of_fruitless_moves)->value_name("<double>"),
              "FM terminates, if it not finds an improvement after fruitless_moves * |V| moves");
     return options;

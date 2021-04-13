@@ -55,6 +55,8 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
     });
   }
 
+  // enable early exit on large graphs, if FM refiner is used afterwards
+  const bool enable_early_exit = graph.numEdges() >= 1000000 && _context.refinement.use_fm_refiner;
   for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
     utils::Timer::instance().start_timer("local_moving", "Local Moving");
     converged = true;
@@ -115,6 +117,11 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
       utils::Timer::instance().start_timer("random_shuffle", "Random Shuffle");
       utils::Randomize::instance().shuffleVector(_nodes, _nodes.size());
       utils::Timer::instance().stop_timer("random_shuffle");
+    }
+
+    const EdgeWeight round_delta = initial_metric - current_metric;
+    if ( enable_early_exit && round_delta <= _context.refinement.lp.min_improvement ) {
+      break;
     }
   }
   lp_progress += (_context.refinement.lp.maximum_lp_iterations - lp_progress.count());

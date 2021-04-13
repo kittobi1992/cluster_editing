@@ -17,6 +17,7 @@ struct GeneralParameters {
   int seed = 0;
   bool use_multilevel = false;
   int num_repititions = 0;
+  int num_fruitless_repititions = 0;
 };
 
 std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);
@@ -32,6 +33,7 @@ struct LabelPropagationRefinerParameters {
   int activate_all_cliques_after_rounds = std::numeric_limits<int>::max();
   bool random_shuffle_each_round = false;
   NodeOrdering node_order = NodeOrdering::none;
+  int min_improvement = 0;
 };
 
 std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParameters& params);

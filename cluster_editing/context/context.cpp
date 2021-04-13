@@ -13,6 +13,7 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params) {
   str << "  Seed:                          " << params.seed << std::endl;
   str << "  Use Multilevel:                " << std::boolalpha << params.use_multilevel << std::endl;
   str << "  Number of Repititions:         " << params.num_repititions << std::endl;
+  str << "  Number Fruitless Repititions:  " << params.num_fruitless_repititions << std::endl;
   return str;
 }
 
@@ -28,6 +29,7 @@ std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParam
   str << "    Act. Cliques After Round:    " << params.activate_all_cliques_after_rounds << std::endl;
   str << "    Random Shuffle each Round:   " << std::boolalpha << params.random_shuffle_each_round << std::endl;
   str << "    Node Ordering:               " << params.node_order << std::endl;
+  str << "    Min Improvement:             " << params.min_improvement << std::endl;
   return str;
 }
 

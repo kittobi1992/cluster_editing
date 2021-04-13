@@ -40,9 +40,12 @@ int main(int argc, char* argv[]) {
 
   // Multilevel Solver
   utils::Timer::instance().start_timer("solver", "Solver");
+  size_t fruitless_repititions = 0;
   std::vector<CliqueID> best_cliques(graph.numNodes(), INVALID_CLIQUE);
   size_t best_objective = std::numeric_limits<size_t>::max();
-  for ( int i = 0; i < context.general.num_repititions; ++i ) {
+  for ( int i = 0;
+        i < context.general.num_repititions &&
+        fruitless_repititions < context.general.num_fruitless_repititions ; ++i ) {
     graph.reset();
     if ( context.general.use_multilevel ) {
       multilevel::solve(graph, context);
@@ -61,6 +64,9 @@ int main(int argc, char* argv[]) {
         best_cliques[u] = graph.clique(u);
       }
       best_objective = current_objective;
+      fruitless_repititions = 0;
+    } else {
+      ++fruitless_repititions;
     }
   }
 
