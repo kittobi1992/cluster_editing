@@ -20,6 +20,7 @@ HighResClockTimepoint start, end;
 
 void printResult(Graph& best) {
   // Print Stats
+  end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds(end - start);
   io::printClusterEditingResults(best, context, elapsed_seconds);
 
@@ -68,6 +69,7 @@ int main(int argc, char* argv[]) {
   io::printInputInfo(graph, context);
 
   // Multilevel Solver
+  start = std::chrono::high_resolution_clock::now();
   utils::Timer::instance().start_timer("solver", "Solver");
   int fruitless_repititions = 0;
   std::vector<CliqueID> best_cliques(graph.numNodes(), INVALID_CLIQUE);

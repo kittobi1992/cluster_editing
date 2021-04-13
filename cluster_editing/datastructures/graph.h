@@ -224,20 +224,8 @@ class Graph {
 
   // ####################### Node Information #######################
 
-  NodeWeight nodeWeight(const NodeID) const {
-    return 1;
-  }
-
-  NodeWeight selfloopWeight(const NodeID) const {
-    return 0;
-  }
-
   size_t degree(const NodeID u) const {
     return node(u + 1).firstEntry() - node(u).firstEntry();
-  }
-
-  EdgeWeight weightedDegree(const NodeID u) const {
-    return degree(u);
   }
 
   CliqueID clique(const NodeID u) const {
@@ -260,10 +248,6 @@ class Graph {
 
   NodeID target(const EdgeID e) const {
     return edge(e).target();
-  }
-
-  EdgeWeight edgeWeight(const EdgeID) const {
-    return 1;
   }
 
   // ####################### Checkpointing #######################

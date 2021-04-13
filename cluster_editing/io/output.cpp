@@ -38,49 +38,15 @@ namespace internal {
   }
 
 
-  void printStats(const Statistic& node_deg_stats,
-                  const Statistic& node_weight_stats,
-                  const Statistic& selfloop_weight_stats,
-                  const Statistic& edge_weight_stats) {
-    // default double precision is 7
-    const uint8_t double_width = 7;
-    const uint8_t node_deg_width = std::max(math::digits(node_deg_stats.max), double_width) + 4;
-    const uint8_t node_weight_width = std::max(math::digits(node_weight_stats.max), double_width) + 4;
-    const uint8_t selfloop_weight_width = std::max(math::digits(selfloop_weight_stats.max), double_width) + 4;
-    const uint8_t edge_weight_width = std::max(math::digits(edge_weight_stats.max), double_width) + 4;
-
-    LOG << "Node Degree" << std::right << std::setw(node_deg_width + 8)
-        << "Node Weight" << std::right << std::setw(node_weight_width + 12)
-        << "Selfloop Weight" << std::right << std::setw(selfloop_weight_width + 4)
-        << "Edge Weight" << std::right << std::setw(edge_weight_width + 8);
-    LOG << "| min=" << std::left << std::setw(node_deg_width) << node_deg_stats.min
-        << " | min=" << std::left << std::setw(node_weight_width) << node_weight_stats.min
-        << " | min=" << std::left << std::setw(node_weight_width) << selfloop_weight_stats.min
-        << " | min=" << std::left << std::setw(edge_weight_width) << edge_weight_stats.min;
-    LOG << "| Q1 =" << std::left << std::setw(node_deg_width) << node_deg_stats.q1
-        << " | Q1 =" << std::left << std::setw(node_weight_width) << node_weight_stats.q1
-        << " | Q1 =" << std::left << std::setw(node_weight_width) << selfloop_weight_stats.q1
-        << " | Q1 =" << std::left << std::setw(edge_weight_width) << edge_weight_stats.q1;
-    LOG << "| med=" << std::left << std::setw(node_deg_width) << node_deg_stats.med
-        << " | med=" << std::left << std::setw(node_weight_width) << node_weight_stats.med
-        << " | med=" << std::left << std::setw(node_weight_width) << selfloop_weight_stats.med
-        << " | med=" << std::left << std::setw(edge_weight_width) << edge_weight_stats.med;
-    LOG << "| Q3 =" << std::left << std::setw(node_deg_width) << node_deg_stats.q3
-        << " | Q3 =" << std::left << std::setw(node_weight_width) << node_weight_stats.q3
-        << " | Q3 =" << std::left << std::setw(node_weight_width) << selfloop_weight_stats.q3
-        << " | Q3 =" << std::left << std::setw(edge_weight_width) << edge_weight_stats.q3;
-    LOG << "| max=" << std::left << std::setw(node_deg_width) << node_deg_stats.max
-        << " | max=" << std::left << std::setw(node_weight_width) << node_weight_stats.max
-        << " | max=" << std::left << std::setw(node_weight_width) << selfloop_weight_stats.max
-        << " | max=" << std::left << std::setw(edge_weight_width) << edge_weight_stats.max;
-    LOG << "| avg=" << std::left << std::setw(node_deg_width) << node_deg_stats.avg
-        << " | avg=" << std::left << std::setw(node_weight_width) << node_weight_stats.avg
-        << " | avg=" << std::left << std::setw(node_weight_width) << selfloop_weight_stats.avg
-        << " | avg=" << std::left << std::setw(edge_weight_width) << edge_weight_stats.avg;
-    LOG << "| sd =" << std::left << std::setw(node_deg_width) << node_deg_stats.sd
-        << " | sd =" << std::left << std::setw(node_weight_width) << node_weight_stats.sd
-        << " | sd =" << std::left << std::setw(node_weight_width) << selfloop_weight_stats.sd
-        << " | sd =" << std::left << std::setw(edge_weight_width) << edge_weight_stats.sd;
+  void printStats(const Statistic& node_deg_stats) {
+    LOG << "Node Degrees"
+        << "| min =" << node_deg_stats.min
+        << "| Q1 =" << node_deg_stats.q1
+        << "| med =" << node_deg_stats.med
+        << "| Q3 =" << node_deg_stats.q3
+        << "| max =" << node_deg_stats.max
+        << "| avg =" << node_deg_stats.avg
+        << "| sd =" << node_deg_stats.sd;
   }
 }  // namespace internal
 
@@ -100,59 +66,22 @@ namespace internal {
           << "Total Weight:" << graph.totalWeight();
 
       std::vector<NodeID> node_degrees(graph.numNodes());
-      std::vector<NodeWeight> node_weights(graph.numNodes());
-      std::vector<NodeWeight> selfloop_weights(graph.numNodes());
-      std::vector<EdgeWeight> edge_weights(graph.numEdges());
-
       double avg_node_degree = 0.0;
       double stdev_node_degree = 0.0;
-      double avg_node_weight = 0.0;
-      double stdev_node_weight = 0.0;
-      double avg_selfloop_weight = 0.0;
-      double stdev_selfloop_weight = 0.0;
       for ( const NodeID& u : graph.nodes() ) {
         node_degrees[u] = graph.degree(u);
         avg_node_degree += node_degrees[u];
-        node_weights[u] = graph.nodeWeight(u);
-        avg_node_weight += node_weights[u];
-        selfloop_weights[u] = graph.selfloopWeight(u);
-        avg_selfloop_weight += selfloop_weights[u];
       }
       avg_node_degree /= static_cast<double>(graph.numNodes());
-      avg_node_weight /= static_cast<double>(graph.numNodes());
-      avg_selfloop_weight /= static_cast<double>(graph.numNodes());
 
       for ( const NodeID& u : graph.nodes() ) {
         stdev_node_degree += (graph.degree(u) - avg_node_degree) * (graph.degree(u) - avg_node_degree);
-        stdev_node_weight += (graph.nodeWeight(u) - avg_node_weight) * (graph.nodeWeight(u) - avg_node_weight);
-        stdev_selfloop_weight += (graph.selfloopWeight(u) - avg_selfloop_weight) * (graph.selfloopWeight(u) - avg_selfloop_weight);
       }
       stdev_node_degree = std::sqrt(stdev_node_degree / (graph.numNodes() - 1));
-      stdev_node_weight = std::sqrt(stdev_node_weight / (graph.numNodes() - 1));
-      stdev_selfloop_weight = std::sqrt(stdev_selfloop_weight / (graph.numNodes() - 1));
-
-      double avg_edge_weight = 0.0;
-      double stdev_edge_weight = 0.0;
-      for ( const EdgeID& e : graph.edges() ) {
-        edge_weights[e] = graph.edgeWeight(e);
-        avg_edge_weight += edge_weights[e];
-      }
-      avg_edge_weight /= static_cast<double>(graph.numEdges());
-
-      for ( const EdgeID& e : graph.edges() ) {
-        stdev_edge_weight += (graph.edgeWeight(e) - avg_edge_weight) * (graph.edgeWeight(e) - avg_edge_weight);
-      }
-      stdev_edge_weight = std::sqrt(stdev_edge_weight / (graph.numEdges() - 1));
 
       std::sort(node_degrees.begin(), node_degrees.end());
-      std::sort(node_weights.begin(), node_weights.end());
-      std::sort(selfloop_weights.begin(), selfloop_weights.end());
-      std::sort(edge_weights.begin(), edge_weights.end());
 
-      internal::printStats(internal::createStats(node_degrees, avg_node_degree, stdev_node_degree),
-                          internal::createStats(node_weights, avg_node_weight, stdev_node_weight),
-                          internal::createStats(selfloop_weights, avg_selfloop_weight, stdev_selfloop_weight),
-                          internal::createStats(edge_weights, avg_edge_weight, stdev_edge_weight));
+      internal::printStats(internal::createStats(node_degrees, avg_node_degree, stdev_node_degree));
     }
   }
 

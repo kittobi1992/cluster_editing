@@ -28,7 +28,7 @@ void LabelPropagationRefiner::initializeImpl(Graph& graph) {
   for ( const NodeID& u : graph.nodes() ) {
     _nodes.push_back(u);
     const CliqueID from = graph.clique(u);
-    _clique_weight[from] += graph.nodeWeight(u);
+    ++_clique_weight[from];
     _active_cliques.set(from, true);
   }
 }
@@ -47,11 +47,11 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
     utils::Randomize::instance().shuffleVector(_nodes, _nodes.size());
   } else if ( _context.refinement.lp.node_order == NodeOrdering::degree_increasing ) {
     std::sort(_nodes.begin(), _nodes.end(), [&](const NodeID& u, const NodeID& v) {
-      return graph.weightedDegree(u) < graph.weightedDegree(v);
+      return graph.degree(u) < graph.degree(v);
     });
   } else if ( _context.refinement.lp.node_order == NodeOrdering::degree_decreasing ) {
     std::sort(_nodes.begin(), _nodes.end(), [&](const NodeID& u, const NodeID& v) {
-      return graph.weightedDegree(u) > graph.weightedDegree(v);
+      return graph.degree(u) > graph.degree(v);
     });
   }
 
@@ -138,10 +138,10 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
 void LabelPropagationRefiner::moveVertex(Graph& graph, const NodeID u, const CliqueID to) {
   const CliqueID from = graph.clique(u);
   ASSERT(from != to);
-  _clique_weight[from] -= graph.nodeWeight(u);
+  --_clique_weight[from];
   const bool from_becomes_empty = _clique_weight[from] == 0;
   const bool to_becomes_non_empty = _clique_weight[to] == 0;
-  _clique_weight[to] += graph.nodeWeight(u);
+  ++_clique_weight[to];
   graph.setClique(u, to);
 
   if ( from_becomes_empty ) {
@@ -155,15 +155,14 @@ void LabelPropagationRefiner::moveVertex(Graph& graph, const NodeID u, const Cli
 
 namespace {
 
-  ATTRIBUTE_ALWAYS_INLINE EdgeWeight insertions(const NodeWeight u_weight,
-                                                const NodeWeight target_clique_weight,
+  ATTRIBUTE_ALWAYS_INLINE EdgeWeight insertions(const NodeWeight target_clique_weight,
                                                 const EdgeWeight incident_edge_weight_to_target_clique) {
-    return u_weight * target_clique_weight - incident_edge_weight_to_target_clique;
+    return target_clique_weight - incident_edge_weight_to_target_clique;
   }
 
-  ATTRIBUTE_ALWAYS_INLINE EdgeWeight deletions(const EdgeWeight u_weight_degree,
+  ATTRIBUTE_ALWAYS_INLINE EdgeWeight deletions(const EdgeWeight u_degree,
                                                const EdgeWeight incident_edge_weight_to_target_clique) {
-    return u_weight_degree - incident_edge_weight_to_target_clique;
+    return u_degree - incident_edge_weight_to_target_clique;
   }
 
 }
@@ -177,22 +176,21 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBetTargetClique(
 
   for ( const Neighbor& n : graph.neighbors(u) ) {
     const CliqueID to = graph.clique(n.target);
-    _rating[to] += graph.edgeWeight(n.id);
+    ++_rating[to];
   }
 
-  const EdgeWeight u_weighted_degree = graph.weightedDegree(u);
-  const NodeWeight u_weight = graph.nodeWeight(u);
+  const EdgeWeight u_degree = graph.degree(u);
   const EdgeWeight from_rating =
-    insertions(u_weight, _clique_weight[from] - u_weight /* assumes u is not part of clique 'from'*/, _rating[from]) +
-    deletions(u_weighted_degree, _rating[from]);
+    insertions(_clique_weight[from] - 1 /* assumes u is not part of clique 'from'*/, _rating[from]) +
+    deletions(u_degree, _rating[from]);
   best_rating.rating = from_rating;
   best_rating.delta = 0;
   for ( const auto& entry : _rating ) {
     const CliqueID to = entry.key;
     if ( to != from ) {
       const EdgeWeight to_rating =
-        insertions(u_weight, _clique_weight[to], entry.value) +
-        deletions(u_weighted_degree, entry.value);
+        insertions(_clique_weight[to], entry.value) +
+        deletions(u_degree, entry.value);
 
       // It looks like that tie breaking is very important to achieve better quality
       if (   to_rating < best_rating.rating ||
@@ -205,10 +203,10 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBetTargetClique(
   }
 
   // Check if it is beneficial to isolate the vertex again
-  if ( !_empty_cliques.empty() && u_weighted_degree < best_rating.rating ) {
+  if ( !_empty_cliques.empty() && u_degree < best_rating.rating ) {
     best_rating.clique = _empty_cliques.back();
-    best_rating.rating = u_weighted_degree;
-    best_rating.delta = u_weighted_degree - from_rating;
+    best_rating.rating = u_degree;
+    best_rating.delta = u_degree - from_rating;
   }
 
   return best_rating;
