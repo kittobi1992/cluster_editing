@@ -15,16 +15,18 @@ using namespace cluster_editing;
 
 int main() {
   Context context;
-  context.general.verbose_output = false;
-  context.general.print_result_line = true;
+  context.general.verbose_output = true;
+  context.general.print_result_line = false;
   context.general.seed = 0;
   context.general.use_multilevel = false;
   context.general.num_repititions = 1;
   context.refinement.use_lp_refiner = true;
-  context.refinement.lp.maximum_lp_iterations = 100;
+  context.refinement.lp.maximum_lp_iterations = 1000;
   context.refinement.lp.activate_all_cliques_after_rounds = 10;
   context.refinement.lp.random_shuffle_each_round = false;
   context.refinement.lp.node_order = NodeOrdering::none;
+  context.refinement.use_fm_refiner = true;
+  context.refinement.maximum_fm_iterations = 10;
   utils::Randomize::instance().setSeed(context.general.seed);
 
   if ( context.general.verbose_output ) {
@@ -38,6 +40,17 @@ int main() {
   utils::Timer::instance().stop_timer("import_graph");
   io::printInputInfo(graph, context);
 
+  if ( graph.numNodes() <= 10000 ) {
+    context.refinement.lp.node_order = NodeOrdering::random_shuffle;
+    context.refinement.lp.random_shuffle_each_round = true;
+  } else if ( graph.numNodes() <= 100000 ) {
+    context.refinement.lp.node_order = NodeOrdering::random_shuffle;
+    context.refinement.lp.random_shuffle_each_round = true;
+  } else {
+    context.refinement.lp.node_order = NodeOrdering::none;
+    context.refinement.lp.random_shuffle_each_round = false;
+  }
+
   // Preprocessing
   io::printPreprocessingBanner(context);
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
@@ -50,15 +63,7 @@ int main() {
   utils::Timer::instance().start_timer("solver", "Solver");
   std::vector<CliqueID> best_cliques(graph.numNodes(), INVALID_CLIQUE);
   size_t best_objective = std::numeric_limits<size_t>::max();
-  for ( int i = 0; i < context.general.num_repititions; ++i ) {
-    graph.reset();
-    if ( context.general.use_multilevel ) {
-      multilevel::solve(graph, context);
-    } else {
-      flat::solve(graph, context);
-    }
-
-    // Check if solution is better than best solution found so far
+  auto check_for_new_best_solution = [&] {
     const size_t current_objective = metrics::edits(graph);
     if ( current_objective < best_objective ) {
       if ( context.general.verbose_output ) {
@@ -70,6 +75,50 @@ int main() {
       }
       best_objective = current_objective;
     }
+  };
+  auto solve = [&] {
+    graph.reset();
+    if ( context.general.use_multilevel ) {
+      multilevel::solve(graph, context);
+    } else {
+      flat::solve(graph, context);
+    }
+
+    // Check if solution is better than best solution found so far
+    check_for_new_best_solution();
+  };
+
+  // First Iteration
+  HighResClockTimepoint s = std::chrono::high_resolution_clock::now();
+  solve();
+  HighResClockTimepoint e = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> solve_time(e - s);
+  double time = solve_time.count();
+  if (time <= 0.1) {
+    context.general.num_repititions = 1000;
+  } else if ( time <= 1.0 ) {
+    context.general.num_repititions = 100;
+  } else if ( time <= 2.0 ) {
+    context.general.num_repititions = 25;
+  } else if ( time <= 5.0 ) {
+    context.general.num_repititions = 10;
+  } else if ( time <= 10 ) {
+    context.general.num_repititions = 5;
+  } else {
+    context.general.num_repititions = 1;
+  }
+
+  if ( context.general.num_repititions == 1 ) {
+    context.refinement.lp.node_order = NodeOrdering::none;
+    context.refinement.lp.random_shuffle_each_round = false;
+  } else {
+    context.refinement.lp.random_shuffle_each_round = true;
+  }
+
+  for ( int i = 0; i < context.general.num_repititions - 1; ++i ) {
+    context.refinement.lp.node_order =
+      static_cast<NodeOrdering>(utils::Randomize::instance().getRandomInt(0,3));
+    solve();
   }
 
   // Apply best found solution
