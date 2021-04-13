@@ -75,7 +75,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
       pq.deleteTop();
       removeFromTargetClique(u);
       const CliqueID from = graph.clique(u), to = rating.clique;
-      if (_clique_weight[from] == 1 && to == ISOLATE_CLIQUE) {
+      if ( _clique_weight[from] == 1 && to == ISOLATE_CLIQUE ) {
         continue;
       }
 
@@ -232,6 +232,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
       }
       moveVertex(graph, m.node, to, false);
     }
+    moves.clear();
 
     current_metric += best_delta;
     assert(current_metric == metrics::edits(graph));
