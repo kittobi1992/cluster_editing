@@ -4,6 +4,7 @@
 
 #include "cluster_editing/macros.h"
 #include "cluster_editing/datastructures/graph_common.h"
+#include "cluster_editing/datastructures/spin_lock.h"
 #include "cluster_editing/utils/range.h"
 
 namespace cluster_editing {
@@ -220,7 +221,11 @@ class Graph {
   Graph() :
     _num_nodes(0),
     _num_edges(0),
-    _total_weight(0) { }
+    _total_weight(0),
+    _nodes(),
+    _edges(),
+    _best_cliques(),
+    _best_quality(std::numeric_limits<EdgeWeight>::max()) { }
 
   // ####################### General Graph Stats #######################
 
@@ -279,6 +284,10 @@ class Graph {
     return node(u).clique();
   }
 
+  CliqueID bestClique(const NodeID u) const {
+    return _best_cliques[u];
+  }
+
   void setClique(const NodeID u, const CliqueID id) {
     node(u).setClique(id);
   }
@@ -297,6 +306,34 @@ class Graph {
     return edge(e).weight();
   }
 
+  // ####################### Checkpointing #######################
+
+  void applyBestCliques() {
+    copy_lock.lock();
+    for ( const NodeID& u : nodes() ) {
+      setClique(u, _best_cliques[u]);
+    }
+    copy_lock.unlock();
+  }
+
+  void checkpoint(const EdgeWeight quality) {
+    copy_lock.lock();
+    if ( quality <= _best_quality ) {
+      for ( const NodeID& u : nodes() ) {
+        _best_cliques[u] = clique(u);
+      }
+      _best_quality = quality;
+    }
+    copy_lock.unlock();
+  }
+
+  Graph copyBestSolution() {
+    copy_lock.lock();
+    Graph cpy(*this);
+    cpy.applyBestCliques();
+    copy_lock.unlock();
+    return cpy;
+  }
 
   // ####################### Contraction #######################
 
@@ -353,6 +390,11 @@ class Graph {
   std::vector<Node> _nodes;
   // ! Indicence Array
   std::vector<Edge> _edges;
+
+  // Checkpointing
+  std::vector<CliqueID> _best_cliques;
+  EdgeWeight _best_quality;
+  SpinLock copy_lock;
 };
 
 } // namespace ds

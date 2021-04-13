@@ -34,7 +34,7 @@ void LabelPropagationRefiner::initializeImpl(Graph& graph) {
 }
 
 bool LabelPropagationRefiner::refineImpl(Graph& graph) {
-
+  utils::Timer::instance().start_timer("lp", "LP");
   bool converged = false;
   EdgeWeight start_metric =
     metrics::edge_deletions(graph) + metrics::edge_insertions(graph);
@@ -123,9 +123,15 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
     if ( enable_early_exit && round_delta <= _context.refinement.lp.min_improvement ) {
       break;
     }
+
+    if ( round_delta > 0 ) {
+      utils::Timer::instance().start_timer("checkpoint", "Checkpoint");
+      graph.checkpoint(current_metric);
+      utils::Timer::instance().stop_timer("checkpoint");
+    }
   }
   lp_progress += (_context.refinement.lp.maximum_lp_iterations - lp_progress.count());
-
+  utils::Timer::instance().stop_timer("lp");
   return current_metric < start_metric;
 }
 

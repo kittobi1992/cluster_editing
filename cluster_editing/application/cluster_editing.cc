@@ -1,9 +1,11 @@
 #include <iostream>
+#include <signal.h>
 
 #include "cluster_editing/definitions.h"
 #include "cluster_editing/preprocessing.h"
 #include "cluster_editing/flat.h"
 #include "cluster_editing/multilevel.h"
+#include "cluster_editing/datastructures/spin_lock.h"
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/utils/randomize.h"
 #include "cluster_editing/metrics.h"
@@ -13,13 +15,50 @@
 
 using namespace cluster_editing;
 
+SpinLock terminate_lock;
+Context context;
+Graph graph;
+HighResClockTimepoint start, end;
+
+void printResult(Graph& best) {
+  // Print Stats
+  std::chrono::duration<double> elapsed_seconds(end - start);
+  io::printClusterEditingResults(best, context, elapsed_seconds);
+
+  // Print RESULT line
+  if ( context.general.print_result_line ) {
+    io::printResultLine(best, context, elapsed_seconds);
+  }
+
+  if ( context.general.print_csv ) {
+    std::cout << context.general.graph_filename.substr(context.general.graph_filename.find_last_of('/') + 1)
+              << "," << metrics::edits(best) << "," << elapsed_seconds.count() << std::endl;
+  }
+}
+
+void terminate(int) {
+  if ( terminate_lock.tryLock() ) {
+    end = std::chrono::high_resolution_clock::now();
+    // Copy graph since refinement algorithm can checks
+    // cliques while we try to output solution
+    Graph cpy_graph = graph.copyBestSolution();
+    printResult(cpy_graph);
+    std::exit(0);
+  }
+}
+
 int main(int argc, char* argv[]) {
-  Context context;
+  // Register signal handler
+  struct sigaction action;
+  memset(&action, 0, sizeof(struct sigaction));
+  action.sa_handler = terminate;
+  sigaction(SIGTERM, &action, NULL);
+
   processCommandLineInput(context, argc, argv);
   utils::Randomize::instance().setSeed(context.general.seed);
 
   utils::Timer::instance().start_timer("import_graph", "Import Graph");
-  Graph graph = io::readGraphFile(context.general.graph_filename);
+  graph = io::readGraphFile(context.general.graph_filename);
   utils::Timer::instance().stop_timer("import_graph");
   context.computeParameters(graph.numNodes());
 
@@ -32,7 +71,7 @@ int main(int argc, char* argv[]) {
 
   // Preprocessing
   io::printPreprocessingBanner(context);
-  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  start = std::chrono::high_resolution_clock::now();
   utils::Timer::instance().start_timer("preprocessing", "Preprocessing");
   Preprocessor preprocessor(graph, context);
   preprocessor.preprocess();
@@ -40,7 +79,7 @@ int main(int argc, char* argv[]) {
 
   // Multilevel Solver
   utils::Timer::instance().start_timer("solver", "Solver");
-  size_t fruitless_repititions = 0;
+  int fruitless_repititions = 0;
   std::vector<CliqueID> best_cliques(graph.numNodes(), INVALID_CLIQUE);
   size_t best_objective = std::numeric_limits<size_t>::max();
   for ( int i = 0;
@@ -60,19 +99,12 @@ int main(int argc, char* argv[]) {
         LOG << GREEN << "Improved best solution from"
             << best_objective << "to" << current_objective << END;
       }
-      for ( const NodeID& u : graph.nodes() ) {
-        best_cliques[u] = graph.clique(u);
-      }
+      graph.checkpoint(current_objective);
       best_objective = current_objective;
       fruitless_repititions = 0;
     } else {
       ++fruitless_repititions;
     }
-  }
-
-  // Apply best found solution
-  for ( const NodeID& u : graph.nodes() ) {
-    graph.setClique(u, best_cliques[u]);
   }
 
   utils::Timer::instance().stop_timer("solver");
@@ -82,20 +114,11 @@ int main(int argc, char* argv[]) {
   utils::Timer::instance().start_timer("undo_preprocessing", "Undo Preprocessing");
   preprocessor.undoPreprocessing();
   utils::Timer::instance().stop_timer("undo_preprocessing");
-  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  end = std::chrono::high_resolution_clock::now();
 
-  // Print Stats
-  std::chrono::duration<double> elapsed_seconds(end - start);
-  io::printClusterEditingResults(graph, context, elapsed_seconds);
-
-  // Print RESULT line
-  if ( context.general.print_result_line ) {
-    io::printResultLine(graph, context, elapsed_seconds);
-  }
-
-  if ( context.general.print_csv ) {
-    std::cout << context.general.graph_filename.substr(context.general.graph_filename.find_last_of('/') + 1)
-              << "," << metrics::edits(graph) << "," << elapsed_seconds.count() << std::endl;
+  if ( terminate_lock.tryLock() ) {
+    graph.applyBestCliques();
+    printResult(graph);
   }
 
   return 0;

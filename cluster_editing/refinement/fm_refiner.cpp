@@ -240,6 +240,12 @@ bool FMRefiner::refineImpl(Graph& graph) {
     current_metric += best_delta;
     assert(current_metric == metrics::edits(graph));
 
+    if ( best_delta < 0 ) {
+      utils::Timer::instance().start_timer("checkpoint", "Checkpoint");
+      graph.checkpoint(current_metric);
+      utils::Timer::instance().stop_timer("checkpoint");
+    }
+
     #ifndef NDEBUG
     checkCliqueWeights(graph);
     #endif
