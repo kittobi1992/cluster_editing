@@ -2,6 +2,8 @@
 
 #include "cluster_editing/utils/randomize.h"
 #include "cluster_editing/metrics.h"
+#include "cluster_editing/utils/progress_bar.h"
+#include "cluster_editing/utils/timer.h"
 
 namespace cluster_editing {
 
@@ -30,15 +32,21 @@ bool FMRefiner::refineImpl(Graph& graph) {
   EdgeWeight start_metric = metrics::edits(graph);
   EdgeWeight current_metric = start_metric;
   EdgeWeight round_delta = -1;
+  bool converged = false;
 
-  for ( int round = 0; round < _context.refinement.maximum_fm_iterations && round_delta < 0; ++round ) {
-    if (_context.general.verbose_output) LOG << "round" << (round+1);
+  utils::ProgressBar fm_progress(
+    _context.refinement.maximum_fm_iterations, start_metric,
+    _context.general.verbose_output && !_context.general.use_multilevel && !debug);
 
+  utils::Timer::instance().start_timer("fm", "FM");
+  for ( int round = 0; round < _context.refinement.maximum_fm_iterations && !converged; ++round ) {
     round_delta = 0;
     EdgeWeight best_delta = 0;
+    converged = true;
 
     // init PQ and empty cliques
     _empty_cliques.clear();
+    pq.clear();
     for (const NodeID u : graph.nodes()) {
       Rating rating = computeBestClique(graph, u);
       if (rating.clique != INVALID_CLIQUE) {
@@ -78,13 +86,16 @@ bool FMRefiner::refineImpl(Graph& graph) {
         best_delta = round_delta;
         // permanently keep all moves up to here
         moves.clear();
+        converged = false;
       } else {
         // store for rollback later
         moves.push_back({ u, from, to });
       }
       assert(from != graph.clique(u));
 
-      ASSERT(current_metric + round_delta == metrics::edits(graph), "Rating is wrong. Expected:" << metrics::edits(graph) << "but is" << (current_metric + round_delta));
+      ASSERT(current_metric + round_delta == metrics::edits(graph),
+        "Rating is wrong. Expected:" << metrics::edits(graph)
+          << "but is" << (current_metric + round_delta));
 
 
       const NodeWeight wu = graph.nodeWeight(u);
@@ -132,7 +143,9 @@ bool FMRefiner::refineImpl(Graph& graph) {
           n[v].weight_to_current_clique += we;
           delta += 2*we;
         } else {
-          // TODO could also sum up edge weight changes. if weight changes allow for target cluster to change (multiply by some treshold) --> recompute
+          // TODO could also sum up edge weight changes.
+          // if weight changes allow for target cluster to change
+          // (multiply by some treshold) --> recompute
           if (pq.contains(v) && ++n[v].num_skips > SKIP_THRESHOLD) {
             n[v].num_skips = 0;
             //LOG << "recalc" << V(v);
@@ -178,7 +191,8 @@ bool FMRefiner::refineImpl(Graph& graph) {
         }
       }
 
-      // special case for moving into isolated clique. see if any neighbor wants to join
+      // special case for moving into isolated clique. see if
+      // any neighbor wants to join
       if (to == ISOLATE_CLIQUE) {
         const CliqueID actual_to = graph.clique(u);
         for (const Neighbor& nb : graph.neighbors(u)) {
@@ -194,54 +208,14 @@ bool FMRefiner::refineImpl(Graph& graph) {
         }
       }
 
-#ifndef NDEBUG
-      for (size_t j = 0; j < pq.size(); ++j) {
-        NodeID v = pq.at(j);
-        EdgeWeight gain_in_pq = pq.keyAtPos(j);
-        EdgeWeight gain_recalculated = gain(graph, v, graph.clique(v), n[v].desired_target,
-                                            n[v].weight_to_current_clique, n[v].weight_to_target_clique);
-
-        edge_weight_to_clique.clear();
-        for (const Neighbor& nb : graph.neighbors(v)) {
-          edge_weight_to_clique[graph.clique(nb.target)] += graph.edgeWeight(nb.id);
-        }
-
-        if (n[v].desired_target == ISOLATE_CLIQUE) {
-          assert(n[v].weight_to_target_clique == 0);
-        } else {
-          assert(n[v].weight_to_target_clique == edge_weight_to_clique[n[v].desired_target]);
-        }
-        assert(n[v].weight_to_current_clique == edge_weight_to_clique[graph.clique(v)]);
-
-        if (gain_in_pq != gain_recalculated) {
-          LOG << V(j) << V(v) << V(graph.clique(v)) << V(n[v].desired_target)
-              << V(n[v].weight_to_current_clique) << V(n[v].weight_to_target_clique);
-          LOG << V(gain_in_pq) << V(gain_recalculated);
-          std::cout << "cliques: ";
-          for (NodeID w : graph.nodes()) {
-            std::cout << graph.clique(w) << " ";
-          }
-          std::cout << "\nneighbors: ";
-          for (const Neighbor& nb : graph.neighbors(v)) {
-            std::cout << nb.target << " " << graph.clique(nb.target) << " | ";
-          }
-          std::cout << std::endl;
-        }
-        assert(gain_in_pq == gain_recalculated);
-      }
+      #ifndef NDEBUG
+      checkPQGains(graph);
       #endif
-
     }
 
-#ifndef NDEBUG
-    for (NodeID u : graph.nodes()) {
-      edge_weight_to_clique.clear();
-      for (const Neighbor& nb : graph.neighbors(u)) {
-        edge_weight_to_clique[graph.clique(nb.target)] += graph.edgeWeight(nb.id);
-      }
-      assert(n[u].weight_to_current_clique == edge_weight_to_clique[graph.clique(u)]);
-    }
-#endif
+    #ifndef NDEBUG
+    checkCliqueWeights(graph);
+    #endif
 
     // revert leftovers
     for (Move& m : moves) {
@@ -260,19 +234,18 @@ bool FMRefiner::refineImpl(Graph& graph) {
     current_metric += best_delta;
     assert(current_metric == metrics::edits(graph));
 
-#ifndef NDEBUG
-    for (NodeID u : graph.nodes()) {
-      edge_weight_to_clique.clear();
-      for (const Neighbor& nb : graph.neighbors(u)) {
-        edge_weight_to_clique[graph.clique(nb.target)] += graph.edgeWeight(nb.id);
-      }
-      assert(n[u].weight_to_current_clique == edge_weight_to_clique[graph.clique(u)]);
-    }
-#endif
+    #ifndef NDEBUG
+    checkCliqueWeights(graph);
+    #endif
 
     DBG << "Pass Nr." << (round + 1) << "improved metric from"
       << start_metric << "to" << current_metric;
+
+    fm_progress.setObjective(current_metric);
+    fm_progress += 1;
   }
+  fm_progress += (_context.refinement.maximum_fm_iterations - fm_progress.count());
+  utils::Timer::instance().stop_timer("fm");
 
   return current_metric < start_metric;
 }
@@ -348,6 +321,53 @@ FMRefiner::Rating FMRefiner::computeBestClique(Graph& graph, const NodeID u) {
   }
 
   return best_rating;
+}
+
+void FMRefiner::checkPQGains(const Graph& graph) {
+  for (size_t j = 0; j < pq.size(); ++j) {
+    NodeID v = pq.at(j);
+    EdgeWeight gain_in_pq = pq.keyAtPos(j);
+    EdgeWeight gain_recalculated = gain(graph, v, graph.clique(v), n[v].desired_target,
+                                        n[v].weight_to_current_clique, n[v].weight_to_target_clique);
+
+    edge_weight_to_clique.clear();
+    for (const Neighbor& nb : graph.neighbors(v)) {
+      edge_weight_to_clique[graph.clique(nb.target)] += graph.edgeWeight(nb.id);
+    }
+
+    if (n[v].desired_target == ISOLATE_CLIQUE) {
+      assert(n[v].weight_to_target_clique == 0);
+    } else {
+      assert(n[v].weight_to_target_clique == edge_weight_to_clique[n[v].desired_target]);
+    }
+    assert(n[v].weight_to_current_clique == edge_weight_to_clique[graph.clique(v)]);
+
+    if (gain_in_pq != gain_recalculated) {
+      LOG << V(j) << V(v) << V(graph.clique(v)) << V(n[v].desired_target)
+          << V(n[v].weight_to_current_clique) << V(n[v].weight_to_target_clique);
+      LOG << V(gain_in_pq) << V(gain_recalculated);
+      std::cout << "cliques: ";
+      for (NodeID w : graph.nodes()) {
+        std::cout << graph.clique(w) << " ";
+      }
+      std::cout << "\nneighbors: ";
+      for (const Neighbor& nb : graph.neighbors(v)) {
+        std::cout << nb.target << " " << graph.clique(nb.target) << " | ";
+      }
+      std::cout << std::endl;
+    }
+    assert(gain_in_pq == gain_recalculated);
+  }
+}
+
+void FMRefiner::checkCliqueWeights(const Graph& graph) {
+  for (NodeID u : graph.nodes()) {
+    edge_weight_to_clique.clear();
+    for (const Neighbor& nb : graph.neighbors(u)) {
+      edge_weight_to_clique[graph.clique(nb.target)] += graph.edgeWeight(nb.id);
+    }
+    assert(n[u].weight_to_current_clique == edge_weight_to_clique[graph.clique(u)]);
+  }
 }
 
 }
