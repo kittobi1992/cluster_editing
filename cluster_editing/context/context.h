@@ -15,18 +15,11 @@ struct GeneralParameters {
   bool print_result_line = false;
   bool print_csv = false;
   int seed = 0;
-  bool use_multilevel = false;
   int num_repititions = 0;
   int num_fruitless_repititions = 0;
 };
 
 std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);
-
-struct CoarseningParameters {
-  CoarseningAlgorithm algorithm = CoarseningAlgorithm::UNDEFINED;
-};
-
-std::ostream & operator<< (std::ostream& str, const CoarseningParameters& params);
 
 struct LabelPropagationRefinerParameters {
   int maximum_lp_iterations = std::numeric_limits<int>::max();
@@ -58,7 +51,6 @@ std::ostream & operator<< (std::ostream& str, const RefinementParameters& params
 class Context {
  public:
   GeneralParameters general { };
-  CoarseningParameters coarsening { };
   RefinementParameters refinement { };
 
   Context() { }

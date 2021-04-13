@@ -21,9 +21,6 @@ class Graph {
    public:
     Node() :
       _begin(0),
-      _weight(1),
-      _selfloop_weight(0),
-      _weighted_degree(0),
       _clique(INVALID_CLIQUE) { }
 
     size_t firstEntry() const {
@@ -32,30 +29,6 @@ class Graph {
 
     void setFirstEntry(const size_t begin) {
       _begin = begin;
-    }
-
-    NodeWeight weight() const {
-      return _weight;
-    }
-
-    void setWeight(const NodeWeight weight) {
-      _weight = weight;
-    }
-
-    NodeWeight selfloopWeight() const {
-      return _selfloop_weight;
-    }
-
-    void setSelfloopWeight(const NodeWeight selfloop_weight) {
-      _selfloop_weight = selfloop_weight;
-    }
-
-    EdgeWeight weightedDegree() const {
-      return _weighted_degree;
-    }
-
-    void setWeightedDegree(const EdgeWeight weighted_degree) {
-      _weighted_degree = weighted_degree;
     }
 
     CliqueID clique() const {
@@ -68,9 +41,6 @@ class Graph {
 
    private:
     size_t _begin;
-    NodeWeight _weight;
-    NodeWeight _selfloop_weight;
-    EdgeWeight _weighted_degree;
     CliqueID _clique;
   };
 
@@ -78,8 +48,7 @@ class Graph {
    public:
     Edge() :
       _source(INVALID_NODE),
-      _target(INVALID_NODE),
-      _weight(1) { }
+      _target(INVALID_NODE) { }
 
     NodeID source() const {
       return _source;
@@ -97,18 +66,9 @@ class Graph {
       _target = target;
     }
 
-    EdgeWeight weight() const {
-      return _weight;
-    }
-
-    void setWeight(const EdgeWeight weight) {
-      _weight = weight;
-    }
-
    private:
     NodeID _source;
     NodeID _target;
-    EdgeWeight _weight;
   };
 
   /*!
@@ -264,20 +224,8 @@ class Graph {
 
   // ####################### Node Information #######################
 
-  NodeWeight nodeWeight(const NodeID u) const {
-    return node(u).weight();
-  }
-
-  NodeWeight selfloopWeight(const NodeID u) const {
-    return node(u).selfloopWeight();
-  }
-
   size_t degree(const NodeID u) const {
     return node(u + 1).firstEntry() - node(u).firstEntry();
-  }
-
-  EdgeWeight weightedDegree(const NodeID u) const {
-    return node(u).weightedDegree();
   }
 
   CliqueID clique(const NodeID u) const {
@@ -300,10 +248,6 @@ class Graph {
 
   NodeID target(const EdgeID e) const {
     return edge(e).target();
-  }
-
-  EdgeWeight edgeWeight(const EdgeID e) const {
-    return edge(e).weight();
   }
 
   // ####################### Checkpointing #######################
@@ -334,21 +278,6 @@ class Graph {
     copy_lock.unlock();
     return cpy;
   }
-
-  // ####################### Contraction #######################
-
-  /**!
-   * Contracts the graph based on the current clique structure of the graph.
-   * All vertices in the same clique id are merged into a super-vertex with
-   * a weight equal to sum of all vertex weights contained in the clique.
-   * The weight of each mutli-edge in the contracted graph is aggregated within a
-   * single-edge and each vertex also aggregates its selfloop weight.
-   *
-   * @return pair of a contracted graph and a mapping that maps each clique
-   * of the original graph to a node in the coarse graph.
-   */
-  std::pair<Graph, std::vector<NodeID>> contract() const;
-
 
   // ####################### Reset #######################
   void reset();

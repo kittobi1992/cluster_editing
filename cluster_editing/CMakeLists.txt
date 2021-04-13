@@ -1,7 +1,6 @@
 add_subdirectory(context)
 add_subdirectory(datastructures)
 add_subdirectory(io)
-add_subdirectory(coarsening)
 add_subdirectory(refinement)
 add_subdirectory(utils)
 
@@ -10,9 +9,7 @@ add_subdirectory(exact)
 configure_file(data_path.h.in data_path.h)
 
 set(ClusterEditingSources
-      ${PROJECT_SOURCE_DIR}/cluster_editing/preprocessing.cpp
       ${PROJECT_SOURCE_DIR}/cluster_editing/flat.cpp
-      ${PROJECT_SOURCE_DIR}/cluster_editing/multilevel.cpp
       ${PROJECT_SOURCE_DIR}/cluster_editing/data_path.h
       )
 

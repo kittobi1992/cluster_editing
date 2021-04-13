@@ -54,26 +54,10 @@ namespace cluster_editing {
                                                           const int num_columns) {
     po::options_description options("General Options", num_columns);
     options.add_options()
-            ("use-multilevel", po::value<bool>(&context.general.use_multilevel)->value_name("<bool>")->default_value(false),
-             "If true, than multilevel paradigm is used.")
             ("num-repititions", po::value<int>(&context.general.num_repititions)->value_name("<int>"),
              "Number of Repititions")
             ("num-fruitless-repititions", po::value<int>(&context.general.num_fruitless_repititions)->value_name("<int>"),
              "If for specified number of repititions no improvement is found, then the algorithm terminates.");
-    return options;
-  }
-
-  po::options_description createCoarseningOptionsDescription(Context& context,
-                                                             const int num_columns) {
-    po::options_description options("Coarsening Options", num_columns);
-    options.add_options()
-            ("c-type",
-             po::value<std::string>()->value_name("<string>")->notifier(
-                     [&](const std::string& ctype) {
-                       context.coarsening.algorithm = cluster_editing::coarseningAlgorithmFromString(ctype);
-                     }),
-             "Coarsening Algorithm:\n"
-             " - do_nothing");
     return options;
   }
 
@@ -117,8 +101,6 @@ namespace cluster_editing {
       createGeneralOptionsDescription(context, num_columns);
     po::options_description generic_options =
       createGenericOptionsDescription(context, num_columns);
-    po::options_description coarsening_options =
-      createCoarseningOptionsDescription(context, num_columns);
     po::options_description refinement_options =
       createRefinementOptionsDescription(context, num_columns);
 
@@ -126,7 +108,6 @@ namespace cluster_editing {
     cmd_line_options
       .add(general_options)
       .add(generic_options)
-      .add(coarsening_options)
       .add(refinement_options);
 
     po::variables_map cmd_vm;
@@ -149,7 +130,6 @@ namespace cluster_editing {
     po::options_description ini_line_options;
     ini_line_options
       .add(generic_options)
-      .add(coarsening_options)
       .add(refinement_options);
 
     po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);

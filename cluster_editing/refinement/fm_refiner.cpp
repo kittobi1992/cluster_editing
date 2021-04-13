@@ -14,14 +14,14 @@ void FMRefiner::initializeImpl(Graph& graph) {
 
   _nodes.clear();
   for ( const NodeID& u : graph.nodes() ) {
-    _clique_weight[graph.clique(u)] += graph.nodeWeight(u);
+    ++_clique_weight[graph.clique(u)];
 
     EdgeWeight weight = 0;
     const CliqueID clique = graph.clique(u);
     // TODO accelerate case with singleton init?
     for (const Neighbor& nb : graph.neighbors(u)) {
       if (graph.clique(nb.target) == clique) {
-        weight += graph.edgeWeight(nb.id);
+        ++weight;
       }
     }
     insertIntoCurrentClique(u, clique, weight);
@@ -35,7 +35,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
 
   utils::ProgressBar fm_progress(
     _context.refinement.fm.maximum_fm_iterations, start_metric,
-    _context.general.verbose_output && !_context.general.use_multilevel && !debug);
+    _context.general.verbose_output && !debug);
 
   utils::Timer::instance().start_timer("fm", "FM");
   for ( int round = 0; round < _context.refinement.fm.maximum_fm_iterations; ++round ) {
@@ -75,7 +75,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
       pq.deleteTop();
       removeFromTargetClique(u);
       const CliqueID from = graph.clique(u), to = rating.clique;
-      if (_clique_weight[from] == graph.nodeWeight(u) && to == ISOLATE_CLIQUE) {
+      if (_clique_weight[from] == 1 && to == ISOLATE_CLIQUE) {
         continue;
       }
 
@@ -97,31 +97,28 @@ bool FMRefiner::refineImpl(Graph& graph) {
         "Rating is wrong. Expected:" << metrics::edits(graph)
           << "but is" << (current_metric + round_delta));
 
-
-      const NodeWeight wu = graph.nodeWeight(u);
-
       // updates due to clique weight changes
       // these are a LOT of updates!
       for (NodeID v : target_cliques[from]) {
         assert(pq.contains(v));
-        pq.adjustKey(v, pq.getKey(v) - wu * graph.nodeWeight(v));
+        pq.adjustKey(v, pq.getKey(v) - 1);
       }
       if (to != ISOLATE_CLIQUE) {
         for (NodeID v : target_cliques[to]) {
           assert(pq.contains(v));
-          pq.adjustKey(v, pq.getKey(v) + wu * graph.nodeWeight(v));
+          pq.adjustKey(v, pq.getKey(v) + 1);
         }
       }
 
       for (NodeID v : current_cliques[from]) {
         if (pq.contains(v)) {
-          pq.adjustKey(v, pq.getKey(v) + wu * graph.nodeWeight(v));
+          pq.adjustKey(v, pq.getKey(v) + 1);
         }
       }
       if (to != ISOLATE_CLIQUE) {
         for (NodeID v : current_cliques[to]) {
           if (pq.contains(v)) {
-            pq.adjustKey(v, pq.getKey(v) - wu * graph.nodeWeight(v));
+            pq.adjustKey(v, pq.getKey(v) - 1);
           }
         }
       }
@@ -133,15 +130,14 @@ bool FMRefiner::refineImpl(Graph& graph) {
       // update neighbors -- in original graph
       for (const Neighbor& nb : graph.neighbors(u)) {
         const NodeID v = nb.target;
-        const EdgeWeight we = graph.edgeWeight(nb.id);
 
         EdgeWeight delta = 0;
         if (graph.clique(v) == from) {
-          n[v].weight_to_current_clique -= we;
-          delta -= 2*we;
+          --n[v].weight_to_current_clique;
+          delta -= 2;
         } else if (graph.clique(v) == actual_target) {
-          n[v].weight_to_current_clique += we;
-          delta += 2*we;
+          ++n[v].weight_to_current_clique;
+          delta += 2;
         } else {
           // TODO could also sum up edge weight changes.
           // if weight changes allow for target cluster to change
@@ -159,11 +155,11 @@ bool FMRefiner::refineImpl(Graph& graph) {
         if (!pq.contains(v)) continue;
 
         if (n[v].desired_target == from) {
-          n[v].weight_to_target_clique -= we;
-          delta += 2*we;
+          --n[v].weight_to_target_clique;
+          delta += 2;
         } else if (n[v].desired_target == actual_target) {
-          n[v].weight_to_target_clique += we;
-          delta -= 2*we;
+          ++n[v].weight_to_target_clique;
+          delta -= 2;
         } else {
           if (++n[v].num_skips > SKIP_THRESHOLD) {
             n[v].num_skips = 0;
@@ -198,10 +194,10 @@ bool FMRefiner::refineImpl(Graph& graph) {
         for (const Neighbor& nb : graph.neighbors(u)) {
           const NodeID v = nb.target;
           if (!pq.contains(v)) continue;
-          const EdgeWeight delta = gain(graph, v, graph.clique(v), actual_to, n[v].weight_to_current_clique, graph.edgeWeight(nb.id));
+          const EdgeWeight delta = gain(graph.clique(v), actual_to, n[v].weight_to_current_clique, 1);
           if (delta < pq.keyOf(v)) {
             pq.adjustKey(v, delta);
-            Rating rv = { actual_to, 0, delta, graph.edgeWeight(nb.id) };
+            Rating rv = { actual_to, 0, delta, 1 };
             updateTargetClique(v, rv);
             n[v].num_skips = 0;
           }
@@ -229,9 +225,9 @@ bool FMRefiner::refineImpl(Graph& graph) {
       for (const Neighbor& nb : graph.neighbors(m.node)) {
         const NodeID v = nb.target;
         if (graph.clique(v) == from) {
-          n[v].weight_to_current_clique -= graph.edgeWeight(nb.id);
+          --n[v].weight_to_current_clique;
         } else if (graph.clique(v) == to) {
-          n[v].weight_to_current_clique += graph.edgeWeight(nb.id);
+          ++n[v].weight_to_current_clique;
         }
       }
       moveVertex(graph, m.node, to, false);
@@ -273,17 +269,17 @@ void FMRefiner::moveVertex(Graph& graph, NodeID u, CliqueID to, bool manage_empt
   }
   assert(manage_empty_cliques || to != ISOLATE_CLIQUE);
 
-  _clique_weight[from] -= graph.nodeWeight(u);
+  --_clique_weight[from];
   const bool from_becomes_empty = _clique_weight[from] == 0;
   const bool to_becomes_non_empty = _clique_weight[to] == 0;
-  _clique_weight[to] += graph.nodeWeight(u);
+  ++_clique_weight[to];
   graph.setClique(u, to);
 
   removeFromCurrentClique(u, from);
   EdgeWeight weight_to_target_clique = 0;
   for (const Neighbor& nb : graph.neighbors(u)) {
     if (graph.clique(nb.target) == to) {
-      weight_to_target_clique += graph.edgeWeight(nb.id);
+      ++weight_to_target_clique;
     }
   }
   insertIntoCurrentClique(u, to, weight_to_target_clique);
@@ -302,14 +298,13 @@ FMRefiner::Rating FMRefiner::computeBestClique(Graph& graph, const NodeID u) {
   edge_weight_to_clique.clear();
   for ( const Neighbor& nb : graph.neighbors(u) ) {
     const CliqueID v_c = graph.clique(nb.target);
-    edge_weight_to_clique[v_c] += graph.edgeWeight(nb.id);
+    ++edge_weight_to_clique[v_c];
   }
 
-  const EdgeWeight u_weighted_degree = graph.weightedDegree(u);
-  const NodeWeight u_weight = graph.nodeWeight(u);
+  const EdgeWeight u_degree = graph.degree(u);
   const CliqueID from = graph.clique(u);
-  const EdgeWeight from_rating =  insertions(u_weight, _clique_weight[from] - u_weight, edge_weight_to_clique[from])
-                                  + deletions(u_weighted_degree, edge_weight_to_clique[from]);
+  const EdgeWeight from_rating =  insertions(_clique_weight[from] - 1, edge_weight_to_clique[from])
+                                  + deletions(u_degree, edge_weight_to_clique[from]);
 
   // ignore the zero gain move of keeping u in its clique
   Rating best_rating = { INVALID_CLIQUE, std::numeric_limits<EdgeWeight>::max(),
@@ -318,8 +313,8 @@ FMRefiner::Rating FMRefiner::computeBestClique(Graph& graph, const NodeID u) {
   for ( const auto& entry : edge_weight_to_clique ) {
     const CliqueID to = entry.key;
     if (to != from ) {
-      const EdgeWeight to_rating =  insertions(u_weight, _clique_weight[to], entry.value)
-                                    + deletions(u_weighted_degree, entry.value);
+      const EdgeWeight to_rating =  insertions(_clique_weight[to], entry.value)
+                                    + deletions(u_degree, entry.value);
       if (to_rating < best_rating.rating
           || (to_rating == best_rating.rating && utils::Randomize::instance().flipCoin())) {
         best_rating = { to, to_rating, to_rating - from_rating, entry.value };
@@ -328,8 +323,8 @@ FMRefiner::Rating FMRefiner::computeBestClique(Graph& graph, const NodeID u) {
   }
 
   // Check if it is beneficial to isolate the vertex again. if u is already isolated then this is not triggered
-  if ( !_empty_cliques.empty() && u_weighted_degree < best_rating.rating ) {
-    best_rating = { ISOLATE_CLIQUE, u_weighted_degree, u_weighted_degree - from_rating, 0 };
+  if ( !_empty_cliques.empty() && u_degree < best_rating.rating ) {
+    best_rating = { ISOLATE_CLIQUE, u_degree, u_degree - from_rating, 0 };
   }
 
   return best_rating;
@@ -339,12 +334,12 @@ void FMRefiner::checkPQGains(const Graph& graph) {
   for (size_t j = 0; j < pq.size(); ++j) {
     NodeID v = pq.at(j);
     EdgeWeight gain_in_pq = pq.keyAtPos(j);
-    EdgeWeight gain_recalculated = gain(graph, v, graph.clique(v), n[v].desired_target,
+    EdgeWeight gain_recalculated = gain(graph.clique(v), n[v].desired_target,
                                         n[v].weight_to_current_clique, n[v].weight_to_target_clique);
 
     edge_weight_to_clique.clear();
     for (const Neighbor& nb : graph.neighbors(v)) {
-      edge_weight_to_clique[graph.clique(nb.target)] += graph.edgeWeight(nb.id);
+      ++edge_weight_to_clique[graph.clique(nb.target)];
     }
 
     if (n[v].desired_target == ISOLATE_CLIQUE) {
@@ -376,7 +371,7 @@ void FMRefiner::checkCliqueWeights(const Graph& graph) {
   for (NodeID u : graph.nodes()) {
     edge_weight_to_clique.clear();
     for (const Neighbor& nb : graph.neighbors(u)) {
-      edge_weight_to_clique[graph.clique(nb.target)] += graph.edgeWeight(nb.id);
+      ++edge_weight_to_clique[graph.clique(nb.target)];
     }
     assert(n[u].weight_to_current_clique == edge_weight_to_clique[graph.clique(u)]);
   }

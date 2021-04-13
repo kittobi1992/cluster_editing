@@ -100,17 +100,17 @@ private:
   }
 
 
-  EdgeWeight insertions(NodeWeight u_weight, NodeWeight target_clique_weight, EdgeWeight edge_weight_to_target_clique) const {
-    return u_weight * target_clique_weight - edge_weight_to_target_clique;
+  EdgeWeight insertions(NodeWeight target_clique_weight, EdgeWeight edge_weight_to_target_clique) const {
+    return target_clique_weight - edge_weight_to_target_clique;
   }
 
-  EdgeWeight deletions(EdgeWeight weighted_degree, EdgeWeight edge_weight_to_target_clique) const {
-    return weighted_degree - edge_weight_to_target_clique;
+  EdgeWeight deletions(EdgeWeight degree, EdgeWeight edge_weight_to_target_clique) const {
+    return degree - edge_weight_to_target_clique;
   }
 
-  EdgeWeight gain(const Graph& graph, NodeID u, CliqueID from, CliqueID target, EdgeWeight weight_to_current_clique, EdgeWeight weight_to_target_clique) const {
+  EdgeWeight gain(CliqueID from, CliqueID target, EdgeWeight weight_to_current_clique, EdgeWeight weight_to_target_clique) const {
     const NodeWeight target_weight = target == ISOLATE_CLIQUE ? 0 : _clique_weight[target];
-    return (target_weight - _clique_weight[from] + graph.nodeWeight(u)) * graph.nodeWeight(u)
+    return (target_weight - _clique_weight[from] + 1)
             + 2 * (weight_to_current_clique - weight_to_target_clique);
   }
 
