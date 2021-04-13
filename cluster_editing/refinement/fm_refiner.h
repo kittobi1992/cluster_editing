@@ -108,11 +108,17 @@ private:
     return weighted_degree - edge_weight_to_target_clique;
   }
 
-  EdgeWeight gain(Graph& graph, NodeID u, CliqueID from, CliqueID target, EdgeWeight weight_to_current_clique, EdgeWeight weight_to_target_clique) const {
+  EdgeWeight gain(const Graph& graph, NodeID u, CliqueID from, CliqueID target, EdgeWeight weight_to_current_clique, EdgeWeight weight_to_target_clique) const {
     const NodeWeight target_weight = target == ISOLATE_CLIQUE ? 0 : _clique_weight[target];
     return (target_weight - _clique_weight[from] + graph.nodeWeight(u)) * graph.nodeWeight(u)
             + 2 * (weight_to_current_clique - weight_to_target_clique);
   }
+
+  // ! Only for debug
+  void checkPQGains(const Graph& graph);
+
+  // ! Only for debug
+  void checkCliqueWeights(const Graph& graph);
 
   const Context& _context;
   size_t _moved_vertices;

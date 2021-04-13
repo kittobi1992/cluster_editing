@@ -85,7 +85,7 @@ namespace cluster_editing {
              "If true, then FM is used to improve quality.")
             ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
              "Maximum iterations made by the label propagation refiner")
-            ("r-maximum-fm-iterations", po::value<int>(&context.refinement.maximum_fm_iterations)->value_name("<int>"),
+            ("r-maximum-fm-iterations", po::value<int>(&context.refinement.fm.maximum_fm_iterations)->value_name("<int>"),
              "Maximum iterations made by the FM refiner")
             ("r-activate-all-cliques-after-rounds", po::value<int>(&context.refinement.lp.activate_all_cliques_after_rounds)->value_name("<int>"),
              "Each #activate_all_cliques_after_rounds iterations, label propagation refiner reactivates all nodes again.")
@@ -100,7 +100,9 @@ namespace cluster_editing {
              " - none\n"
              " - random_shuffle\n"
              " - degree_increasing\n"
-             " - degree_decreasing\n");
+             " - degree_decreasing\n")
+            ("r-fm-fraction-fruitless-moves", po::value<double>(&context.refinement.fm.fraction_of_fruitless_moves)->value_name("<double>"),
+             "FM terminates, if it not finds an improvement after fruitless_moves * |V| moves");
     return options;
   }
 

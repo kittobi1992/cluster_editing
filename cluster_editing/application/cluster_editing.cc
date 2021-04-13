@@ -26,18 +26,20 @@ int main() {
   context.refinement.lp.random_shuffle_each_round = false;
   context.refinement.lp.node_order = NodeOrdering::none;
   context.refinement.use_fm_refiner = true;
-  context.refinement.maximum_fm_iterations = 10;
+  context.refinement.fm.maximum_fm_iterations = 25;
+  context.refinement.fm.fraction_of_fruitless_moves = 0.05;
   utils::Randomize::instance().setSeed(context.general.seed);
+
+  utils::Timer::instance().start_timer("import_graph", "Import Graph");
+  Graph graph = io::readGraphFile();
+  utils::Timer::instance().stop_timer("import_graph");
+  context.computeParameters(graph.numNodes());
 
   if ( context.general.verbose_output ) {
     io::printBanner();
     // Print context description
     LOG << context;
   }
-
-  utils::Timer::instance().start_timer("import_graph", "Import Graph");
-  Graph graph = io::readGraphFile();
-  utils::Timer::instance().stop_timer("import_graph");
   io::printInputInfo(graph, context);
 
   if ( graph.numNodes() <= 10000 ) {
@@ -94,9 +96,7 @@ int main() {
   HighResClockTimepoint e = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> solve_time(e - s);
   double time = solve_time.count();
-  if (time <= 0.1) {
-    context.general.num_repititions = 1000;
-  } else if ( time <= 1.0 ) {
+  if ( time <= 1.0 ) {
     context.general.num_repititions = 100;
   } else if ( time <= 2.0 ) {
     context.general.num_repititions = 25;

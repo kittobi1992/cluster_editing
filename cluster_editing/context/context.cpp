@@ -31,10 +31,21 @@ std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParam
   return str;
 }
 
+std::ostream & operator<< (std::ostream& str, const FMParameters& params) {
+  str << "\n  FM Refiner Parameters:" << std::endl;
+  str << "    Maximum FM Iterations:       " << params.maximum_fm_iterations << std::endl;
+  str << "    Max. Num Fruitless Moves:    " << params.max_fruitless_moves << std::endl;
+  return str;
+}
+
+
 std::ostream & operator<< (std::ostream& str, const RefinementParameters& params) {
   str << "Refinement Parameters:" << std::endl;
   if ( params.use_lp_refiner ) {
     str << params.lp;
+  }
+  if ( params.use_fm_refiner ) {
+    str << params.fm;
   }
   return str;
 }
@@ -50,6 +61,13 @@ std::ostream & operator<< (std::ostream& str, const Context& context) {
       << context.refinement
       << "-------------------------------------------------------------------------------\n";
   return str;
+}
+
+void Context::computeParameters(const int num_nodes) {
+  if ( refinement.use_fm_refiner ) {
+    refinement.fm.max_fruitless_moves = std::max(
+      refinement.fm.fraction_of_fruitless_moves * num_nodes, 10000.0);
+  }
 }
 
 } // namespace cluster_editing
