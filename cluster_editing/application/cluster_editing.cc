@@ -4,7 +4,6 @@
 #include "cluster_editing/definitions.h"
 #include "cluster_editing/preprocessing.h"
 #include "cluster_editing/flat.h"
-#include "cluster_editing/multilevel.h"
 #include "cluster_editing/datastructures/spin_lock.h"
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/utils/randomize.h"
@@ -86,11 +85,7 @@ int main(int argc, char* argv[]) {
         i < context.general.num_repititions &&
         fruitless_repititions < context.general.num_fruitless_repititions ; ++i ) {
     graph.reset();
-    if ( context.general.use_multilevel ) {
-      multilevel::solve(graph, context);
-    } else {
-      flat::solve(graph, context);
-    }
+    flat::solve(graph, context);
 
     // Check if solution is better than best solution found so far
     const size_t current_objective = metrics::edits(graph);

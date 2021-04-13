@@ -41,7 +41,7 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
   EdgeWeight current_metric = start_metric;
   utils::ProgressBar lp_progress(
     _context.refinement.lp.maximum_lp_iterations, start_metric,
-    _context.general.verbose_output && !_context.general.use_multilevel && !debug);
+    _context.general.verbose_output && !debug);
 
   if ( _context.refinement.lp.node_order == NodeOrdering::random_shuffle ) {
     utils::Randomize::instance().shuffleVector(_nodes, _nodes.size());

@@ -11,17 +11,11 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params) {
   str << "  Output File:                   " << params.output_file << std::endl;
   str << "  Verbose Output:                " << std::boolalpha << params.verbose_output << std::endl;
   str << "  Seed:                          " << params.seed << std::endl;
-  str << "  Use Multilevel:                " << std::boolalpha << params.use_multilevel << std::endl;
   str << "  Number of Repititions:         " << params.num_repititions << std::endl;
   str << "  Number Fruitless Repititions:  " << params.num_fruitless_repititions << std::endl;
   return str;
 }
 
-std::ostream & operator<< (std::ostream& str, const CoarseningParameters& params) {
-  str << "Coarsening Parameters:" << std::endl;
-  str << "  Algorithm:                     " << params.algorithm << std::endl;
-  return str;
-}
 
 std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParameters& params) {
   str << "\n  Label Propagation Refiner Parameters:" << std::endl;
@@ -57,8 +51,6 @@ std::ostream & operator<< (std::ostream& str, const Context& context) {
       << "*                         Cluster Editing Context                             *\n"
       << "*******************************************************************************\n"
       << context.general
-      << "-------------------------------------------------------------------------------\n"
-      << context.coarsening
       << "-------------------------------------------------------------------------------\n"
       << context.refinement
       << "-------------------------------------------------------------------------------\n";

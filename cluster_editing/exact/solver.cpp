@@ -12,7 +12,6 @@
 #include <cluster_editing/exact/star_bound.h>
 #include <cluster_editing/flat.h>
 
-#include "cluster_editing/multilevel.h"
 #include "cluster_editing/io/graph_io.h"
 #include "cluster_editing/metrics.h"
 #include "cluster_editing/datastructures/graph_factory.h"
@@ -247,7 +246,6 @@ Solution solve_heuristic(const Instance &inst) {
     // TODO stop if lower bound reached
 
     cluster_editing::Context context;
-    context.coarsening.algorithm = cluster_editing::CoarseningAlgorithm::lp_coarsener;
     context.refinement.lp.maximum_lp_iterations = 500;
     context.refinement.lp.activate_all_cliques_after_rounds = 10;
     context.refinement.lp.random_shuffle_each_round = true;
@@ -269,17 +267,10 @@ Solution solve_heuristic(const Instance &inst) {
         graph.reset();
     };
 
-    auto t_begin = std::chrono::steady_clock::now();
     for (size_t i = 0; i < num_reps; ++i) {
         cluster_editing::flat::solve(graph, context);
         update();
     }
-    auto t_flat = std::chrono::steady_clock::now();
-    for (size_t i = 0; i < num_reps; ++i) {
-        cluster_editing::multilevel::solve(graph, context);
-        update();
-    }
-    auto t_end = std::chrono::steady_clock::now();
 
     // build the solution
     Solution solution;

@@ -35,7 +35,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
 
   utils::ProgressBar fm_progress(
     _context.refinement.fm.maximum_fm_iterations, start_metric,
-    _context.general.verbose_output && !_context.general.use_multilevel && !debug);
+    _context.general.verbose_output && !debug);
 
   utils::Timer::instance().start_timer("fm", "FM");
   for ( int round = 0; round < _context.refinement.fm.maximum_fm_iterations; ++round ) {

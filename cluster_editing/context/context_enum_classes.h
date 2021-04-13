@@ -5,12 +5,6 @@
 
 namespace cluster_editing {
 
-enum class CoarseningAlgorithm {
-  do_nothing,
-  lp_coarsener,
-  UNDEFINED
-};
-
 enum class NodeOrdering {
   none,
   random_shuffle,
@@ -18,11 +12,7 @@ enum class NodeOrdering {
   degree_decreasing
 };
 
-std::ostream & operator<< (std::ostream& os, const CoarseningAlgorithm& algo);
-
 std::ostream & operator<< (std::ostream& os, const NodeOrdering& order);
-
-CoarseningAlgorithm coarseningAlgorithmFromString(const std::string& algo);
 
 NodeOrdering nodeOrderingFromString(const std::string& order);
 
