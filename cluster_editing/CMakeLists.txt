@@ -9,7 +9,6 @@ add_subdirectory(exact)
 configure_file(data_path.h.in data_path.h)
 
 set(ClusterEditingSources
-      preprocessing.cpp
       flat.cpp
       data_path.h
       )

@@ -2,7 +2,6 @@
 #include <signal.h>
 
 #include "cluster_editing/definitions.h"
-#include "cluster_editing/preprocessing.h"
 #include "cluster_editing/flat.h"
 #include "cluster_editing/datastructures/spin_lock.h"
 #include "cluster_editing/utils/timer.h"
@@ -68,14 +67,6 @@ int main(int argc, char* argv[]) {
   }
   io::printInputInfo(graph, context);
 
-  // Preprocessing
-  io::printPreprocessingBanner(context);
-  start = std::chrono::high_resolution_clock::now();
-  utils::Timer::instance().start_timer("preprocessing", "Preprocessing");
-  Preprocessor preprocessor(graph, context);
-  preprocessor.preprocess();
-  utils::Timer::instance().stop_timer("preprocessing");
-
   // Multilevel Solver
   utils::Timer::instance().start_timer("solver", "Solver");
   int fruitless_repititions = 0;
@@ -101,15 +92,7 @@ int main(int argc, char* argv[]) {
       ++fruitless_repititions;
     }
   }
-
   utils::Timer::instance().stop_timer("solver");
-
-  // Undo Preprocessing
-  io::printUndoPreprocessingBanner(context);
-  utils::Timer::instance().start_timer("undo_preprocessing", "Undo Preprocessing");
-  preprocessor.undoPreprocessing();
-  utils::Timer::instance().stop_timer("undo_preprocessing");
-  end = std::chrono::high_resolution_clock::now();
 
   if ( terminate_lock.tryLock() ) {
     graph.applyBestCliques();
