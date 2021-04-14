@@ -16,6 +16,7 @@ void FMRefiner<StoppingRule>::initializeImpl(Graph& graph) {
   _nodes.clear();
   for ( const NodeID& u : graph.nodes() ) {
     ++_clique_weight[graph.clique(u)];
+    _nodes.push_back(u);
 
     EdgeWeight weight = 0;
     const CliqueID clique = graph.clique(u);
@@ -26,6 +27,14 @@ void FMRefiner<StoppingRule>::initializeImpl(Graph& graph) {
       }
     }
     insertIntoCurrentClique(u, clique, weight);
+  }
+
+  // Find empty cliques
+  _empty_cliques.clear();
+  for ( const NodeID& u : graph.nodes() ) {
+    if ( _clique_weight[u] == 0 ) {
+      _empty_cliques.push_back(u);
+    }
   }
 }
 
@@ -72,22 +81,14 @@ bool FMRefiner<StoppingRule>::refineImpl(Graph& graph) {
 }
 
 template<typename StoppingRule>
-EdgeWeight FMRefiner<StoppingRule>::boundaryFM(Graph& graph, EdgeWeight& current_metric) {
+EdgeWeight FMRefiner<StoppingRule>::boundaryFM(Graph& graph, const EdgeWeight current_metric) {
   unused(current_metric);
   EdgeWeight round_delta = 0;
   EdgeWeight best_delta = 0;
 
   // init PQ and empty cliques
-  _empty_cliques.clear();
   for (const NodeID u : graph.nodes()) {
-    Rating rating = computeBestClique(graph, u);
-    if (rating.clique != INVALID_CLIQUE) {
-      pq.insert(u, rating.delta);
-      insertIntoTargetClique(u, rating);
-    }
-    if (_clique_weight[u] == 0) {
-      _empty_cliques.push_back(u);
-    }
+    insertIntoPQ(graph, u);
   }
 
   // perform moves
@@ -109,7 +110,7 @@ EdgeWeight FMRefiner<StoppingRule>::boundaryFM(Graph& graph, EdgeWeight& current
     pq.deleteTop();
     removeFromTargetClique(u);
     const CliqueID from = graph.clique(u), to = rating.clique;
-    if ( _clique_weight[from] == 1 && to == ISOLATE_CLIQUE ) {
+    if ( ( _clique_weight[from] == 1 && to == ISOLATE_CLIQUE ) || from == to ) {
       continue;
     }
 
@@ -153,8 +154,118 @@ EdgeWeight FMRefiner<StoppingRule>::boundaryFM(Graph& graph, EdgeWeight& current
 }
 
 template<typename StoppingRule>
-EdgeWeight FMRefiner<StoppingRule>::localizedFM(Graph&, EdgeWeight&) {
-  return 0;
+EdgeWeight FMRefiner<StoppingRule>::localizedFM(Graph& graph, const EdgeWeight current_metric) {
+  _moved_nodes.reset();
+  std::random_shuffle(_nodes.begin(), _nodes.end());
+
+  size_t idx = 0;
+  std::vector<NodeID> refinement_nodes;
+  EdgeWeight delta = 0;
+  while ( idx < _nodes.size() ) {
+    // Find seed nodes
+    refinement_nodes.clear();
+    for ( ; idx < _nodes.size() &&
+            refinement_nodes.size() < _context.refinement.fm.num_seed_nodes; ++idx ) {
+      const NodeID u = _nodes[idx];
+      if ( !_moved_nodes[u] ) {
+        refinement_nodes.push_back(u);
+      }
+    }
+
+    // Localized FM Search
+    if ( refinement_nodes.size() > 0 ) {
+      delta += localizedFMSearch(graph, current_metric, refinement_nodes);
+      ASSERT(current_metric + delta == metrics::edits(graph),
+        "Rating is wrong. Expected:" << metrics::edits(graph)
+          << "but is" << (current_metric + delta));
+    }
+  }
+
+  return delta;
+}
+
+template<typename StoppingRule>
+EdgeWeight FMRefiner<StoppingRule>::localizedFMSearch(Graph& graph,
+                                                      const EdgeWeight current_metric,
+                                                      const std::vector<NodeID>& refinement_nodes) {
+  unused(current_metric);
+  EdgeWeight round_delta = 0;
+  EdgeWeight best_delta = 0;
+
+  // init PQ and empty cliques
+  for (const NodeID u : refinement_nodes) {
+    insertIntoPQ(graph, u);
+  }
+
+  // perform moves
+  StoppingRule stopping_rule(graph, _context);
+  while (!pq.empty() && !stopping_rule.searchShouldStop()) {
+    EdgeWeight estimated_gain = pq.topKey();
+    NodeID u = pq.top();
+
+    Rating rating = computeBestClique(graph, u);
+    if (rating.delta != estimated_gain) {
+      // retry! 		or do KaHiP/Metis approach and just apply? only if improvement?
+      pq.adjustKey(u, rating.delta);
+      if (rating.clique != graph.clique(u)) {
+        updateTargetClique(u, rating);
+      }
+      continue;
+    }
+
+    pq.deleteTop();
+    removeFromTargetClique(u);
+    const CliqueID from = graph.clique(u), to = rating.clique;
+    if ( ( _clique_weight[from] == 1 && to == ISOLATE_CLIQUE ) || from == to ) {
+      continue;
+    }
+
+    moveVertex(graph, u, to);
+    _moved_nodes.set(u, true);
+    round_delta += rating.delta;
+    stopping_rule.update(rating.delta);
+    if (round_delta <= best_delta) {
+      best_delta = round_delta;
+      // permanently keep all moves up to here
+      moves.clear();
+      stopping_rule.reset();
+    } else {
+      // store for rollback later
+      moves.push_back({ u, from, to });
+    }
+    assert(from != graph.clique(u));
+
+    ASSERT(current_metric + round_delta == metrics::edits(graph),
+      "Rating is wrong. Expected:" << metrics::edits(graph)
+        << "but is" << (current_metric + round_delta));
+
+    deltaGainUpdates(graph, u, from, to);
+
+    // Push all neighbors into PQ
+    for ( const Neighbor& n : graph.neighbors(u) ) {
+      const NodeID v = n.target;
+      if ( !_moved_nodes[v] ) {
+        insertIntoPQ(graph, v);
+      }
+    }
+
+    #ifndef NDEBUG
+    checkPQGains(graph);
+    #endif
+  }
+
+  #ifndef NDEBUG
+  checkCliqueWeights(graph);
+  #endif
+
+  clearPQ();
+  rollback(graph);
+
+  #ifndef NDEBUG
+  checkCliqueWeights(graph);
+  #endif
+
+  return best_delta;
 }
 
 template<typename StoppingRule>
@@ -164,7 +275,8 @@ void FMRefiner<StoppingRule>::moveVertex(Graph& graph, NodeID u, CliqueID to, bo
 
   if (manage_empty_cliques && to == ISOLATE_CLIQUE) {
     assert(!_empty_cliques.empty());
-    to = _empty_cliques.back();
+    to = getEmptyClique();
+    assert(to != INVALID_CLIQUE);
     assert(_clique_weight[to] == 0);
   }
   assert(manage_empty_cliques || to != ISOLATE_CLIQUE);
@@ -305,6 +417,17 @@ void FMRefiner<StoppingRule>::deltaGainUpdates(const Graph& graph, const NodeID 
 }
 
 template<typename StoppingRule>
+void FMRefiner<StoppingRule>::insertIntoPQ(const Graph& graph, const NodeID u) {
+  if ( !pq.contains(u) ) {
+    Rating rating = computeBestClique(graph, u);
+    if (rating.clique != INVALID_CLIQUE) {
+      pq.insert(u, rating.delta);
+      insertIntoTargetClique(u, rating);
+    }
+  }
+}
+
+template<typename StoppingRule>
 void FMRefiner<StoppingRule>::clearPQ() {
   while ( !pq.empty() ) {
     const NodeID u = pq.top();
@@ -360,8 +483,13 @@ typename FMRefiner<StoppingRule>::Rating FMRefiner<StoppingRule>::computeBestCli
   }
 
   // Check if it is beneficial to isolate the vertex again. if u is already isolated then this is not triggered
-  if ( !_empty_cliques.empty() && u_degree < best_rating.rating ) {
+  if ( !_empty_cliques.empty() && u_degree < best_rating.rating && _clique_weight[from] != 1 ) {
     best_rating = { ISOLATE_CLIQUE, u_degree, u_degree - from_rating, 0 };
+  }
+
+  // In case u is an internal node
+  if ( best_rating.clique == INVALID_CLIQUE ) {
+    best_rating = { from, from_rating, 0, edge_weight_to_clique[from] };
   }
 
   return best_rating;
