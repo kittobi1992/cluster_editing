@@ -1,8 +1,9 @@
-#include <cluster_editing/refinement/fm_refiner.h>
 #include "flat.h"
 
 #include "cluster_editing/macros.h"
 #include "cluster_editing/refinement/lp_refiner.h"
+#include "cluster_editing/refinement/fm_refiner.h"
+#include "cluster_editing/refinement/stopping_rule.h"
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/io/output.h"
 
@@ -24,14 +25,14 @@ void solve(Graph& graph, const Context& context) {
 
   // Boundary FM
   if ( context.refinement.use_boundary_fm_refiner ) {
-    FMRefiner fm_refiner(graph, context, FMType::boundary);
+    FMRefiner<FruitlessMovesStoppingRule> fm_refiner(graph, context, FMType::boundary);
     fm_refiner.initialize(graph);
     fm_refiner.refine(graph);
   }
 
   // Localized FM
   if ( context.refinement.use_localized_fm_refiner ) {
-    FMRefiner fm_refiner(graph, context, FMType::localized);
+    FMRefiner<AdaptiveStoppingRule> fm_refiner(graph, context, FMType::localized);
     fm_refiner.initialize(graph);
     fm_refiner.refine(graph);
   }

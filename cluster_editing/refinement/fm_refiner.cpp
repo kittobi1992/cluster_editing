@@ -8,7 +8,8 @@
 namespace cluster_editing {
 
 
-void FMRefiner::initializeImpl(Graph& graph) {
+template<typename StoppingRule>
+void FMRefiner<StoppingRule>::initializeImpl(Graph& graph) {
   _moved_vertices = 0;
   _clique_weight.assign(graph.numNodes(), 0);
 
@@ -28,7 +29,8 @@ void FMRefiner::initializeImpl(Graph& graph) {
   }
 }
 
-bool FMRefiner::refineImpl(Graph& graph) {
+template<typename StoppingRule>
+bool FMRefiner<StoppingRule>::refineImpl(Graph& graph) {
   EdgeWeight start_metric = metrics::edits(graph);
   EdgeWeight current_metric = start_metric;
 
@@ -69,8 +71,8 @@ bool FMRefiner::refineImpl(Graph& graph) {
   return current_metric < start_metric;
 }
 
-
-EdgeWeight FMRefiner::boundaryFM(Graph& graph, EdgeWeight& current_metric) {
+template<typename StoppingRule>
+EdgeWeight FMRefiner<StoppingRule>::boundaryFM(Graph& graph, EdgeWeight& current_metric) {
   unused(current_metric);
   EdgeWeight round_delta = 0;
   EdgeWeight best_delta = 0;
@@ -89,8 +91,8 @@ EdgeWeight FMRefiner::boundaryFM(Graph& graph, EdgeWeight& current_metric) {
   }
 
   // perform moves
-  size_t num_fruitless_moves = 0;
-  while (!pq.empty() && num_fruitless_moves <= _context.refinement.fm.max_fruitless_moves) {
+  StoppingRule stopping_rule(graph, _context);
+  while (!pq.empty() && !stopping_rule.searchShouldStop()) {
     EdgeWeight estimated_gain = pq.topKey();
     NodeID u = pq.top();
 
@@ -113,15 +115,15 @@ EdgeWeight FMRefiner::boundaryFM(Graph& graph, EdgeWeight& current_metric) {
 
     moveVertex(graph, u, to);
     round_delta += rating.delta;
-    if (round_delta < best_delta) {
+    stopping_rule.update(rating.delta);
+    if (round_delta <= best_delta) {
       best_delta = round_delta;
       // permanently keep all moves up to here
       moves.clear();
-      num_fruitless_moves = 0;
+      stopping_rule.reset();
     } else {
       // store for rollback later
       moves.push_back({ u, from, to });
-      ++num_fruitless_moves;
     }
     assert(from != graph.clique(u));
 
@@ -150,11 +152,13 @@ EdgeWeight FMRefiner::boundaryFM(Graph& graph, EdgeWeight& current_metric) {
   return best_delta;
 }
 
-EdgeWeight FMRefiner::localizedFM(Graph&, EdgeWeight&) {
+template<typename StoppingRule>
+EdgeWeight FMRefiner<StoppingRule>::localizedFM(Graph&, EdgeWeight&) {
   return 0;
 }
 
-void FMRefiner::moveVertex(Graph& graph, NodeID u, CliqueID to, bool manage_empty_cliques) {
+template<typename StoppingRule>
+void FMRefiner<StoppingRule>::moveVertex(Graph& graph, NodeID u, CliqueID to, bool manage_empty_cliques) {
   const CliqueID from = graph.clique(u);
   assert(from != to);
 
@@ -190,8 +194,8 @@ void FMRefiner::moveVertex(Graph& graph, NodeID u, CliqueID to, bool manage_empt
   ++_moved_vertices;
 }
 
-
-void FMRefiner::deltaGainUpdates(const Graph& graph, const NodeID u, const CliqueID from, const CliqueID to) {
+template<typename StoppingRule>
+void FMRefiner<StoppingRule>::deltaGainUpdates(const Graph& graph, const NodeID u, const CliqueID from, const CliqueID to) {
   // updates due to clique weight changes
   // these are a LOT of updates!
   for (NodeID v : target_cliques[from]) {
@@ -300,7 +304,8 @@ void FMRefiner::deltaGainUpdates(const Graph& graph, const NodeID u, const Cliqu
   }
 }
 
-void FMRefiner::clearPQ() {
+template<typename StoppingRule>
+void FMRefiner<StoppingRule>::clearPQ() {
   while ( !pq.empty() ) {
     const NodeID u = pq.top();
     pq.deleteTop();
@@ -308,7 +313,8 @@ void FMRefiner::clearPQ() {
   }
 }
 
-void FMRefiner::rollback(Graph& graph) {
+template<typename StoppingRule>
+void FMRefiner<StoppingRule>::rollback(Graph& graph) {
   for (Move& m : moves) {
     CliqueID from = graph.clique(m.node), to = m.from;
     for (const Neighbor& nb : graph.neighbors(m.node)) {
@@ -324,7 +330,8 @@ void FMRefiner::rollback(Graph& graph) {
   moves.clear();
 }
 
-FMRefiner::Rating FMRefiner::computeBestClique(const Graph& graph, const NodeID u) {
+template<typename StoppingRule>
+typename FMRefiner<StoppingRule>::Rating FMRefiner<StoppingRule>::computeBestClique(const Graph& graph, const NodeID u) {
   edge_weight_to_clique.clear();
   for ( const Neighbor& nb : graph.neighbors(u) ) {
     const CliqueID v_c = graph.clique(nb.target);
@@ -360,7 +367,8 @@ FMRefiner::Rating FMRefiner::computeBestClique(const Graph& graph, const NodeID 
   return best_rating;
 }
 
-void FMRefiner::checkPQGains(const Graph& graph) {
+template<typename StoppingRule>
+void FMRefiner<StoppingRule>::checkPQGains(const Graph& graph) {
   for (size_t j = 0; j < pq.size(); ++j) {
     NodeID v = pq.at(j);
     EdgeWeight gain_in_pq = pq.keyAtPos(j);
@@ -397,7 +405,8 @@ void FMRefiner::checkPQGains(const Graph& graph) {
   }
 }
 
-void FMRefiner::checkCliqueWeights(const Graph& graph) {
+template<typename StoppingRule>
+void FMRefiner<StoppingRule>::checkCliqueWeights(const Graph& graph) {
   for (NodeID u : graph.nodes()) {
     edge_weight_to_clique.clear();
     for (const Neighbor& nb : graph.neighbors(u)) {
@@ -408,3 +417,10 @@ void FMRefiner::checkCliqueWeights(const Graph& graph) {
 }
 
 }
+
+#include "cluster_editing/refinement/stopping_rule.h"
+
+namespace cluster_editing {
+template class FMRefiner<FruitlessMovesStoppingRule>;
+template class FMRefiner<AdaptiveStoppingRule>;
+} // namespace cluster_editing

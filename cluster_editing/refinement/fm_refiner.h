@@ -8,6 +8,7 @@
 
 namespace cluster_editing {
 
+template<typename StoppingRule>
 class FMRefiner final : public IRefiner {
 private:
   static constexpr bool debug = false;
