@@ -58,7 +58,13 @@ private:
 
   void moveVertex(Graph& graph, NodeID u, CliqueID to, bool manage_empty_cliques = true);
 
-  Rating computeBestClique(Graph& graph, const NodeID u);
+  void deltaGainUpdates(const Graph& graph, const NodeID u, const CliqueID from, const CliqueID to);
+
+  void clearPQ();
+
+  void rollback(Graph& graph);
+
+  Rating computeBestClique(const Graph& graph, const NodeID u);
 
   void updateTargetClique(NodeID u, Rating& r) {
     removeFromTargetClique(u);

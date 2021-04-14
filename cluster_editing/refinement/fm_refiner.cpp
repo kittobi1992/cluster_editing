@@ -37,14 +37,13 @@ bool FMRefiner::refineImpl(Graph& graph) {
     _context.refinement.fm.maximum_fm_iterations, start_metric,
     _context.general.verbose_output && !debug);
 
-  utils::Timer::instance().start_timer("fm", "FM");
+  utils::Timer::instance().start_timer("boundary_fm", "Boundary FM");
   for ( int round = 0; round < _context.refinement.fm.maximum_fm_iterations; ++round ) {
     round_delta = 0;
     EdgeWeight best_delta = 0;
 
     // init PQ and empty cliques
     _empty_cliques.clear();
-    pq.clear();
     for (const NodeID u : graph.nodes()) {
       Rating rating = computeBestClique(graph, u);
       if (rating.clique != INVALID_CLIQUE) {
@@ -97,145 +96,22 @@ bool FMRefiner::refineImpl(Graph& graph) {
         "Rating is wrong. Expected:" << metrics::edits(graph)
           << "but is" << (current_metric + round_delta));
 
-      // updates due to clique weight changes
-      // these are a LOT of updates!
-      for (NodeID v : target_cliques[from]) {
-        assert(pq.contains(v));
-        pq.adjustKey(v, pq.getKey(v) - 1);
-      }
-      if (to != ISOLATE_CLIQUE) {
-        for (NodeID v : target_cliques[to]) {
-          assert(pq.contains(v));
-          pq.adjustKey(v, pq.getKey(v) + 1);
-        }
-      }
-
-      for (NodeID v : current_cliques[from]) {
-        if (pq.contains(v)) {
-          pq.adjustKey(v, pq.getKey(v) + 1);
-        }
-      }
-      if (to != ISOLATE_CLIQUE) {
-        for (NodeID v : current_cliques[to]) {
-          if (pq.contains(v)) {
-            pq.adjustKey(v, pq.getKey(v) - 1);
-          }
-        }
-      }
-
-      static constexpr uint32_t SKIP_THRESHOLD = 20;
-
-      const CliqueID actual_target = graph.clique(u);
-
-      // update neighbors -- in original graph
-      for (const Neighbor& nb : graph.neighbors(u)) {
-        const NodeID v = nb.target;
-
-        EdgeWeight delta = 0;
-        if (graph.clique(v) == from) {
-          --n[v].weight_to_current_clique;
-          delta -= 2;
-        } else if (graph.clique(v) == actual_target) {
-          ++n[v].weight_to_current_clique;
-          delta += 2;
-        } else {
-          // TODO could also sum up edge weight changes.
-          // if weight changes allow for target cluster to change
-          // (multiply by some treshold) --> recompute
-          if (pq.contains(v) && ++n[v].num_skips > SKIP_THRESHOLD) {
-            n[v].num_skips = 0;
-            //LOG << "recalc" << V(v);
-            Rating rv = computeBestClique(graph, v);
-            pq.adjustKey(v, rv.delta);
-            updateTargetClique(v, rv);
-            continue;
-          }
-        }
-
-        if (!pq.contains(v)) continue;
-
-        if (n[v].desired_target == from) {
-          --n[v].weight_to_target_clique;
-          delta += 2;
-        } else if (n[v].desired_target == actual_target) {
-          ++n[v].weight_to_target_clique;
-          delta -= 2;
-        } else {
-          if (++n[v].num_skips > SKIP_THRESHOLD) {
-            n[v].num_skips = 0;
-            //LOG << "recalc" << V(v);
-            Rating rv = computeBestClique(graph, v);
-            pq.adjustKey(v, rv.delta);
-            updateTargetClique(v, rv);
-            continue;
-          }
-        }
-
-        if (delta != 0) {
-          pq.adjustKey(v, pq.getKey(v) + delta);
-        }
-      }
-
-      // special case for empty clique left behind
-      if (_clique_weight[from] == 0) {
-        for (NodeID v : target_cliques[from]) {
-          assert(pq.contains(v));
-          Rating rv = computeBestClique(graph, v);
-          updateTargetClique(v, rv);
-          pq.adjustKey(v, rv.delta);
-          n[v].num_skips = 0;
-        }
-      }
-
-      // special case for moving into isolated clique. see if
-      // any neighbor wants to join
-      if (to == ISOLATE_CLIQUE) {
-        const CliqueID actual_to = graph.clique(u);
-        for (const Neighbor& nb : graph.neighbors(u)) {
-          const NodeID v = nb.target;
-          if (!pq.contains(v)) continue;
-          const EdgeWeight delta = gain(graph.clique(v), actual_to, n[v].weight_to_current_clique, 1);
-          if (delta < pq.keyOf(v)) {
-            pq.adjustKey(v, delta);
-            Rating rv = { actual_to, 0, delta, 1 };
-            updateTargetClique(v, rv);
-            n[v].num_skips = 0;
-          }
-        }
-      }
+      deltaGainUpdates(graph, u, from, to);
 
       #ifndef NDEBUG
       checkPQGains(graph);
       #endif
     }
 
-    while ( !pq.empty() ) {
-      const NodeID u = pq.top();
-      pq.deleteTop();
-      removeFromTargetClique(u);
-    }
-
     #ifndef NDEBUG
     checkCliqueWeights(graph);
     #endif
 
-    // revert leftovers
-    for (Move& m : moves) {
-      CliqueID from = graph.clique(m.node), to = m.from;
-      for (const Neighbor& nb : graph.neighbors(m.node)) {
-        const NodeID v = nb.target;
-        if (graph.clique(v) == from) {
-          --n[v].weight_to_current_clique;
-        } else if (graph.clique(v) == to) {
-          ++n[v].weight_to_current_clique;
-        }
-      }
-      moveVertex(graph, m.node, to, false);
-    }
-    moves.clear();
+    clearPQ();
+    rollback(graph);
 
     current_metric += best_delta;
-    assert(current_metric == metrics::edits(graph));
+    ASSERT(current_metric == metrics::edits(graph));
 
     if ( best_delta < 0 ) {
       utils::Timer::instance().start_timer("checkpoint", "Checkpoint");
@@ -254,7 +130,7 @@ bool FMRefiner::refineImpl(Graph& graph) {
     fm_progress += 1;
   }
   fm_progress += (_context.refinement.fm.maximum_fm_iterations - fm_progress.count());
-  utils::Timer::instance().stop_timer("fm");
+  utils::Timer::instance().stop_timer("boundary_fm");
 
   return current_metric < start_metric;
 }
@@ -295,7 +171,141 @@ void FMRefiner::moveVertex(Graph& graph, NodeID u, CliqueID to, bool manage_empt
   ++_moved_vertices;
 }
 
-FMRefiner::Rating FMRefiner::computeBestClique(Graph& graph, const NodeID u) {
+
+void FMRefiner::deltaGainUpdates(const Graph& graph, const NodeID u, const CliqueID from, const CliqueID to) {
+  // updates due to clique weight changes
+  // these are a LOT of updates!
+  for (NodeID v : target_cliques[from]) {
+    assert(pq.contains(v));
+    pq.adjustKey(v, pq.getKey(v) - 1);
+  }
+  if (to != ISOLATE_CLIQUE) {
+    for (NodeID v : target_cliques[to]) {
+      assert(pq.contains(v));
+      pq.adjustKey(v, pq.getKey(v) + 1);
+    }
+  }
+
+  for (NodeID v : current_cliques[from]) {
+    if (pq.contains(v)) {
+      pq.adjustKey(v, pq.getKey(v) + 1);
+    }
+  }
+  if (to != ISOLATE_CLIQUE) {
+    for (NodeID v : current_cliques[to]) {
+      if (pq.contains(v)) {
+        pq.adjustKey(v, pq.getKey(v) - 1);
+      }
+    }
+  }
+
+  static constexpr uint32_t SKIP_THRESHOLD = 20;
+
+  const CliqueID actual_target = graph.clique(u);
+
+  // update neighbors -- in original graph
+  for (const Neighbor& nb : graph.neighbors(u)) {
+    const NodeID v = nb.target;
+
+    EdgeWeight delta = 0;
+    if (graph.clique(v) == from) {
+      --n[v].weight_to_current_clique;
+      delta -= 2;
+    } else if (graph.clique(v) == actual_target) {
+      ++n[v].weight_to_current_clique;
+      delta += 2;
+    } else {
+      // TODO could also sum up edge weight changes.
+      // if weight changes allow for target cluster to change
+      // (multiply by some treshold) --> recompute
+      if (pq.contains(v) && ++n[v].num_skips > SKIP_THRESHOLD) {
+        n[v].num_skips = 0;
+        //LOG << "recalc" << V(v);
+        Rating rv = computeBestClique(graph, v);
+        pq.adjustKey(v, rv.delta);
+        updateTargetClique(v, rv);
+        continue;
+      }
+    }
+
+    if (!pq.contains(v)) continue;
+
+    if (n[v].desired_target == from) {
+      --n[v].weight_to_target_clique;
+      delta += 2;
+    } else if (n[v].desired_target == actual_target) {
+      ++n[v].weight_to_target_clique;
+      delta -= 2;
+    } else {
+      if (++n[v].num_skips > SKIP_THRESHOLD) {
+        n[v].num_skips = 0;
+        //LOG << "recalc" << V(v);
+        Rating rv = computeBestClique(graph, v);
+        pq.adjustKey(v, rv.delta);
+        updateTargetClique(v, rv);
+        continue;
+      }
+    }
+
+    if (delta != 0) {
+      pq.adjustKey(v, pq.getKey(v) + delta);
+    }
+  }
+
+  // special case for empty clique left behind
+  if (_clique_weight[from] == 0) {
+    for (NodeID v : target_cliques[from]) {
+      assert(pq.contains(v));
+      Rating rv = computeBestClique(graph, v);
+      updateTargetClique(v, rv);
+      pq.adjustKey(v, rv.delta);
+      n[v].num_skips = 0;
+    }
+  }
+
+  // special case for moving into isolated clique. see if
+  // any neighbor wants to join
+  if (to == ISOLATE_CLIQUE) {
+    const CliqueID actual_to = graph.clique(u);
+    for (const Neighbor& nb : graph.neighbors(u)) {
+      const NodeID v = nb.target;
+      if (!pq.contains(v)) continue;
+      const EdgeWeight delta = gain(graph.clique(v), actual_to, n[v].weight_to_current_clique, 1);
+      if (delta < pq.keyOf(v)) {
+        pq.adjustKey(v, delta);
+        Rating rv = { actual_to, 0, delta, 1 };
+        updateTargetClique(v, rv);
+        n[v].num_skips = 0;
+      }
+    }
+  }
+}
+
+void FMRefiner::clearPQ() {
+  while ( !pq.empty() ) {
+    const NodeID u = pq.top();
+    pq.deleteTop();
+    removeFromTargetClique(u);
+  }
+}
+
+void FMRefiner::rollback(Graph& graph) {
+  for (Move& m : moves) {
+    CliqueID from = graph.clique(m.node), to = m.from;
+    for (const Neighbor& nb : graph.neighbors(m.node)) {
+      const NodeID v = nb.target;
+      if (graph.clique(v) == from) {
+        --n[v].weight_to_current_clique;
+      } else if (graph.clique(v) == to) {
+        ++n[v].weight_to_current_clique;
+      }
+    }
+    moveVertex(graph, m.node, to, false);
+  }
+  moves.clear();
+}
+
+FMRefiner::Rating FMRefiner::computeBestClique(const Graph& graph, const NodeID u) {
   edge_weight_to_clique.clear();
   for ( const Neighbor& nb : graph.neighbors(u) ) {
     const CliqueID v_c = graph.clique(nb.target);

@@ -34,7 +34,7 @@ void LabelPropagationRefiner::initializeImpl(Graph& graph) {
 }
 
 bool LabelPropagationRefiner::refineImpl(Graph& graph) {
-  utils::Timer::instance().start_timer("lp", "LP");
+  utils::Timer::instance().start_timer("lp", "Label Propagation");
   bool converged = false;
   EdgeWeight start_metric =
     metrics::edge_deletions(graph) + metrics::edge_insertions(graph);
