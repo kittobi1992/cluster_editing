@@ -145,12 +145,13 @@ void LabelPropagationRefiner::moveVertex(Graph& graph, const NodeID u, const Cli
   ++_clique_weight[to];
   graph.setClique(u, to);
 
-  if ( from_becomes_empty ) {
-    _empty_cliques.push_back(from);
-  }
+
   if ( to_becomes_non_empty ) {
     ASSERT(_empty_cliques.back() == to);
     _empty_cliques.pop_back();
+  }
+  if ( from_becomes_empty ) {
+    _empty_cliques.push_back(from);
   }
 }
 
@@ -204,7 +205,7 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBetTargetClique(
   }
 
   // Check if it is beneficial to isolate the vertex again
-  if ( !_empty_cliques.empty() && u_degree < best_rating.rating ) {
+  if ( !_empty_cliques.empty() && u_degree <= best_rating.rating ) {
     best_rating.clique = _empty_cliques.back();
     best_rating.rating = u_degree;
     best_rating.delta = u_degree - from_rating;

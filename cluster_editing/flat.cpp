@@ -5,6 +5,8 @@
 #include "cluster_editing/refinement/fm_refiner.h"
 #include "cluster_editing/refinement/stopping_rule.h"
 #include "cluster_editing/utils/timer.h"
+#include "cluster_editing/utils/randomize.h"
+#include "cluster_editing/metrics.h"
 #include "cluster_editing/io/output.h"
 
 namespace cluster_editing {
@@ -23,16 +25,16 @@ void solve(Graph& graph, const Context& context) {
     lp_refiner.refine(graph);
   }
 
-  // Localized FM
-  if ( context.refinement.use_localized_fm_refiner ) {
-    FMRefiner<AdaptiveStoppingRule> fm_refiner(graph, context, FMType::localized);
+  // Boundary FM
+  if ( context.refinement.use_boundary_fm_refiner ) {
+    FMRefiner<FruitlessMovesStoppingRule> fm_refiner(graph, context, FMType::boundary);
     fm_refiner.initialize(graph);
     fm_refiner.refine(graph);
   }
 
-  // Boundary FM
-  if ( context.refinement.use_boundary_fm_refiner ) {
-    FMRefiner<FruitlessMovesStoppingRule> fm_refiner(graph, context, FMType::boundary);
+  // Localized FM
+  if ( context.refinement.use_localized_fm_refiner ) {
+    FMRefiner<AdaptiveStoppingRule> fm_refiner(graph, context, FMType::localized);
     fm_refiner.initialize(graph);
     fm_refiner.refine(graph);
   }

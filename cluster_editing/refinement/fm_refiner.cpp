@@ -98,10 +98,11 @@ EdgeWeight FMRefiner<StoppingRule>::boundaryFM(Graph& graph, const EdgeWeight cu
     NodeID u = pq.top();
 
     Rating rating = computeBestClique(graph, u);
-    if (rating.delta != estimated_gain) {
+    if (rating.delta != estimated_gain ||
+        rating.clique != n[u].desired_target) {
       // retry! 		or do KaHiP/Metis approach and just apply? only if improvement?
       pq.adjustKey(u, rating.delta);
-      if (rating.clique != graph.clique(u)) {
+      if (rating.clique != n[u].desired_target) {
         updateTargetClique(u, rating);
       }
       continue;
@@ -204,10 +205,11 @@ EdgeWeight FMRefiner<StoppingRule>::localizedFMSearch(Graph& graph,
     NodeID u = pq.top();
 
     Rating rating = computeBestClique(graph, u);
-    if (rating.delta != estimated_gain) {
+    if (rating.delta != estimated_gain ||
+        rating.clique != n[u].desired_target) {
       // retry! 		or do KaHiP/Metis approach and just apply? only if improvement?
       pq.adjustKey(u, rating.delta);
-      if (rating.clique != graph.clique(u)) {
+      if (rating.clique != n[u].desired_target) {
         updateTargetClique(u, rating);
       }
       continue;
