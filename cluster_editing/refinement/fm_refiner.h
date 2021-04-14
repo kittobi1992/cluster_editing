@@ -5,9 +5,11 @@
 #include "cluster_editing/datastructures/sparse_map.h"
 
 #include "cluster_editing/datastructures/pq.h"
+#include "cluster_editing/datastructures/fast_reset_flag_array.h"
 
 namespace cluster_editing {
 
+template<typename StoppingRule>
 class FMRefiner final : public IRefiner {
 private:
   static constexpr bool debug = false;
@@ -34,8 +36,9 @@ private:
   CliqueID ISOLATE_CLIQUE = INVALID_CLIQUE - 1;
 
 public:
-  explicit FMRefiner(const Graph& graph, const Context& context) :
+  explicit FMRefiner(const Graph& graph, const Context& context, const FMType type) :
       _context(context),
+      _type(type),
       _nodes(),
       _clique_weight(graph.numNodes()),
       _empty_cliques(),
@@ -43,7 +46,8 @@ public:
       n(graph.numNodes()),
       target_cliques(graph.numNodes()),
       current_cliques(graph.numNodes()),
-      pq(graph.numNodes())
+      pq(graph.numNodes()),
+      _moved_nodes(graph.numNodes())
       { }
 
   size_t movedVertices() const {
@@ -56,9 +60,25 @@ private:
 
   bool refineImpl(Graph& graph) final ;
 
+  EdgeWeight boundaryFM(Graph& graph, const EdgeWeight current_metric);
+
+  EdgeWeight localizedFM(Graph& graph, const EdgeWeight current_metric);
+
+  EdgeWeight localizedFMSearch(Graph& graph,
+                               const EdgeWeight current_metric,
+                               const std::vector<NodeID>& refinement_nodes);
+
   void moveVertex(Graph& graph, NodeID u, CliqueID to, bool manage_empty_cliques = true);
 
-  Rating computeBestClique(Graph& graph, const NodeID u);
+  void deltaGainUpdates(const Graph& graph, const NodeID u, const CliqueID from, const CliqueID to);
+
+  void insertIntoPQ(const Graph& graph, const NodeID u);
+
+  void clearPQ();
+
+  void rollback(Graph& graph);
+
+  Rating computeBestClique(const Graph& graph, const NodeID u);
 
   void updateTargetClique(NodeID u, Rating& r) {
     removeFromTargetClique(u);
@@ -99,6 +119,29 @@ private:
     current_cliques[to].push_back(u);
   }
 
+  CliqueID getEmptyClique() {
+    CliqueID empty_clique = INVALID_CLIQUE;
+    while ( !_empty_cliques.empty() ) {
+      CliqueID id = _empty_cliques.back();
+      if ( _clique_weight[id] == 0 ) {
+        empty_clique = id;
+        break;
+      }
+      _empty_cliques.pop_back();
+    }
+
+    if ( empty_clique == INVALID_CLIQUE ) {
+      for ( CliqueID id = 0; id < _clique_weight.size(); ++id ) {
+        if ( _clique_weight[id] == 0 ) {
+          _empty_cliques.push_back(id);
+        }
+      }
+      ASSERT(!_empty_cliques.empty());
+      empty_clique = _empty_cliques.back();
+    }
+
+    return empty_clique;
+  }
 
   EdgeWeight insertions(NodeWeight target_clique_weight, EdgeWeight edge_weight_to_target_clique) const {
     return target_clique_weight - edge_weight_to_target_clique;
@@ -121,16 +164,17 @@ private:
   void checkCliqueWeights(const Graph& graph);
 
   const Context& _context;
+  const FMType _type;
   size_t _moved_vertices;
   std::vector<NodeID> _nodes;
   std::vector<NodeWeight> _clique_weight;
   std::vector<CliqueID> _empty_cliques;
-  ds::SparseMap<CliqueID, EdgeWeight> edge_weight_to_clique;
 
+  ds::SparseMap<CliqueID, EdgeWeight> edge_weight_to_clique;
   std::vector<NodeData> n;
   std::vector<std::vector<NodeID>> target_cliques, current_cliques;
   mt_kahypar::ds::MinHeap<EdgeWeight, NodeID> pq;
   std::vector<Move> moves;
-
+  ds::FastResetFlagArray<> _moved_nodes;
 };
 }  // namespace cluster_editing

@@ -5,6 +5,11 @@
 
 namespace cluster_editing {
 
+enum class FMType {
+  boundary,
+  localized
+};
+
 enum class NodeOrdering {
   none,
   random_shuffle,

@@ -35,13 +35,15 @@ struct FMParameters {
   int maximum_fm_iterations = std::numeric_limits<int>::max();
   double fraction_of_fruitless_moves = 1.0;
   size_t max_fruitless_moves = std::numeric_limits<size_t>::max();
+  size_t num_seed_nodes = 0;
 };
 
 std::ostream & operator<< (std::ostream& str, const FMParameters& params);
 
 struct RefinementParameters {
   bool use_lp_refiner = false;
-  bool use_fm_refiner = false;
+  bool use_boundary_fm_refiner = false;
+  bool use_localized_fm_refiner = false;
   LabelPropagationRefinerParameters lp;
   FMParameters fm;
 };

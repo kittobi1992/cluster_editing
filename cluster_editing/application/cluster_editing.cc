@@ -76,7 +76,7 @@ void printResult(Graph& best) {
 void terminate(int) {
   if ( terminate_lock.tryLock() ) {
     end = std::chrono::high_resolution_clock::now();
-    // Copy graph since refinement algorithm can checks
+    // Copy graph since refinement algorithm can change
     // cliques while we try to output solution
     Graph cpy_graph = graph.copyBestSolution();
     printResult(cpy_graph);
