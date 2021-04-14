@@ -97,14 +97,16 @@ int main() {
   context.general.num_repititions = 1;
   context.general.num_fruitless_repititions = 10;
   context.refinement.use_lp_refiner = true;
+  context.refinement.use_boundary_fm_refiner = true;
+  context.refinement.use_localized_fm_refiner = false;
   context.refinement.lp.maximum_lp_iterations = 1000;
   context.refinement.lp.activate_all_cliques_after_rounds = 10;
   context.refinement.lp.random_shuffle_each_round = false;
   context.refinement.lp.node_order = NodeOrdering::none;
   context.refinement.lp.min_improvement = 1;
-  context.refinement.use_fm_refiner = true;
-  context.refinement.fm.maximum_fm_iterations = 25;
+  context.refinement.fm.maximum_fm_iterations = 50;
   context.refinement.fm.fraction_of_fruitless_moves = 0.05;
+  context.refinement.fm.num_seed_nodes = 100;
   utils::Randomize::instance().setSeed(context.general.seed);
 
   utils::Timer::instance().start_timer("import_graph", "Import Graph");
@@ -164,7 +166,7 @@ int main() {
   std::chrono::duration<double> solve_time(e - s);
   double time = solve_time.count();
   if ( time <= 1.0 ) {
-    context.general.num_repititions = 100;
+    context.general.num_repititions = 1000;
   } else if ( time <= 2.0 ) {
     context.general.num_repititions = 25;
   } else if ( time <= 5.0 ) {
