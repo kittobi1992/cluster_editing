@@ -56,7 +56,8 @@ bool LabelPropagationRefiner::refineImpl(Graph& graph) {
   }
 
   // enable early exit on large graphs, if FM refiner is used afterwards
-  const bool enable_early_exit = graph.numEdges() >= 1000000 && _context.refinement.use_fm_refiner;
+  const bool enable_early_exit = graph.numEdges() >= 1000000 &&
+    ( _context.refinement.use_boundary_fm_refiner || _context.refinement.use_localized_fm_refiner );
   for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
     utils::Timer::instance().start_timer("local_moving", "Local Moving");
     converged = true;

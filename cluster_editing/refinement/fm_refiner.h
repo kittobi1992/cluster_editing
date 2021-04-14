@@ -34,8 +34,9 @@ private:
   CliqueID ISOLATE_CLIQUE = INVALID_CLIQUE - 1;
 
 public:
-  explicit FMRefiner(const Graph& graph, const Context& context) :
+  explicit FMRefiner(const Graph& graph, const Context& context, const FMType type) :
       _context(context),
+      _type(type),
       _nodes(),
       _clique_weight(graph.numNodes()),
       _empty_cliques(),
@@ -55,6 +56,10 @@ private:
   void initializeImpl(Graph& graph) final;
 
   bool refineImpl(Graph& graph) final ;
+
+  EdgeWeight boundaryFM(Graph& graph, EdgeWeight& current_metric);
+
+  EdgeWeight localizedFM(Graph& graph, EdgeWeight& current_metric);
 
   void moveVertex(Graph& graph, NodeID u, CliqueID to, bool manage_empty_cliques = true);
 
@@ -127,12 +132,13 @@ private:
   void checkCliqueWeights(const Graph& graph);
 
   const Context& _context;
+  const FMType _type;
   size_t _moved_vertices;
   std::vector<NodeID> _nodes;
   std::vector<NodeWeight> _clique_weight;
   std::vector<CliqueID> _empty_cliques;
-  ds::SparseMap<CliqueID, EdgeWeight> edge_weight_to_clique;
 
+  ds::SparseMap<CliqueID, EdgeWeight> edge_weight_to_clique;
   std::vector<NodeData> n;
   std::vector<std::vector<NodeID>> target_cliques, current_cliques;
   mt_kahypar::ds::MinHeap<EdgeWeight, NodeID> pq;

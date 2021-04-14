@@ -31,97 +31,31 @@ void FMRefiner::initializeImpl(Graph& graph) {
 bool FMRefiner::refineImpl(Graph& graph) {
   EdgeWeight start_metric = metrics::edits(graph);
   EdgeWeight current_metric = start_metric;
-  EdgeWeight round_delta = -1;
 
   utils::ProgressBar fm_progress(
     _context.refinement.fm.maximum_fm_iterations, start_metric,
     _context.general.verbose_output && !debug);
 
-  utils::Timer::instance().start_timer("boundary_fm", "Boundary FM");
+  utils::Timer::instance().start_timer("fm", "FM");
   for ( int round = 0; round < _context.refinement.fm.maximum_fm_iterations; ++round ) {
-    round_delta = 0;
-    EdgeWeight best_delta = 0;
-
-    // init PQ and empty cliques
-    _empty_cliques.clear();
-    for (const NodeID u : graph.nodes()) {
-      Rating rating = computeBestClique(graph, u);
-      if (rating.clique != INVALID_CLIQUE) {
-        pq.insert(u, rating.delta);
-        insertIntoTargetClique(u, rating);
-      }
-      if (_clique_weight[u] == 0) {
-        _empty_cliques.push_back(u);
-      }
+    EdgeWeight delta = 0;
+    if ( _type == FMType::boundary ) {
+      utils::Timer::instance().start_timer("boundary_fm", "Boundary FM");
+      delta = boundaryFM(graph, current_metric);
+      utils::Timer::instance().stop_timer("boundary_fm");
+    } else if ( _type == FMType::localized ) {
+      utils::Timer::instance().start_timer("localized_fm", "Localized FM");
+      delta = localizedFM(graph, current_metric);
+      utils::Timer::instance().stop_timer("localized_fm");
     }
-
-    // perform moves
-    size_t num_fruitless_moves = 0;
-    while (!pq.empty() && num_fruitless_moves <= _context.refinement.fm.max_fruitless_moves) {
-      EdgeWeight estimated_gain = pq.topKey();
-      NodeID u = pq.top();
-
-      Rating rating = computeBestClique(graph, u);
-      if (rating.delta != estimated_gain) {
-        // retry! 		or do KaHiP/Metis approach and just apply? only if improvement?
-        pq.adjustKey(u, rating.delta);
-        if (rating.clique != graph.clique(u)) {
-          updateTargetClique(u, rating);
-        }
-        continue;
-      }
-
-      pq.deleteTop();
-      removeFromTargetClique(u);
-      const CliqueID from = graph.clique(u), to = rating.clique;
-      if ( _clique_weight[from] == 1 && to == ISOLATE_CLIQUE ) {
-        continue;
-      }
-
-      moveVertex(graph, u, to);
-      round_delta += rating.delta;
-      if (round_delta < best_delta) {
-        best_delta = round_delta;
-        // permanently keep all moves up to here
-        moves.clear();
-        num_fruitless_moves = 0;
-      } else {
-        // store for rollback later
-        moves.push_back({ u, from, to });
-        ++num_fruitless_moves;
-      }
-      assert(from != graph.clique(u));
-
-      ASSERT(current_metric + round_delta == metrics::edits(graph),
-        "Rating is wrong. Expected:" << metrics::edits(graph)
-          << "but is" << (current_metric + round_delta));
-
-      deltaGainUpdates(graph, u, from, to);
-
-      #ifndef NDEBUG
-      checkPQGains(graph);
-      #endif
-    }
-
-    #ifndef NDEBUG
-    checkCliqueWeights(graph);
-    #endif
-
-    clearPQ();
-    rollback(graph);
-
-    current_metric += best_delta;
+    current_metric += delta;
     ASSERT(current_metric == metrics::edits(graph));
 
-    if ( best_delta < 0 ) {
+    if ( delta < 0 ) {
       utils::Timer::instance().start_timer("checkpoint", "Checkpoint");
       graph.checkpoint(current_metric);
       utils::Timer::instance().stop_timer("checkpoint");
     }
-
-    #ifndef NDEBUG
-    checkCliqueWeights(graph);
-    #endif
 
     DBG << "Pass Nr." << (round + 1) << "improved metric from"
       << start_metric << "to" << current_metric;
@@ -130,9 +64,94 @@ bool FMRefiner::refineImpl(Graph& graph) {
     fm_progress += 1;
   }
   fm_progress += (_context.refinement.fm.maximum_fm_iterations - fm_progress.count());
-  utils::Timer::instance().stop_timer("boundary_fm");
+  utils::Timer::instance().stop_timer("fm");
 
   return current_metric < start_metric;
+}
+
+
+EdgeWeight FMRefiner::boundaryFM(Graph& graph, EdgeWeight& current_metric) {
+  unused(current_metric);
+  EdgeWeight round_delta = 0;
+  EdgeWeight best_delta = 0;
+
+  // init PQ and empty cliques
+  _empty_cliques.clear();
+  for (const NodeID u : graph.nodes()) {
+    Rating rating = computeBestClique(graph, u);
+    if (rating.clique != INVALID_CLIQUE) {
+      pq.insert(u, rating.delta);
+      insertIntoTargetClique(u, rating);
+    }
+    if (_clique_weight[u] == 0) {
+      _empty_cliques.push_back(u);
+    }
+  }
+
+  // perform moves
+  size_t num_fruitless_moves = 0;
+  while (!pq.empty() && num_fruitless_moves <= _context.refinement.fm.max_fruitless_moves) {
+    EdgeWeight estimated_gain = pq.topKey();
+    NodeID u = pq.top();
+
+    Rating rating = computeBestClique(graph, u);
+    if (rating.delta != estimated_gain) {
+      // retry! 		or do KaHiP/Metis approach and just apply? only if improvement?
+      pq.adjustKey(u, rating.delta);
+      if (rating.clique != graph.clique(u)) {
+        updateTargetClique(u, rating);
+      }
+      continue;
+    }
+
+    pq.deleteTop();
+    removeFromTargetClique(u);
+    const CliqueID from = graph.clique(u), to = rating.clique;
+    if ( _clique_weight[from] == 1 && to == ISOLATE_CLIQUE ) {
+      continue;
+    }
+
+    moveVertex(graph, u, to);
+    round_delta += rating.delta;
+    if (round_delta < best_delta) {
+      best_delta = round_delta;
+      // permanently keep all moves up to here
+      moves.clear();
+      num_fruitless_moves = 0;
+    } else {
+      // store for rollback later
+      moves.push_back({ u, from, to });
+      ++num_fruitless_moves;
+    }
+    assert(from != graph.clique(u));
+
+    ASSERT(current_metric + round_delta == metrics::edits(graph),
+      "Rating is wrong. Expected:" << metrics::edits(graph)
+        << "but is" << (current_metric + round_delta));
+
+    deltaGainUpdates(graph, u, from, to);
+
+    #ifndef NDEBUG
+    checkPQGains(graph);
+    #endif
+  }
+
+  #ifndef NDEBUG
+  checkCliqueWeights(graph);
+  #endif
+
+  clearPQ();
+  rollback(graph);
+
+  #ifndef NDEBUG
+  checkCliqueWeights(graph);
+  #endif
+
+  return best_delta;
+}
+
+EdgeWeight FMRefiner::localizedFM(Graph&, EdgeWeight&) {
+  return 0;
 }
 
 void FMRefiner::moveVertex(Graph& graph, NodeID u, CliqueID to, bool manage_empty_cliques) {

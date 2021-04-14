@@ -15,14 +15,23 @@ void solve(Graph& graph, const Context& context) {
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 
+  // Label Propagation
   if ( context.refinement.use_lp_refiner ) {
     LabelPropagationRefiner lp_refiner(graph, context);
     lp_refiner.initialize(graph);
     lp_refiner.refine(graph);
   }
 
-  if ( context.refinement.use_fm_refiner ) {
-    FMRefiner fm_refiner(graph, context);
+  // Boundary FM
+  if ( context.refinement.use_boundary_fm_refiner ) {
+    FMRefiner fm_refiner(graph, context, FMType::boundary);
+    fm_refiner.initialize(graph);
+    fm_refiner.refine(graph);
+  }
+
+  // Localized FM
+  if ( context.refinement.use_localized_fm_refiner ) {
+    FMRefiner fm_refiner(graph, context, FMType::localized);
     fm_refiner.initialize(graph);
     fm_refiner.refine(graph);
   }

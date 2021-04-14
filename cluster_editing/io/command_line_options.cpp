@@ -67,8 +67,10 @@ namespace cluster_editing {
     options.add_options()
             ("r-use-lp-refiner", po::value<bool>(&context.refinement.use_lp_refiner)->value_name("<bool>")->default_value(false),
              "If true, then label propagation is used to improve quality.")
-            ("r-use-fm-refiner", po::value<bool>(&context.refinement.use_fm_refiner)->value_name("<bool>")->default_value(false),
-             "If true, then FM is used to improve quality.")
+            ("r-use-boundary-fm-refiner", po::value<bool>(&context.refinement.use_boundary_fm_refiner)->value_name("<bool>")->default_value(false),
+             "If true, then Boundary FM is used to improve quality.")
+            ("r-use-localized-fm-refiner", po::value<bool>(&context.refinement.use_localized_fm_refiner)->value_name("<bool>")->default_value(false),
+             "If true, then Localized FM is used to improve quality.")
             ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
              "Maximum iterations made by the label propagation refiner")
             ("r-maximum-fm-iterations", po::value<int>(&context.refinement.fm.maximum_fm_iterations)->value_name("<int>"),
@@ -90,7 +92,9 @@ namespace cluster_editing {
             ("r-lp-min-improvement", po::value<int>(&context.refinement.lp.min_improvement)->value_name("<int>"),
              "Minimal improvement per round, if FM refiner is also activated")
             ("r-fm-fraction-fruitless-moves", po::value<double>(&context.refinement.fm.fraction_of_fruitless_moves)->value_name("<double>"),
-             "FM terminates, if it not finds an improvement after fruitless_moves * |V| moves");
+             "FM terminates, if it not finds an improvement after fruitless_moves * |V| moves")
+            ("r-fm-seed-nodes", po::value<size_t>(&context.refinement.fm.num_seed_nodes)->value_name("<size_t>"),
+             "Number of seed nodes used by the localized FM Refiner");
     return options;
   }
 

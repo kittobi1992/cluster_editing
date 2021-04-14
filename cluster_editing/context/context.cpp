@@ -31,6 +31,7 @@ std::ostream & operator<< (std::ostream& str, const FMParameters& params) {
   str << "\n  FM Refiner Parameters:" << std::endl;
   str << "    Maximum FM Iterations:       " << params.maximum_fm_iterations << std::endl;
   str << "    Max. Num Fruitless Moves:    " << params.max_fruitless_moves << std::endl;
+  str << "    Num Seed Nodes:              " << params.num_seed_nodes << std::endl;
   return str;
 }
 
@@ -40,7 +41,7 @@ std::ostream & operator<< (std::ostream& str, const RefinementParameters& params
   if ( params.use_lp_refiner ) {
     str << params.lp;
   }
-  if ( params.use_fm_refiner ) {
+  if ( params.use_boundary_fm_refiner || params.use_localized_fm_refiner ) {
     str << params.fm;
   }
   return str;
@@ -58,7 +59,7 @@ std::ostream & operator<< (std::ostream& str, const Context& context) {
 }
 
 void Context::computeParameters(const int num_nodes) {
-  if ( refinement.use_fm_refiner ) {
+  if ( refinement.use_boundary_fm_refiner ) {
     refinement.fm.max_fruitless_moves = std::max(
       refinement.fm.fraction_of_fruitless_moves * num_nodes, 10000.0);
   }
