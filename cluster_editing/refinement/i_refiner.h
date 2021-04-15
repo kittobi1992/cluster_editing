@@ -18,7 +18,7 @@ class IRefiner {
     initializeImpl(graph);
   }
 
-  bool refine(Graph& graph) {
+  EdgeWeight refine(Graph& graph) {
     return refineImpl(graph);
   }
 
@@ -27,7 +27,7 @@ class IRefiner {
 
  private:
   virtual void initializeImpl(Graph& graph) = 0;
-  virtual bool refineImpl(Graph& graph) = 0;
+  virtual EdgeWeight refineImpl(Graph& graph) = 0;
 };
 
 } // namespace cluster_editing

@@ -22,11 +22,13 @@ struct GeneralParameters {
 std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);
 
 struct LabelPropagationRefinerParameters {
+  int maximum_lp_repititions = std::numeric_limits<int>::max();
   int maximum_lp_iterations = std::numeric_limits<int>::max();
   int activate_all_cliques_after_rounds = std::numeric_limits<int>::max();
   bool random_shuffle_each_round = false;
   NodeOrdering node_order = NodeOrdering::none;
   int min_improvement = 0;
+  size_t early_exit_window = 0;
 };
 
 std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParameters& params);
@@ -36,6 +38,8 @@ struct FMParameters {
   double fraction_of_fruitless_moves = 1.0;
   size_t max_fruitless_moves = std::numeric_limits<size_t>::max();
   size_t num_seed_nodes = 0;
+  int min_improvement = 0;
+  size_t early_exit_window = 0;
 };
 
 std::ostream & operator<< (std::ostream& str, const FMParameters& params);
