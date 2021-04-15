@@ -47,8 +47,9 @@ public:
       target_cliques(graph.numNodes()),
       current_cliques(graph.numNodes()),
       pq(graph.numNodes()),
-      _moved_nodes(graph.numNodes())
-      { }
+      _moved_nodes(graph.numNodes()),
+      _window_improvement(0),
+      _round_improvements() { }
 
   size_t movedVertices() const {
     return _moved_vertices;
@@ -58,7 +59,7 @@ private:
 
   void initializeImpl(Graph& graph) final;
 
-  bool refineImpl(Graph& graph) final ;
+  EdgeWeight refineImpl(Graph& graph) final ;
 
   EdgeWeight boundaryFM(Graph& graph, const EdgeWeight current_metric);
 
@@ -176,5 +177,7 @@ private:
   mt_kahypar::ds::MinHeap<EdgeWeight, NodeID> pq;
   std::vector<Move> moves;
   ds::FastResetFlagArray<> _moved_nodes;
+  EdgeWeight _window_improvement;
+  std::vector<EdgeWeight> _round_improvements;
 };
 }  // namespace cluster_editing

@@ -71,6 +71,8 @@ namespace cluster_editing {
              "If true, then Boundary FM is used to improve quality.")
             ("r-use-localized-fm-refiner", po::value<bool>(&context.refinement.use_localized_fm_refiner)->value_name("<bool>")->default_value(false),
              "If true, then Localized FM is used to improve quality.")
+            ("r-maximum-lp-repititions", po::value<int>(&context.refinement.lp.maximum_lp_repititions)->value_name("<int>"),
+             "Maximum number of restarts of LP refiner per run")
             ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
              "Maximum iterations made by the label propagation refiner")
             ("r-maximum-fm-iterations", po::value<int>(&context.refinement.fm.maximum_fm_iterations)->value_name("<int>"),
@@ -90,7 +92,15 @@ namespace cluster_editing {
              " - degree_increasing\n"
              " - degree_decreasing\n")
             ("r-lp-min-improvement", po::value<int>(&context.refinement.lp.min_improvement)->value_name("<int>"),
-             "Minimal improvement per round, if FM refiner is also activated")
+             "Minimal improvement per early exit window, if FM refiner is also activated")
+            ("r-lp-early-exit-window", po::value<size_t>(&context.refinement.lp.early_exit_window)->value_name("<size_t>"),
+             "If label propagation improvement is less than min_improvement in the last early_exit_window rounds"
+             "then label propagation terminates")
+            ("r-fm-min-improvement", po::value<int>(&context.refinement.fm.min_improvement)->value_name("<int>"),
+             "Minimal improvement per early exit window")
+            ("r-fm-early-exit-window", po::value<size_t>(&context.refinement.fm.early_exit_window)->value_name("<size_t>"),
+             "If FM improvement is less than min_improvement in the last early_exit_window rounds"
+             "then FM terminates")
             ("r-fm-fraction-fruitless-moves", po::value<double>(&context.refinement.fm.fraction_of_fruitless_moves)->value_name("<double>"),
              "FM terminates, if it not finds an improvement after fruitless_moves * |V| moves")
             ("r-fm-seed-nodes", po::value<size_t>(&context.refinement.fm.num_seed_nodes)->value_name("<size_t>"),

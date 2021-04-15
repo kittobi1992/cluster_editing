@@ -47,7 +47,9 @@ class LabelPropagationRefiner final : public IRefiner {
     _empty_cliques(),
     _rating(graph.numNodes()),
     _active_cliques(graph.numNodes()),
-    _has_changed(graph.numNodes()) { }
+    _has_changed(graph.numNodes()),
+    _window_improvement(0),
+    _round_improvements() { }
 
   LabelPropagationRefiner(const LabelPropagationRefiner&) = delete;
   LabelPropagationRefiner(LabelPropagationRefiner&&) = delete;
@@ -63,7 +65,7 @@ class LabelPropagationRefiner final : public IRefiner {
 
   void initializeImpl(Graph& graph) final;
 
-  bool refineImpl(Graph& graph) final ;
+  EdgeWeight refineImpl(Graph& graph) final ;
 
   void moveVertex(Graph& graph, const NodeID u, const CliqueID to);
 
@@ -77,5 +79,7 @@ class LabelPropagationRefiner final : public IRefiner {
   ds::SparseMap<CliqueID, EdgeWeight> _rating;
   ds::FastResetFlagArray<> _active_cliques;
   ds::FastResetFlagArray<> _has_changed;
+  EdgeWeight _window_improvement;
+  std::vector<EdgeWeight> _round_improvements;
 };
 }  // namespace cluster_editing

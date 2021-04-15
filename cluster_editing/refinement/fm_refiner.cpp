@@ -39,7 +39,7 @@ void FMRefiner<StoppingRule>::initializeImpl(Graph& graph) {
 }
 
 template<typename StoppingRule>
-bool FMRefiner<StoppingRule>::refineImpl(Graph& graph) {
+EdgeWeight FMRefiner<StoppingRule>::refineImpl(Graph& graph) {
   EdgeWeight start_metric = metrics::edits(graph);
   EdgeWeight current_metric = start_metric;
 
@@ -73,11 +73,21 @@ bool FMRefiner<StoppingRule>::refineImpl(Graph& graph) {
 
     fm_progress.setObjective(current_metric);
     fm_progress += 1;
+
+    _window_improvement += std::abs(delta);
+    _round_improvements.push_back(std::abs(delta));
+    if ( _round_improvements.size() >= _context.refinement.fm.early_exit_window) {
+      _window_improvement -= _round_improvements[
+        _round_improvements.size() - _context.refinement.fm.early_exit_window];
+      if ( _window_improvement <= _context.refinement.fm.min_improvement ) {
+        break;
+      }
+    }
   }
   fm_progress += (_context.refinement.fm.maximum_fm_iterations - fm_progress.count());
   utils::Timer::instance().stop_timer("fm");
 
-  return current_metric < start_metric;
+  return current_metric;
 }
 
 template<typename StoppingRule>
@@ -98,10 +108,11 @@ EdgeWeight FMRefiner<StoppingRule>::boundaryFM(Graph& graph, const EdgeWeight cu
     NodeID u = pq.top();
 
     Rating rating = computeBestClique(graph, u);
-    if (rating.delta != estimated_gain) {
+    if (rating.delta != estimated_gain ||
+        rating.clique != n[u].desired_target) {
       // retry! 		or do KaHiP/Metis approach and just apply? only if improvement?
       pq.adjustKey(u, rating.delta);
-      if (rating.clique != graph.clique(u)) {
+      if (rating.clique != n[u].desired_target) {
         updateTargetClique(u, rating);
       }
       continue;
@@ -204,10 +215,11 @@ EdgeWeight FMRefiner<StoppingRule>::localizedFMSearch(Graph& graph,
     NodeID u = pq.top();
 
     Rating rating = computeBestClique(graph, u);
-    if (rating.delta != estimated_gain) {
+    if (rating.delta != estimated_gain ||
+        rating.clique != n[u].desired_target) {
       // retry! 		or do KaHiP/Metis approach and just apply? only if improvement?
       pq.adjustKey(u, rating.delta);
-      if (rating.clique != graph.clique(u)) {
+      if (rating.clique != n[u].desired_target) {
         updateTargetClique(u, rating);
       }
       continue;
