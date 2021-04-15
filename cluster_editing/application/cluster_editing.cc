@@ -91,23 +91,32 @@ int main() {
   action.sa_handler = terminate;
   sigaction(SIGTERM, &action, NULL);
 
+  // General Options
   context.general.verbose_output = false;
   context.general.print_result_line = true;
-  context.general.seed = 0;
+  context.general.seed = 2;
   context.general.num_repititions = 1;
   context.general.num_fruitless_repititions = 10;
+  utils::Randomize::instance().setSeed(context.general.seed);
+
+  // LP Refiner Options
   context.refinement.use_lp_refiner = true;
-  context.refinement.use_boundary_fm_refiner = true;
-  context.refinement.use_localized_fm_refiner = false;
+  context.refinement.lp.maximum_lp_repititions = 10;
   context.refinement.lp.maximum_lp_iterations = 1000;
-  context.refinement.lp.activate_all_cliques_after_rounds = 10;
+  context.refinement.lp.activate_all_cliques_after_rounds = 1;
   context.refinement.lp.random_shuffle_each_round = false;
   context.refinement.lp.node_order = NodeOrdering::none;
-  context.refinement.lp.min_improvement = 1;
-  context.refinement.fm.maximum_fm_iterations = 50;
+  context.refinement.lp.min_improvement = 5;
+  context.refinement.lp.early_exit_window = 100;
+
+  // FM Refiner Options
+  context.refinement.use_boundary_fm_refiner = true;
+  context.refinement.use_localized_fm_refiner = false;
+  context.refinement.fm.maximum_fm_iterations = 100;
   context.refinement.fm.fraction_of_fruitless_moves = 0.05;
   context.refinement.fm.num_seed_nodes = 100;
-  utils::Randomize::instance().setSeed(context.general.seed);
+  context.refinement.fm.min_improvement = 5;
+  context.refinement.fm.early_exit_window = 10;
 
   utils::Timer::instance().start_timer("import_graph", "Import Graph");
   graph = io::readGraphFile();
@@ -120,17 +129,6 @@ int main() {
     LOG << context;
   }
   io::printInputInfo(graph, context);
-
-  if ( graph.numNodes() <= 10000 ) {
-    context.refinement.lp.node_order = NodeOrdering::random_shuffle;
-    context.refinement.lp.random_shuffle_each_round = true;
-  } else if ( graph.numNodes() <= 100000 ) {
-    context.refinement.lp.node_order = NodeOrdering::random_shuffle;
-    context.refinement.lp.random_shuffle_each_round = true;
-  } else {
-    context.refinement.lp.node_order = NodeOrdering::none;
-    context.refinement.lp.random_shuffle_each_round = false;
-  }
 
   // Multilevel Solver
   start = std::chrono::high_resolution_clock::now();
@@ -165,30 +163,15 @@ int main() {
   HighResClockTimepoint e = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> solve_time(e - s);
   double time = solve_time.count();
-  if ( time <= 1.0 ) {
-    context.general.num_repititions = 1000;
-  } else if ( time <= 2.0 ) {
-    context.general.num_repititions = 25;
-  } else if ( time <= 5.0 ) {
-    context.general.num_repititions = 10;
-  } else if ( time <= 10 ) {
-    context.general.num_repititions = 5;
+  if ( time < 120 ) {
+    context.general.num_repititions = std::min(std::max(static_cast<int>((120.0 - time) / time), 1), 1000);
   } else {
-    context.general.num_repititions = 1;
-  }
-
-  if ( context.general.num_repititions == 1 ) {
-    context.refinement.lp.node_order = NodeOrdering::none;
-    context.refinement.lp.random_shuffle_each_round = false;
-  } else {
-    context.refinement.lp.random_shuffle_each_round = true;
+    context.general.num_repititions = 0;
   }
 
   for ( int i = 0;
         i < context.general.num_repititions &&
         fruitless_repititions < context.general.num_fruitless_repititions ; ++i ) {
-    context.refinement.lp.node_order =
-      static_cast<NodeOrdering>(utils::Randomize::instance().getRandomInt(0,3));
     solve();
   }
   utils::Timer::instance().stop_timer("solver");
