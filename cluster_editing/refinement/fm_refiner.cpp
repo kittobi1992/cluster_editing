@@ -495,7 +495,10 @@ typename FMRefiner<StoppingRule>::Rating FMRefiner<StoppingRule>::computeBestCli
   }
 
   // Check if it is beneficial to isolate the vertex again. if u is already isolated then this is not triggered
-  if ( !_empty_cliques.empty() && u_degree < best_rating.rating && _clique_weight[from] != 1 ) {
+  if ( !_empty_cliques.empty() &&
+       ( u_degree < best_rating.rating ||
+        ( u_degree == best_rating.rating && utils::Randomize::instance().flipCoin() ) ) &&
+        _clique_weight[from] != 1 ) {
     best_rating = { ISOLATE_CLIQUE, u_degree, u_degree - from_rating, 0 };
   }
 

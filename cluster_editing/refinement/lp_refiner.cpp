@@ -210,7 +210,8 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBetTargetClique(
   }
 
   // Check if it is beneficial to isolate the vertex again
-  if ( !_empty_cliques.empty() && u_degree <= best_rating.rating ) {
+  if ( !_empty_cliques.empty() && ( u_degree < best_rating.rating ||
+      ( u_degree == best_rating.rating && utils::Randomize::instance().flipCoin() ) ) ) {
     best_rating.clique = _empty_cliques.back();
     best_rating.rating = u_degree;
     best_rating.delta = u_degree - from_rating;
