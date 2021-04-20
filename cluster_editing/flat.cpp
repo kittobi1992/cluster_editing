@@ -40,9 +40,11 @@ void solve(Graph& graph, const Context& context) {
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> lp_time(end - start);
 
-  // Spend more repititions for LP refiner, if it is fast (< 10 seconds)
-  if ( context.refinement.use_lp_refiner && lp_time.count() < 10 ) {
+  // Spend more repititions for LP refiner, if it is fast (< 20 seconds)
+  if ( context.refinement.use_lp_refiner && lp_time.count() < 20 ) {
     Context lp_context(context);
+    lp_context.refinement.lp.early_exit_window = 20;
+    lp_context.refinement.lp.min_improvement = 2;
     for ( int i = 0; i < context.refinement.lp.maximum_lp_repititions - 1; ++i ) {
       // Choose some random node ordering for LP refiner
       lp_context.refinement.lp.node_order =

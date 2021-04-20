@@ -481,30 +481,41 @@ typename FMRefiner<StoppingRule>::Rating FMRefiner<StoppingRule>::computeBestCli
   // ignore the zero gain move of keeping u in its clique
   Rating best_rating = { INVALID_CLIQUE, std::numeric_limits<EdgeWeight>::max(),
                          std::numeric_limits<EdgeWeight>::max(), std::numeric_limits<EdgeWeight>::max() };
-
+  std::vector<CliqueID> cliques_with_same_rating;
   for ( const auto& entry : edge_weight_to_clique ) {
     const CliqueID to = entry.key;
     if (to != from ) {
       const EdgeWeight to_rating =  insertions(_clique_weight[to], entry.value)
                                     + deletions(u_degree, entry.value);
-      if (to_rating < best_rating.rating
-          || (to_rating == best_rating.rating && utils::Randomize::instance().flipCoin())) {
+      if (to_rating < best_rating.rating ) {
         best_rating = { to, to_rating, to_rating - from_rating, entry.value };
+        cliques_with_same_rating.clear();
+        cliques_with_same_rating.push_back(to);
+      } else if ( to_rating == best_rating.rating ) {
+        cliques_with_same_rating.push_back(to);
       }
     }
   }
 
   // Check if it is beneficial to isolate the vertex again. if u is already isolated then this is not triggered
-  if ( !_empty_cliques.empty() &&
-       ( u_degree < best_rating.rating ||
-        ( u_degree == best_rating.rating && utils::Randomize::instance().flipCoin() ) ) &&
-        _clique_weight[from] != 1 ) {
-    best_rating = { ISOLATE_CLIQUE, u_degree, u_degree - from_rating, 0 };
+  if ( !_empty_cliques.empty() && _clique_weight[from] != 1 ) {
+    if ( u_degree < best_rating.rating ) {
+      best_rating = { ISOLATE_CLIQUE, u_degree, u_degree - from_rating, 0 };
+      cliques_with_same_rating.clear();
+      cliques_with_same_rating.push_back(ISOLATE_CLIQUE);
+    } else if ( u_degree == best_rating.rating ) {
+      cliques_with_same_rating.push_back(ISOLATE_CLIQUE);
+    }
   }
 
   // In case u is an internal node
   if ( best_rating.clique == INVALID_CLIQUE ) {
     best_rating = { from, from_rating, 0, edge_weight_to_clique[from] };
+  } else if ( cliques_with_same_rating.size() > 1 ) {
+    // Random tie breaking
+    const size_t tie_breaking_idx = utils::Randomize::instance().getRandomInt(
+      0, cliques_with_same_rating.size() - 1);
+    best_rating.clique = cliques_with_same_rating[tie_breaking_idx];
   }
 
   return best_rating;
