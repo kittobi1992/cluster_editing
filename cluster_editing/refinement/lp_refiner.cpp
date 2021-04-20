@@ -192,6 +192,7 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBetTargetClique(
     deletions(u_degree, _rating[from]);
   best_rating.rating = from_rating;
   best_rating.delta = 0;
+  std::vector<CliqueID> cliques_with_same_rating = { from };
   for ( const auto& entry : _rating ) {
     const CliqueID to = entry.key;
     if ( to != from ) {
@@ -200,21 +201,34 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBetTargetClique(
         deletions(u_degree, entry.value);
 
       // It looks like that tie breaking is very important to achieve better quality
-      if (   to_rating < best_rating.rating ||
-           ( to_rating == best_rating.rating && utils::Randomize::instance().flipCoin() ) ) {
+      if ( to_rating < best_rating.rating ) {
         best_rating.clique = to;
         best_rating.rating = to_rating;
         best_rating.delta = to_rating - from_rating;
+        cliques_with_same_rating.clear();
+        cliques_with_same_rating.push_back(to);
+      } else if ( to_rating == best_rating.rating ) {
+        cliques_with_same_rating.push_back(to);
       }
     }
   }
 
   // Check if it is beneficial to isolate the vertex again
-  if ( !_empty_cliques.empty() && ( u_degree < best_rating.rating ||
-      ( u_degree == best_rating.rating && utils::Randomize::instance().flipCoin() ) ) ) {
+  if ( !_empty_cliques.empty() && u_degree <= best_rating.rating ) {
     best_rating.clique = _empty_cliques.back();
     best_rating.rating = u_degree;
     best_rating.delta = u_degree - from_rating;
+    cliques_with_same_rating.clear();
+    cliques_with_same_rating.push_back(_empty_cliques.back());
+  } else if ( !_empty_cliques.empty() && u_degree == best_rating.rating ) {
+    cliques_with_same_rating.push_back(_empty_cliques.back());
+  }
+
+  // Random tie breaking
+  if ( cliques_with_same_rating.size() > 1 ) {
+    const size_t tie_breaking_idx = utils::Randomize::instance().getRandomInt(
+      0, cliques_with_same_rating.size() - 1);
+    best_rating.clique = cliques_with_same_rating[tie_breaking_idx];
   }
 
   return best_rating;
