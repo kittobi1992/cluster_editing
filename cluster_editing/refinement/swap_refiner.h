@@ -27,35 +27,41 @@
 
 namespace cluster_editing {
 
-class LabelPropagationRefiner final : public IRefiner {
+class SwapRefiner final : public IRefiner {
  private:
 
   static constexpr bool debug = false;
 
   struct Rating {
-    CliqueID clique;
-    EdgeWeight rating;
+    CliqueID to;
+    NodeID swap_node;
     EdgeWeight delta;
+    EdgeWeight weight_to_target_clique;
+  };
+
+  struct CliqueNode {
+    NodeID u;
+    EdgeWeight weight_to_current_clique;
   };
 
  public:
-  explicit LabelPropagationRefiner(const Graph& graph,
-                                   const Context& context) :
+  explicit SwapRefiner(const Graph& graph,
+                       const Context& context) :
     _context(context),
     _nodes(),
+    _cliques(),
     _clique_weight(graph.numNodes()),
     _empty_cliques(),
     _rating(graph.numNodes()),
-    _active_cliques(graph.numNodes()),
-    _has_changed(graph.numNodes()),
+    _adjacent_nodes(graph.numNodes()),
     _window_improvement(0),
-    _round_improvements(){ }
+    _round_improvements() { }
 
-  LabelPropagationRefiner(const LabelPropagationRefiner&) = delete;
-  LabelPropagationRefiner(LabelPropagationRefiner&&) = delete;
+  SwapRefiner(const SwapRefiner&) = delete;
+  SwapRefiner(SwapRefiner&&) = delete;
 
-  LabelPropagationRefiner & operator= (const LabelPropagationRefiner &) = delete;
-  LabelPropagationRefiner & operator= (LabelPropagationRefiner &&) = delete;
+  SwapRefiner & operator= (const SwapRefiner &) = delete;
+  SwapRefiner & operator= (SwapRefiner &&) = delete;
 
   size_t movedVertices() const {
     return _moved_vertices;
@@ -67,18 +73,18 @@ class LabelPropagationRefiner final : public IRefiner {
 
   EdgeWeight refineImpl(Graph& graph) final ;
 
-  void moveVertex(Graph& graph, const NodeID u, const CliqueID to);
+  bool moveVertex(Graph& graph, const NodeID u, const Rating& rating);
 
-  Rating computeBestTargetClique(Graph& graph, const NodeID u);
+  Rating computeBestSwap(Graph& graph, const NodeID u);
 
   const Context& _context;
   size_t _moved_vertices;
   std::vector<NodeID> _nodes;
+  std::vector<std::vector<CliqueNode>> _cliques;
   std::vector<NodeWeight> _clique_weight;
   std::vector<CliqueID> _empty_cliques;
   ds::SparseMap<CliqueID, EdgeWeight> _rating;
-  ds::FastResetFlagArray<> _active_cliques;
-  ds::FastResetFlagArray<> _has_changed;
+  ds::FastResetFlagArray<> _adjacent_nodes;
   EdgeWeight _window_improvement;
   std::vector<EdgeWeight> _round_improvements;
 };

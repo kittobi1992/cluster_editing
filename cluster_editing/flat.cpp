@@ -3,6 +3,7 @@
 #include "cluster_editing/macros.h"
 #include "cluster_editing/refinement/lp_refiner.h"
 #include "cluster_editing/refinement/fm_refiner.h"
+#include "cluster_editing/refinement/swap_refiner.h"
 #include "cluster_editing/refinement/stopping_rule.h"
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/utils/randomize.h"
@@ -39,6 +40,10 @@ void solve(Graph& graph, const Context& context) {
   }
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> lp_time(end - start);
+
+  SwapRefiner swap_refiner(graph, context);
+  swap_refiner.initialize(graph);
+  swap_refiner.refine(graph);
 
   // Spend more repititions for LP refiner, if it is fast (< 20 seconds)
   if ( context.refinement.use_lp_refiner && lp_time.count() < 20 ) {

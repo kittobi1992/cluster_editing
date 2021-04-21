@@ -1,4 +1,4 @@
-#include "lp_refiner.h"
+#include "swap_refiner.h"
 
 #include "cluster_editing/io/output.h"
 #include "cluster_editing/utils/randomize.h"
@@ -18,28 +18,40 @@ namespace cluster_editing {
  *  - Often finds exact solution for small instances
  */
 
-void LabelPropagationRefiner::initializeImpl(Graph& graph) {
+void SwapRefiner::initializeImpl(Graph& graph) {
   _moved_vertices = 0;
+  _cliques.clear();
+  _cliques.resize(graph.numNodes());
   _clique_weight.assign(graph.numNodes(), 0);
   _empty_cliques.clear();
   _nodes.clear();
-  _active_cliques.reset();
-  _has_changed.reset();
   for ( const NodeID& u : graph.nodes() ) {
     _nodes.push_back(u);
     const CliqueID from = graph.clique(u);
     ++_clique_weight[from];
-    _active_cliques.set(from, true);
+    CliqueNode node { u, 0 };
+    for ( const Neighbor& n : graph.neighbors(u) ) {
+      if ( graph.clique(n.target) == from ) {
+        ++node.weight_to_current_clique;
+      }
+    }
+    _cliques[from].push_back(node);
+  }
+
+  for ( const NodeID& u : graph.nodes() ) {
+    if ( _clique_weight[u] == 0 ) {
+      _empty_cliques.push_back(u);
+    }
   }
 }
 
-EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
-  utils::Timer::instance().start_timer("lp", "Label Propagation");
+EdgeWeight SwapRefiner::refineImpl(Graph& graph) {
+  utils::Timer::instance().start_timer("swap_refiner", "Swap Refiner");
   bool converged = false;
   EdgeWeight start_metric =
     metrics::edge_deletions(graph) + metrics::edge_insertions(graph);
   EdgeWeight current_metric = start_metric;
-  utils::ProgressBar lp_progress(
+  utils::ProgressBar swap_progress(
     _context.refinement.lp.maximum_lp_iterations, start_metric,
     _context.general.verbose_output && !debug);
 
@@ -61,53 +73,28 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
     utils::Timer::instance().start_timer("local_moving", "Local Moving");
     converged = true;
     const EdgeWeight initial_metric = current_metric;
-    _has_changed.reset();
     for ( const NodeID& u : _nodes ) {
       const CliqueID from = graph.clique(u);
-      if ( _active_cliques[from] ) {
-        Rating rating = computeBestTargetClique(graph, u);
-        const CliqueID to = rating.clique;
-        if ( to != from ) {
-          moveVertex(graph, u, to);
-          ++_moved_vertices;
-          converged = false;
-          _has_changed.set(from, true);
-          _has_changed.set(to, true);
+      Rating rating = computeBestSwap(graph, u);
+      if ( rating.to != from && moveVertex(graph, u, rating) ) {
+        ++_moved_vertices;
+        converged = false;
 
-          // Verify, if rating is correct
-          ASSERT(current_metric + rating.delta ==
-            metrics::edge_deletions(graph) + metrics::edge_insertions(graph),
-            "Rating is wrong. Expected:" <<
-            (metrics::edge_deletions(graph) + metrics::edge_insertions(graph)) <<
-            "but is" << (current_metric + rating.delta) << "(" <<
-            V(current_metric) << "," << V(rating.delta) << ")");
-          current_metric += rating.delta;
-        }
+        // Verify, if rating is correct
+        ASSERT(current_metric + rating.delta ==
+          metrics::edge_deletions(graph) + metrics::edge_insertions(graph),
+          "Rating is wrong. Expected:" <<
+          (metrics::edge_deletions(graph) + metrics::edge_insertions(graph)) <<
+          "but is" << (current_metric + rating.delta) << "(" <<
+          V(current_metric) << "," << V(rating.delta) << ")");
+        current_metric += rating.delta;
+        LOG << V(current_metric) << V(metrics::edits(graph));
       }
     }
     utils::Timer::instance().stop_timer("local_moving");
 
-    utils::Timer::instance().start_timer("activate_cliques", "Activate Cliques");
-    if ( i % _context.refinement.lp.activate_all_cliques_after_rounds != 0 ) {
-      _active_cliques.reset();
-      for ( const NodeID& u : _nodes ) {
-        const CliqueID from = graph.clique(u);
-        if ( _has_changed[from] ) {
-          _active_cliques.set(from, true);
-          for ( const Neighbor& n : graph.neighbors(u) ) {
-            _active_cliques.set(graph.clique(n.target), true);
-          }
-        }
-      }
-    } else {
-      for ( const NodeID& u : _nodes ) {
-        _active_cliques.set(u, true);
-      }
-    }
-    utils::Timer::instance().stop_timer("activate_cliques");
-
-    lp_progress.setObjective(current_metric);
-    lp_progress += 1;
+    swap_progress.setObjective(current_metric);
+    swap_progress += 1;
     DBG << "Pass Nr." << (i + 1) << "improved metric from"
         << initial_metric << "to" << current_metric
         << "( Moved Vertices:" << _moved_vertices << ")";
@@ -136,35 +123,62 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
       }
     }
   }
-  lp_progress += (_context.refinement.lp.maximum_lp_iterations - lp_progress.count());
-  utils::Timer::instance().stop_timer("lp");
+  swap_progress += (_context.refinement.lp.maximum_lp_iterations - swap_progress.count());
+  utils::Timer::instance().stop_timer("swap_refiner");
   return current_metric;
 }
 
-void LabelPropagationRefiner::moveVertex(Graph& graph, const NodeID u, const CliqueID to) {
-  const CliqueID from = graph.clique(u);
-  ASSERT(from != to);
-  --_clique_weight[from];
-  const bool from_becomes_empty = _clique_weight[from] == 0;
-  const bool to_becomes_non_empty = _clique_weight[to] == 0;
-  ++_clique_weight[to];
-  graph.setClique(u, to);
 
+bool SwapRefiner::moveVertex(Graph& graph, const NodeID u, const Rating& rating) {
+  if ( !_empty_cliques.empty() ) {
+    const CliqueID from = graph.clique(u);
+    const CliqueID to = rating.to;
+    ASSERT(from != to);
+    ASSERT(graph.clique(rating.swap_node) == to);
 
-  if ( to_becomes_non_empty ) {
-    ASSERT(_empty_cliques.back() == to);
+    // Isolate swap node
+    const CliqueID swap_node_target = _empty_cliques.back();
     _empty_cliques.pop_back();
+    graph.setClique(rating.swap_node, swap_node_target);
+    _cliques[swap_node_target].push_back(CliqueNode { rating.swap_node, 0 });
+    ++_clique_weight[swap_node_target];
+
+    for ( size_t i = 0; i < _cliques[to].size(); ++i ) {
+      if ( rating.swap_node == _cliques[to][i].u ) {
+        std::swap(_cliques[to][i], _cliques[to].back());
+        _cliques[to].pop_back();
+        break;
+      }
+    }
+
+    // Move u to target clique
+    const bool from_becomes_empty = _clique_weight[from] == 1;
+    --_clique_weight[from];
+    ++_clique_weight[to];
+    graph.setClique(u, to);
+    _cliques[to].push_back(CliqueNode { u, rating.weight_to_target_clique });
+    if ( from_becomes_empty ) {
+      _empty_cliques.push_back(from);
+    }
+
+    for ( size_t i = 0; i < _cliques[from].size(); ++i ) {
+      if ( u == _cliques[from][i].u ) {
+        std::swap(_cliques[from][i], _cliques[from].back());
+        _cliques[from].pop_back();
+        break;
+      }
+    }
+
+    return true;
   }
-  if ( from_becomes_empty ) {
-    _empty_cliques.push_back(from);
-  }
+  return false;
 }
 
 namespace {
 
   ATTRIBUTE_ALWAYS_INLINE EdgeWeight insertions(const NodeWeight target_clique_weight,
                                                 const EdgeWeight incident_edge_weight_to_target_clique) {
-    return target_clique_weight - incident_edge_weight_to_target_clique;
+    return std::max(target_clique_weight - incident_edge_weight_to_target_clique, 0);
   }
 
   ATTRIBUTE_ALWAYS_INLINE EdgeWeight deletions(const EdgeWeight u_degree,
@@ -174,62 +188,55 @@ namespace {
 
 }
 
-LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique(Graph& graph, const NodeID u) {
+
+SwapRefiner::Rating SwapRefiner::computeBestSwap(Graph& graph, const NodeID u) {
   _rating.clear();
+  _adjacent_nodes.reset();
   Rating best_rating;
   const CliqueID from = graph.clique(u);
-  best_rating.clique = from;
   _rating[from] = 0;
 
   for ( const Neighbor& n : graph.neighbors(u) ) {
     const CliqueID to = graph.clique(n.target);
     ++_rating[to];
+    _adjacent_nodes.set(n.target, true);
   }
 
   const EdgeWeight u_degree = graph.degree(u);
   const EdgeWeight from_rating =
     insertions(_clique_weight[from] - 1 /* assumes u is not part of clique 'from'*/, _rating[from]) +
     deletions(u_degree, _rating[from]);
-  best_rating.rating = from_rating;
+  best_rating.to = from;
+  best_rating.swap_node = INVALID_NODE;
   best_rating.delta = 0;
-  std::vector<CliqueID> cliques_with_same_rating = { from };
   for ( const auto& entry : _rating ) {
     const CliqueID to = entry.key;
-    if ( to != from ) {
-      const EdgeWeight to_rating =
-        insertions(_clique_weight[to], entry.value) +
-        deletions(u_degree, entry.value);
+    if ( to != from && _clique_weight[to] > 2 ) {
+      // Assume that we can potentially remove one vertex from the target clique
+      EdgeWeight weight_to_target_clique = entry.value;
+      EdgeWeight to_rating =
+        insertions(_clique_weight[to] - 1, weight_to_target_clique) +
+        deletions(u_degree, weight_to_target_clique);
 
-      // It looks like that tie breaking is very important to achieve better quality
-      if ( to_rating < best_rating.rating ) {
-        best_rating.clique = to;
-        best_rating.rating = to_rating;
-        best_rating.delta = to_rating - from_rating;
-        cliques_with_same_rating.clear();
-        cliques_with_same_rating.push_back(to);
-      } else if ( to_rating == best_rating.rating ) {
-        cliques_with_same_rating.push_back(to);
+      if ( to_rating < from_rating ) {
+        for ( const CliqueNode& v : _cliques[to] ) {
+          const bool is_adjacent_to_u = _adjacent_nodes[v.u];
+          const EdgeWeight isolation_delta =
+            2 * v.weight_to_current_clique - (_clique_weight[to] - 1);
+          weight_to_target_clique -= is_adjacent_to_u;
+          to_rating =
+            insertions(_clique_weight[to] - 1, weight_to_target_clique) +
+            deletions(u_degree, weight_to_target_clique);
+          const EdgeWeight swap_delta =
+            ( to_rating - from_rating ) + isolation_delta;
+          if ( swap_delta <= 0 ) {
+            return Rating { to, v.u, swap_delta, weight_to_target_clique };
+          }
+        }
       }
     }
   }
 
-  // Check if it is beneficial to isolate the vertex again
-  if ( !_empty_cliques.empty() && u_degree <= best_rating.rating ) {
-    best_rating.clique = _empty_cliques.back();
-    best_rating.rating = u_degree;
-    best_rating.delta = u_degree - from_rating;
-    cliques_with_same_rating.clear();
-    cliques_with_same_rating.push_back(_empty_cliques.back());
-  } else if ( !_empty_cliques.empty() && u_degree == best_rating.rating ) {
-    cliques_with_same_rating.push_back(_empty_cliques.back());
-  }
-
-  // Random tie breaking
-  if ( cliques_with_same_rating.size() > 1 ) {
-    const size_t tie_breaking_idx = utils::Randomize::instance().getRandomInt(
-      0, cliques_with_same_rating.size() - 1);
-    best_rating.clique = cliques_with_same_rating[tie_breaking_idx];
-  }
 
   return best_rating;
 }

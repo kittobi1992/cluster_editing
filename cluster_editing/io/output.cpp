@@ -52,7 +52,7 @@ namespace internal {
   void printCliqueStats(const Statistic& clique_sizes,
                         const Statistic& intra_edges,
                         const Statistic& inter_edges) {
-    LOG << "Clique Sizes"
+    LOG << "Clique Sizes      "
         << "| min =" << clique_sizes.min
         << "| Q1 =" << clique_sizes.q1
         << "| med =" << clique_sizes.med
