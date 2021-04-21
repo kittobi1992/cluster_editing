@@ -46,8 +46,6 @@ class LabelPropagationRefiner final : public IRefiner {
     _clique_weight(graph.numNodes()),
     _empty_cliques(),
     _rating(graph.numNodes()),
-    _active_cliques(graph.numNodes()),
-    _has_changed(graph.numNodes()),
     _window_improvement(0),
     _round_improvements() { }
 
@@ -77,8 +75,6 @@ class LabelPropagationRefiner final : public IRefiner {
   std::vector<NodeWeight> _clique_weight;
   std::vector<CliqueID> _empty_cliques;
   ds::SparseMap<CliqueID, EdgeWeight> _rating;
-  ds::FastResetFlagArray<> _active_cliques;
-  ds::FastResetFlagArray<> _has_changed;
   EdgeWeight _window_improvement;
   std::vector<EdgeWeight> _round_improvements;
 };

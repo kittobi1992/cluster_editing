@@ -77,8 +77,6 @@ namespace cluster_editing {
              "Maximum iterations made by the label propagation refiner")
             ("r-maximum-fm-iterations", po::value<int>(&context.refinement.fm.maximum_fm_iterations)->value_name("<int>"),
              "Maximum iterations made by the FM refiner")
-            ("r-activate-all-cliques-after-rounds", po::value<int>(&context.refinement.lp.activate_all_cliques_after_rounds)->value_name("<int>"),
-             "Each #activate_all_cliques_after_rounds iterations, label propagation refiner reactivates all nodes again.")
             ("r-random-shuffle-each-round", po::value<bool>(&context.refinement.lp.random_shuffle_each_round)->value_name("<bool>")->default_value(false),
              "If true, label propagation random shuffles all nodes after each iteration")
             ("r-lp-node-ordering",
