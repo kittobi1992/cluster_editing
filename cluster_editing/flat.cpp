@@ -43,7 +43,10 @@ void solve(Graph& graph, const Context& context) {
 
   SwapRefiner swap_refiner(graph, context);
   swap_refiner.initialize(graph);
-  swap_refiner.refine(graph);
+  {
+    const EdgeWeight current_metric = swap_refiner.refine(graph);
+    is_best_clique(current_metric);
+  }
 
   // Spend more repititions for LP refiner, if it is fast (< 20 seconds)
   if ( context.refinement.use_lp_refiner && lp_time.count() < 20 ) {

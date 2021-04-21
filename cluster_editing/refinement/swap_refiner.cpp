@@ -88,7 +88,7 @@ EdgeWeight SwapRefiner::refineImpl(Graph& graph) {
           "but is" << (current_metric + rating.delta) << "(" <<
           V(current_metric) << "," << V(rating.delta) << ")");
         current_metric += rating.delta;
-        LOG << V(current_metric) << V(metrics::edits(graph));
+        // LOG << V(current_metric) << V(metrics::edits(graph));
       }
     }
     utils::Timer::instance().stop_timer("local_moving");
@@ -150,11 +150,19 @@ bool SwapRefiner::moveVertex(Graph& graph, const NodeID u, const Rating& rating)
         break;
       }
     }
+    _adjacent_nodes.reset();
+    for ( const Neighbor& n : graph.neighbors(rating.swap_node) ) {
+      _adjacent_nodes.set(n.target, true);
+    }
+    for ( CliqueNode& c : _cliques[to] ) {
+      if ( _adjacent_nodes[c.u] ) {
+        --c.weight_to_current_clique;
+      }
+    }
 
     // Move u to target clique
     const bool from_becomes_empty = _clique_weight[from] == 1;
     --_clique_weight[from];
-    ++_clique_weight[to];
     graph.setClique(u, to);
     _cliques[to].push_back(CliqueNode { u, rating.weight_to_target_clique });
     if ( from_becomes_empty ) {
@@ -166,6 +174,21 @@ bool SwapRefiner::moveVertex(Graph& graph, const NodeID u, const Rating& rating)
         std::swap(_cliques[from][i], _cliques[from].back());
         _cliques[from].pop_back();
         break;
+      }
+    }
+
+    _adjacent_nodes.reset();
+    for ( const Neighbor& n : graph.neighbors(u) ) {
+      _adjacent_nodes.set(n.target, true);
+    }
+    for ( CliqueNode& c : _cliques[from] ) {
+      if ( _adjacent_nodes[c.u] && c.u != u ) {
+        --c.weight_to_current_clique;
+      }
+    }
+    for ( CliqueNode& c : _cliques[to] ) {
+      if ( _adjacent_nodes[c.u] && c.u != u ) {
+        ++c.weight_to_current_clique;
       }
     }
 
@@ -229,8 +252,12 @@ SwapRefiner::Rating SwapRefiner::computeBestSwap(Graph& graph, const NodeID u) {
             deletions(u_degree, weight_to_target_clique);
           const EdgeWeight swap_delta =
             ( to_rating - from_rating ) + isolation_delta;
-          if ( swap_delta <= 0 ) {
+          if ( swap_delta < 0 ) {
+            // LOG << V(from_rating) << V(to_rating) << V(weight_to_target_clique) << V(swap_delta);
+            // LOG << V(v.weight_to_current_clique) << V(_clique_weight[to]) << V(_cliques[to].size()) << V(isolation_delta);
             return Rating { to, v.u, swap_delta, weight_to_target_clique };
+          } else if ( swap_delta == 0 ) {
+            best_rating = Rating { to, v.u, swap_delta, weight_to_target_clique };
           }
         }
       }
