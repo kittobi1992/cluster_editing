@@ -41,6 +41,7 @@ namespace cluster_editing::io {
   void printContext(const Context& context);
   void printInputInfo(const Graph& graph, const Context& context);
   void printGraphInfo(const Graph& graph, const Context& context, const std::string& name);
+  void printCliqueInfo(const Graph& graph, const Context& context);
   void printPreprocessingBanner(const Context& context);
   void printUndoPreprocessingBanner(const Context& context);
   void printCoarseningBanner(const Context& context);

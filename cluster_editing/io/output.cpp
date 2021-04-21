@@ -48,6 +48,35 @@ namespace internal {
         << "| avg =" << node_deg_stats.avg
         << "| sd =" << node_deg_stats.sd;
   }
+
+  void printCliqueStats(const Statistic& clique_sizes,
+                        const Statistic& intra_edges,
+                        const Statistic& inter_edges) {
+    LOG << "Clique Sizes"
+        << "| min =" << clique_sizes.min
+        << "| Q1 =" << clique_sizes.q1
+        << "| med =" << clique_sizes.med
+        << "| Q3 =" << clique_sizes.q3
+        << "| max =" << clique_sizes.max
+        << "| avg =" << clique_sizes.avg
+        << "| sd =" << clique_sizes.sd;
+    LOG << "Intra Clique Edges"
+        << "| min =" << intra_edges.min
+        << "| Q1 =" << intra_edges.q1
+        << "| med =" << intra_edges.med
+        << "| Q3 =" << intra_edges.q3
+        << "| max =" << intra_edges.max
+        << "| avg =" << intra_edges.avg
+        << "| sd =" << intra_edges.sd;
+    LOG << "Inter Clique Edges"
+        << "| min =" << inter_edges.min
+        << "| Q1 =" << inter_edges.q1
+        << "| med =" << inter_edges.med
+        << "| Q3 =" << inter_edges.q3
+        << "| max =" << inter_edges.max
+        << "| avg =" << inter_edges.avg
+        << "| sd =" << inter_edges.sd;
+  }
 }  // namespace internal
 
   void printContext(const Context& context) {
@@ -82,6 +111,69 @@ namespace internal {
       std::sort(node_degrees.begin(), node_degrees.end());
 
       internal::printStats(internal::createStats(node_degrees, avg_node_degree, stdev_node_degree));
+    }
+  }
+
+  void printCliqueInfo(const Graph& graph, const Context& context) {
+    if (context.general.verbose_output) {
+
+      std::vector<NodeID> clique_sizes(graph.numNodes(), 0);
+      std::vector<NodeID> intra_edges(graph.numNodes(), 0);
+      std::vector<NodeID> inter_edges(graph.numNodes(), 0);
+      for ( const NodeID& u : graph.nodes() ) {
+        const CliqueID c = graph.clique(u);
+        ++clique_sizes[c];
+        for ( const Neighbor& n : graph.neighbors(u) ) {
+          if ( graph.clique(n.target) == c && u < n.target ) {
+            ++intra_edges[c];
+          } else if ( graph.clique(n.target) != c ) {
+            ++inter_edges[c];
+          }
+        }
+      }
+
+      double avg_clique_size = 0.0;
+      double avg_intra_edges = 0.0;
+      double avg_inter_edges = 0.0;
+      double stdev_clique_size = 0.0;
+      double stdev_intra_edges = 0.0;
+      double stdev_inter_edges = 0.0;
+      size_t num_cliques = clique_sizes.size();
+      for ( CliqueID c = 0; c < num_cliques; ++c ) {
+        if ( clique_sizes[c] == 0 ) {
+          std::swap(intra_edges[c], intra_edges[num_cliques - 1]);
+          std::swap(inter_edges[c], inter_edges[num_cliques - 1]);
+          std::swap(clique_sizes[c--], clique_sizes[--num_cliques]);
+          intra_edges.pop_back();
+          inter_edges.pop_back();
+          clique_sizes.pop_back();
+        } else {
+          avg_clique_size += clique_sizes[c];
+          avg_intra_edges += intra_edges[c];
+          avg_inter_edges += intra_edges[c];
+        }
+      }
+      avg_clique_size /= static_cast<double>(num_cliques);
+      avg_intra_edges /= static_cast<double>(num_cliques);
+      avg_inter_edges /= static_cast<double>(num_cliques);
+
+      for ( CliqueID c = 0; c < clique_sizes.size(); ++c ) {
+        stdev_clique_size += (clique_sizes[c] - avg_clique_size) * (clique_sizes[c] - avg_clique_size);
+        stdev_intra_edges += (intra_edges[c] - avg_intra_edges) * (intra_edges[c] - avg_intra_edges);
+        stdev_inter_edges += (inter_edges[c] - avg_inter_edges) * (inter_edges[c] - avg_inter_edges);
+      }
+      stdev_clique_size = std::sqrt(stdev_clique_size / (num_cliques - 1));
+      stdev_intra_edges = std::sqrt(stdev_intra_edges / (num_cliques - 1));
+      stdev_inter_edges = std::sqrt(stdev_inter_edges / (num_cliques - 1));
+
+      std::sort(clique_sizes.begin(), clique_sizes.end());
+      std::sort(intra_edges.begin(), intra_edges.end());
+      std::sort(inter_edges.begin(), inter_edges.end());
+
+      internal::printCliqueStats(
+        internal::createStats(clique_sizes, avg_clique_size, stdev_clique_size),
+        internal::createStats(intra_edges, avg_intra_edges, stdev_intra_edges),
+        internal::createStats(inter_edges, avg_inter_edges, stdev_inter_edges));
     }
   }
 
