@@ -12,65 +12,86 @@
 namespace cluster_editing {
 namespace flat {
 
+namespace {
+
+  struct InitialSolution {
+    EdgeWeight edits;
+    std::vector<CliqueID>* solution;
+  };
+
+  void initial_partition(Graph& graph, Context context) {
+    std::vector<InitialSolution> initial_solutions(
+      context.refinement.lp.maximum_lp_iterations, InitialSolution { static_cast<EdgeWeight>(graph.numEdges()), nullptr });
+    std::vector<std::vector<CliqueID>> initial_cliques(context.refinement.lp.maximum_lp_iterations);
+
+    auto store_cliques = [&](std::vector<CliqueID>& clique) {
+      clique.resize(graph.numNodes());
+      for ( const NodeID& u : graph.nodes() ) {
+        clique[u] = graph.clique(u);
+      }
+    };
+
+    auto partition = [&](const int i) {
+      graph.reset();
+      if ( initial_solutions[i].solution != nullptr ) {
+        const std::vector<CliqueID>& clique = *initial_solutions[i].solution;
+        for ( const NodeID& u : graph.nodes() ) {
+          graph.setClique(u, clique[u]);
+        }
+      } else {
+        initial_solutions[i].solution = &initial_cliques[i];
+      }
+
+      // Choose some random node ordering for LP refiner
+      context.refinement.lp.node_order =
+        static_cast<NodeOrdering>(utils::Randomize::instance().getRandomInt(0, 3));
+
+      // Perform LP Refinement
+      LabelPropagationRefiner lp_refiner(graph, context);
+      lp_refiner.initialize(graph);
+      initial_solutions[i].edits = lp_refiner.refine(graph);
+      store_cliques(*initial_solutions[i].solution);
+    };
+
+    // Create Initial Solution Pool
+    int solution_pool_size = context.refinement.lp.maximum_lp_repititions;
+    context.refinement.lp.maximum_lp_iterations = 50;
+    while ( solution_pool_size > 0 ) {
+      for ( int i = 0; i < solution_pool_size; ++i ) {
+        partition(i);
+      }
+      std::sort(initial_solutions.begin(), initial_solutions.end(),
+        [&](const InitialSolution& sol_1, const InitialSolution& sol_2) {
+          return sol_1.edits < sol_2.edits;
+        });
+      solution_pool_size /= 2;
+    }
+
+    // Apply best solution
+    if ( context.general.verbose_output ) {
+      LOG << GREEN << "Best initial partition has" << initial_solutions[0].edits << "edits" << END;
+    }
+    const std::vector<CliqueID>& best_clique = *initial_solutions[0].solution;
+    for ( const NodeID& u : graph.nodes() ) {
+      graph.setClique(u, best_clique[u]);
+    }
+  }
+}
+
 void solve(Graph& graph, const Context& context) {
 
   io::printFlatBanner(context);
 
-  EdgeWeight best_metric = std::numeric_limits<EdgeWeight>::max();
-  std::vector<CliqueID> best_cliques(graph.numNodes(), INVALID_CLIQUE);
+  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 
-  auto is_best_clique = [&](const EdgeWeight current_metric) {
-    if ( current_metric < best_metric ) {
-      best_metric = current_metric;
-      for ( const NodeID& u : graph.nodes() ) {
-        best_cliques[u] = graph.clique(u);
-      }
-      ASSERT(current_metric == metrics::edits(graph));
-    }
-  };
+  // Compute initial partition
+  initial_partition(graph, context);
 
   // Label Propagation
-  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   if ( context.refinement.use_lp_refiner ) {
     LabelPropagationRefiner lp_refiner(graph, context);
     lp_refiner.initialize(graph);
-    const EdgeWeight current_metric = lp_refiner.refine(graph);
-    is_best_clique(current_metric);
-  }
-  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> lp_time(end - start);
-
-  // Spend more repititions for LP refiner, if it is fast (< 20 seconds)
-  if ( context.refinement.use_lp_refiner && lp_time.count() < 20 ) {
-    Context lp_context(context);
-    lp_context.refinement.lp.early_exit_window = 20;
-    lp_context.refinement.lp.min_improvement = 2;
-    for ( int i = 0; i < context.refinement.lp.maximum_lp_repititions - 1; ++i ) {
-      // Choose some random node ordering for LP refiner
-      lp_context.refinement.lp.node_order =
-        static_cast<NodeOrdering>(utils::Randomize::instance().getRandomInt(0, 3));
-      if ( lp_context.refinement.lp.node_order == NodeOrdering::random_shuffle ) {
-        lp_context.refinement.lp.random_shuffle_each_round =
-          utils::Randomize::instance().flipCoin();
-      }
-
-      // Perform LP refinement
-      graph.reset();
-      LabelPropagationRefiner lp_refiner(graph, lp_context);
-      lp_refiner.initialize(graph);
-      const EdgeWeight current_metric = lp_refiner.refine(graph);
-      is_best_clique(current_metric);
-    }
-  }
-
-  if ( best_metric != std::numeric_limits<EdgeWeight>::max() ) {
-    for ( const NodeID& u : graph.nodes() ) {
-      graph.setClique(u, best_cliques[u]);
-    }
-    if ( context.general.verbose_output ) {
-      LOG << "Best LP Refiner Solution is" << GREEN << best_metric << END;
-    }
-    ASSERT(best_metric == metrics::edits(graph));
+    lp_refiner.refine(graph);
   }
 
   // Boundary FM
@@ -87,7 +108,7 @@ void solve(Graph& graph, const Context& context) {
     fm_refiner.refine(graph);
   }
 
-  end = std::chrono::high_resolution_clock::now();
+  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds(end - start);
   if ( context.general.verbose_output ) {
     io::printObjectives(graph, elapsed_seconds);

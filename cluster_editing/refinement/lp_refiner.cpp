@@ -65,7 +65,7 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
     for ( const NodeID& u : _nodes ) {
       const CliqueID from = graph.clique(u);
       if ( _active_cliques[from] ) {
-        Rating rating = computeBetTargetClique(graph, u);
+        Rating rating = computeBestTargetClique(graph, u, false);
         const CliqueID to = rating.clique;
         if ( to != from ) {
           moveVertex(graph, u, to);
@@ -174,7 +174,9 @@ namespace {
 
 }
 
-LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBetTargetClique(Graph& graph, const NodeID u) {
+LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique(Graph& graph,
+                                                                                 const NodeID u,
+                                                                                 const bool force_isolation) {
   _rating.clear();
   Rating best_rating;
   const CliqueID from = graph.clique(u);
@@ -214,7 +216,8 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBetTargetClique(
   }
 
   // Check if it is beneficial to isolate the vertex again
-  if ( !_empty_cliques.empty() && u_degree <= best_rating.rating ) {
+  if ( !_empty_cliques.empty() && ( u_degree < best_rating.rating ||
+       ( u_degree == best_rating.rating && force_isolation ) ) ) {
     best_rating.clique = _empty_cliques.back();
     best_rating.rating = u_degree;
     best_rating.delta = u_degree - from_rating;

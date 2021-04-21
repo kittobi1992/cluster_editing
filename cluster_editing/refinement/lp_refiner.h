@@ -69,7 +69,7 @@ class LabelPropagationRefiner final : public IRefiner {
 
   void moveVertex(Graph& graph, const NodeID u, const CliqueID to);
 
-  Rating computeBetTargetClique(Graph& graph, const NodeID u);
+  Rating computeBestTargetClique(Graph& graph, const NodeID u, const bool force_isolation);
 
   const Context& _context;
   size_t _moved_vertices;
