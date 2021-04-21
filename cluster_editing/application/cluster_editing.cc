@@ -99,11 +99,15 @@ int main() {
   context.general.num_fruitless_repititions = 10;
   utils::Randomize::instance().setSeed(context.general.seed);
 
+  // Initial Partitioning Options
+  context.refinement.use_ip = true;
+  context.refinement.ip.initial_solution_pool_size = 5;
+  context.refinement.ip.initial_lp_iterations = 25;
+  context.refinement.ip.scale_lp_iteration_factor = 2.0;
+
   // LP Refiner Options
   context.refinement.use_lp_refiner = true;
-  context.refinement.lp.maximum_lp_repititions = 10;
   context.refinement.lp.maximum_lp_iterations = 1000;
-  context.refinement.lp.activate_all_cliques_after_rounds = 1;
   context.refinement.lp.random_shuffle_each_round = false;
   context.refinement.lp.node_order = NodeOrdering::none;
   context.refinement.lp.min_improvement = 5;
@@ -115,7 +119,7 @@ int main() {
   context.refinement.fm.maximum_fm_iterations = 100;
   context.refinement.fm.fraction_of_fruitless_moves = 0.05;
   context.refinement.fm.num_seed_nodes = 100;
-  context.refinement.fm.min_improvement = 5;
+  context.refinement.fm.min_improvement = 2;
   context.refinement.fm.early_exit_window = 10;
 
   utils::Timer::instance().start_timer("import_graph", "Import Graph");
@@ -163,8 +167,8 @@ int main() {
   HighResClockTimepoint e = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> solve_time(e - s);
   double time = solve_time.count();
-  if ( time < 120 ) {
-    context.general.num_repititions = std::min(std::max(static_cast<int>((120.0 - time) / time), 1), 1000);
+  if ( time < 240 ) {
+    context.general.num_repititions = std::min(std::max(static_cast<int>((240.0 - time) / time), 1), 1000);
   } else {
     context.general.num_repititions = 0;
   }
