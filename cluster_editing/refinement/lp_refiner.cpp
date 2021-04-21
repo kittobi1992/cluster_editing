@@ -23,13 +23,10 @@ void LabelPropagationRefiner::initializeImpl(Graph& graph) {
   _clique_weight.assign(graph.numNodes(), 0);
   _empty_cliques.clear();
   _nodes.clear();
-  _active_cliques.reset();
-  _has_changed.reset();
   for ( const NodeID& u : graph.nodes() ) {
     _nodes.push_back(u);
     const CliqueID from = graph.clique(u);
     ++_clique_weight[from];
-    _active_cliques.set(from, true);
   }
 }
 
@@ -56,55 +53,30 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
   }
 
   // enable early exit on large graphs, if FM refiner is used afterwards
-  const bool enable_early_exit = _context.refinement.use_boundary_fm_refiner || _context.refinement.use_localized_fm_refiner;
   for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
     utils::Timer::instance().start_timer("local_moving", "Local Moving");
     converged = true;
     const EdgeWeight initial_metric = current_metric;
-    _has_changed.reset();
     for ( const NodeID& u : _nodes ) {
       const CliqueID from = graph.clique(u);
-      if ( _active_cliques[from] ) {
-        Rating rating = computeBetTargetClique(graph, u);
-        const CliqueID to = rating.clique;
-        if ( to != from ) {
-          moveVertex(graph, u, to);
-          ++_moved_vertices;
-          converged = false;
-          _has_changed.set(from, true);
-          _has_changed.set(to, true);
+      Rating rating = computeBestTargetClique(graph, u, false);
+      const CliqueID to = rating.clique;
+      if ( to != from ) {
+        moveVertex(graph, u, to);
+        ++_moved_vertices;
+        converged = false;
 
-          // Verify, if rating is correct
-          ASSERT(current_metric + rating.delta ==
-            metrics::edge_deletions(graph) + metrics::edge_insertions(graph),
-            "Rating is wrong. Expected:" <<
-            (metrics::edge_deletions(graph) + metrics::edge_insertions(graph)) <<
-            "but is" << (current_metric + rating.delta) << "(" <<
-            V(current_metric) << "," << V(rating.delta) << ")");
-          current_metric += rating.delta;
-        }
+        // Verify, if rating is correct
+        ASSERT(current_metric + rating.delta ==
+          metrics::edge_deletions(graph) + metrics::edge_insertions(graph),
+          "Rating is wrong. Expected:" <<
+          (metrics::edge_deletions(graph) + metrics::edge_insertions(graph)) <<
+          "but is" << (current_metric + rating.delta) << "(" <<
+          V(current_metric) << "," << V(rating.delta) << ")");
+        current_metric += rating.delta;
       }
     }
     utils::Timer::instance().stop_timer("local_moving");
-
-    utils::Timer::instance().start_timer("activate_cliques", "Activate Cliques");
-    if ( i % _context.refinement.lp.activate_all_cliques_after_rounds != 0 ) {
-      _active_cliques.reset();
-      for ( const NodeID& u : _nodes ) {
-        const CliqueID from = graph.clique(u);
-        if ( _has_changed[from] ) {
-          _active_cliques.set(from, true);
-          for ( const Neighbor& n : graph.neighbors(u) ) {
-            _active_cliques.set(graph.clique(n.target), true);
-          }
-        }
-      }
-    } else {
-      for ( const NodeID& u : _nodes ) {
-        _active_cliques.set(u, true);
-      }
-    }
-    utils::Timer::instance().stop_timer("activate_cliques");
 
     lp_progress.setObjective(current_metric);
     lp_progress += 1;
@@ -131,7 +103,7 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
     if ( _round_improvements.size() >= _context.refinement.lp.early_exit_window) {
       _window_improvement -= _round_improvements[
         _round_improvements.size() - _context.refinement.lp.early_exit_window];
-      if ( enable_early_exit && _window_improvement <= _context.refinement.lp.min_improvement ) {
+      if ( _window_improvement <= _context.refinement.lp.min_improvement ) {
         break;
       }
     }
@@ -174,7 +146,9 @@ namespace {
 
 }
 
-LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBetTargetClique(Graph& graph, const NodeID u) {
+LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique(Graph& graph,
+                                                                                 const NodeID u,
+                                                                                 const bool force_isolation) {
   _rating.clear();
   Rating best_rating;
   const CliqueID from = graph.clique(u);
@@ -214,7 +188,8 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBetTargetClique(
   }
 
   // Check if it is beneficial to isolate the vertex again
-  if ( !_empty_cliques.empty() && u_degree <= best_rating.rating ) {
+  if ( !_empty_cliques.empty() && ( u_degree < best_rating.rating ||
+       ( u_degree == best_rating.rating && force_isolation ) ) ) {
     best_rating.clique = _empty_cliques.back();
     best_rating.rating = u_degree;
     best_rating.delta = u_degree - from_rating;

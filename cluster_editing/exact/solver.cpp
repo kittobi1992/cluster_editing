@@ -247,7 +247,6 @@ Solution solve_heuristic(const Instance &inst) {
 
     cluster_editing::Context context;
     context.refinement.lp.maximum_lp_iterations = 500;
-    context.refinement.lp.activate_all_cliques_after_rounds = 10;
     context.refinement.lp.random_shuffle_each_round = true;
     context.refinement.lp.node_order = cluster_editing::NodeOrdering::random_shuffle;
     context.general.verbose_output = false;

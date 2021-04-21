@@ -17,11 +17,17 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params) {
 }
 
 
+std::ostream & operator<< (std::ostream& str, const InitialPartitioningParameters& params) {
+  str << "\n  Initial Partitioning Parameters:" << std::endl;
+  str << "    Initial Solution Pool Size:  " << params.initial_solution_pool_size << std::endl;
+  str << "    Initial LP Iterations:       " << params.initial_lp_iterations << std::endl;
+  str << "    Scale LP Iterations Factor:  " << params.scale_lp_iteration_factor << std::endl;
+  return str;
+}
+
 std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParameters& params) {
   str << "\n  Label Propagation Refiner Parameters:" << std::endl;
-  str << "    Maximum LP Repititions:       " << params.maximum_lp_repititions << std::endl;
   str << "    Maximum LP Iterations:       " << params.maximum_lp_iterations << std::endl;
-  str << "    Act. Cliques After Round:    " << params.activate_all_cliques_after_rounds << std::endl;
   str << "    Random Shuffle each Round:   " << std::boolalpha << params.random_shuffle_each_round << std::endl;
   str << "    Node Ordering:               " << params.node_order << std::endl;
   str << "    Min Improvement:             " << params.min_improvement << std::endl;
@@ -42,6 +48,9 @@ std::ostream & operator<< (std::ostream& str, const FMParameters& params) {
 
 std::ostream & operator<< (std::ostream& str, const RefinementParameters& params) {
   str << "Refinement Parameters:" << std::endl;
+  if ( params.use_ip ) {
+    str << params.ip;
+  }
   if ( params.use_lp_refiner ) {
     str << params.lp;
   }
