@@ -21,8 +21,15 @@ struct GeneralParameters {
 
 std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);
 
+struct InitialPartitioningParameters {
+  int initial_solution_pool_size = 0;
+  int initial_lp_iterations = 0;
+  double scale_lp_iteration_factor = 1.0;
+};
+
+std::ostream & operator<< (std::ostream& str, const InitialPartitioningParameters& params);
+
 struct LabelPropagationRefinerParameters {
-  int maximum_lp_repititions = std::numeric_limits<int>::max();
   int maximum_lp_iterations = std::numeric_limits<int>::max();
   bool random_shuffle_each_round = false;
   NodeOrdering node_order = NodeOrdering::none;
@@ -44,9 +51,11 @@ struct FMParameters {
 std::ostream & operator<< (std::ostream& str, const FMParameters& params);
 
 struct RefinementParameters {
+  bool use_ip = false;
   bool use_lp_refiner = false;
   bool use_boundary_fm_refiner = false;
   bool use_localized_fm_refiner = false;
+  InitialPartitioningParameters ip;
   LabelPropagationRefinerParameters lp;
   FMParameters fm;
 };

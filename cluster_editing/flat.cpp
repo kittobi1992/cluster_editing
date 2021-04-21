@@ -54,9 +54,10 @@ namespace {
     };
 
     // Create Initial Solution Pool
-    int solution_pool_size = context.refinement.lp.maximum_lp_repititions;
-    context.refinement.lp.maximum_lp_iterations = 50;
+    int solution_pool_size = context.refinement.ip.initial_solution_pool_size;
+    int current_lp_iterations = context.refinement.ip.initial_lp_iterations;
     while ( solution_pool_size > 0 ) {
+      context.refinement.lp.maximum_lp_iterations = current_lp_iterations;
       for ( int i = 0; i < solution_pool_size; ++i ) {
         partition(i);
       }
@@ -64,7 +65,9 @@ namespace {
         [&](const InitialSolution& sol_1, const InitialSolution& sol_2) {
           return sol_1.edits < sol_2.edits;
         });
-      solution_pool_size /= 2;
+      solution_pool_size = ( solution_pool_size == 1 ? 0 : ( solution_pool_size / 2 ) + ( solution_pool_size % 2 != 0) );
+      current_lp_iterations = static_cast<double>(current_lp_iterations) *
+        context.refinement.ip.scale_lp_iteration_factor;
     }
 
     // Apply best solution
@@ -85,7 +88,9 @@ void solve(Graph& graph, const Context& context) {
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 
   // Compute initial partition
-  initial_partition(graph, context);
+  if ( context.refinement.use_ip ) {
+    initial_partition(graph, context);
+  }
 
   // Label Propagation
   if ( context.refinement.use_lp_refiner ) {

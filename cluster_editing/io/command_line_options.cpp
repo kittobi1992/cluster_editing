@@ -65,14 +65,20 @@ namespace cluster_editing {
                                                              const int num_columns) {
     po::options_description options("Refinement Options", num_columns);
     options.add_options()
+            ("r-use-ip", po::value<bool>(&context.refinement.use_ip)->value_name("<bool>")->default_value(false),
+             "If true, then initial partitioning is used to generate a start solution.")
             ("r-use-lp-refiner", po::value<bool>(&context.refinement.use_lp_refiner)->value_name("<bool>")->default_value(false),
              "If true, then label propagation is used to improve quality.")
             ("r-use-boundary-fm-refiner", po::value<bool>(&context.refinement.use_boundary_fm_refiner)->value_name("<bool>")->default_value(false),
              "If true, then Boundary FM is used to improve quality.")
             ("r-use-localized-fm-refiner", po::value<bool>(&context.refinement.use_localized_fm_refiner)->value_name("<bool>")->default_value(false),
              "If true, then Localized FM is used to improve quality.")
-            ("r-maximum-lp-repititions", po::value<int>(&context.refinement.lp.maximum_lp_repititions)->value_name("<int>"),
-             "Maximum number of restarts of LP refiner per run")
+            ("r-ip-pool-size", po::value<int>(&context.refinement.ip.initial_solution_pool_size)->value_name("<int>"),
+             "Number of different initial partitions")
+            ("r-ip-lp-iterations", po::value<int>(&context.refinement.ip.initial_lp_iterations)->value_name("<int>"),
+             "Number of LP iterations in the first IP round")
+            ("r-ip-scale-lp-iterations-factor", po::value<double>(&context.refinement.ip.scale_lp_iteration_factor)->value_name("<double>"),
+             "Number of LP iterations are scaled with this factor after each IP round")
             ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
              "Maximum iterations made by the label propagation refiner")
             ("r-maximum-fm-iterations", po::value<int>(&context.refinement.fm.maximum_fm_iterations)->value_name("<int>"),
