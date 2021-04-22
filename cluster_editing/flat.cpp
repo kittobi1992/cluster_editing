@@ -86,13 +86,6 @@ void solve(Graph& graph, const Context& context) {
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 
-  // Evolutionary
-  if ( context.refinement.use_evo ) {
-    Evolutionary evo(graph, context);
-    evo.initialize(graph);
-    evo.refine(graph);
-  }
-
   // Label Propagation
   if ( context.refinement.use_lp_refiner ) {
     LabelPropagationRefiner lp_refiner(graph, context);
@@ -112,6 +105,13 @@ void solve(Graph& graph, const Context& context) {
     FMRefiner<AdaptiveStoppingRule> fm_refiner(graph, context, FMType::localized);
     fm_refiner.initialize(graph);
     fm_refiner.refine(graph);
+  }
+
+  // Evolutionary
+  if ( context.refinement.use_evo ) {
+    Evolutionary evo(graph, context);
+    evo.initialize(graph);
+    evo.refine(graph);
   }
 
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
