@@ -25,6 +25,13 @@ void print(vector<vector<int> > adj) {
   }
 }
 
+void print(vector<int> vec) {
+  // Traverse the adj[][]
+  for (int i = 0; i < vec.size(); i++) {
+      printf("%d ", vec[i]);
+  }
+}
+
 
 bool computeCriticalClique(vector<vector<int> > adj, vector<vector<int> > &newAdj, int u, int v) {
   // vector<int> u_neighbors = adj[u];
@@ -81,23 +88,26 @@ bool computeCriticalClique(vector<vector<int> > adj, vector<vector<int> > &newAd
   TODO:
     How to merge when they have weights? do we need to consider this?
 */
-void merge_vertices(vector<vector<int> > &adj, int u, int v) {
+void merge_vertices(vector<vector<int> > &adj, int u, int v,
+                    vector< pair<pair<int, vector<int> >, pair<int, vector<int> > > > &merged_edges) {
+  pair<int, vector<int> > u_pair;
+  vector<int> u_neighbors;
+  pair<int, vector<int> > v_pair;
+  vector<int> v_neighbors;
+
   // Combines the neighbors so they all onnect to u
   for (int idx = 0; idx < adj.size(); idx++) {
-    if (adj[v][idx] != 0) {
-      adj[u][idx] += adj[v][idx];
-      adj[idx][u] += adj[v][idx];
-
-      // // The else statement is the normal merge, this is trying to deal with seg faults
-      // // from we think adding negative infinity
-      // if (!(adj[v][idx] == -INF || adj[u][idx] == -INF || adj[idx][u] == -INF)) {
-      //   adj[u][idx] = -INF;
-      //   adj[idx][u] = -INF;
-      // } else {
-      //   adj[u][idx] += adj[v][idx];
-      //   adj[idx][u] += adj[v][idx];
-      // }
+    if (adj[u][idx] == 1)
+      u_neighbors.push_back(idx);
+    if (adj[v][idx] == 1) {
+      // adj[u][idx] += adj[v][idx];
+      // adj[idx][u] += adj[v][idx];
+      adj[u][idx] = 1;
+      adj[idx][u] = 1;
+      v_neighbors.push_back(idx);
     }
+
+
   }
 
   // Remove v from both
@@ -105,6 +115,17 @@ void merge_vertices(vector<vector<int> > &adj, int u, int v) {
   for (int idx = 0; idx < adj.size(); idx++)
     if (v < adj[idx].size())
       adj[idx].erase(adj[idx].begin()+v);
+
+  u_pair.first  = u;
+  u_pair.second  = u_neighbors;
+  v_pair.first  = v;
+  v_pair.second  = v_neighbors;
+
+  pair<pair<int, vector<int> >, pair<int, vector<int> > > merged_vertices;
+  merged_vertices.first = u_pair;
+  merged_vertices.second = v_pair;
+  merged_edges.push_back(merged_vertices);
+
 }
 
 /*
@@ -148,7 +169,8 @@ bool heavy_non_edge_rule(vector<vector<int> > &adj, int u, int v) {
             v - second vertex in the edge
   @return:  none
 */
-bool heavy_edge_single_end_rule(vector<vector<int> > &adj, int u, int v) {
+bool heavy_edge_single_end_rule(vector<vector<int> > &adj, int u, int v,
+                                vector< pair<pair<int, vector<int> >, pair<int, vector<int> > > > &merged_edges) {
   if (adj.size() <= u || adj.size() <= v) return false;
   if (u == -INF || v == -INF) return false;
   if (u == v) return false;
@@ -167,7 +189,8 @@ bool heavy_edge_single_end_rule(vector<vector<int> > &adj, int u, int v) {
   if (adj[u][v] >= sum) {
     // cout << "bb: (" << u << ", " << v << ")" << endl;
     // cout << "MERGE: (" << u << ", " << v << ")" << endl;
-    merge_vertices(adj, u, v);
+    cout << "rule 2 " << u << v << endl;
+    merge_vertices(adj, u, v, merged_edges);
     // cout << "cc" << endl;
     return true;
   }
@@ -188,7 +211,8 @@ bool heavy_edge_single_end_rule(vector<vector<int> > &adj, int u, int v) {
             v - second vertex in the edge
   @return:  none
 */
-bool heavy_edge_both_end_rule(vector<vector<int> > &adj, int u, int v) {
+bool heavy_edge_both_end_rule(vector<vector<int> > &adj, int u, int v,
+                              vector< pair<pair<int, vector<int> >, pair<int, vector<int> > > > &merged_edges) {
   if (adj.size() <= u || adj.size() <= v) return false;
   if (u == -INF || v == -INF) return false;
   if (u == v) return false;
@@ -204,7 +228,8 @@ bool heavy_edge_both_end_rule(vector<vector<int> > &adj, int u, int v) {
 
   if (adj[u][v] >= sum_u + sum_v) {
     // cout << "MERGE: (" << u << ", " << v << ")" << endl;
-    merge_vertices(adj, u, v);
+    cout << "rule 3" << endl;
+    merge_vertices(adj, u, v, merged_edges);
     return true;
   }
 
@@ -255,45 +280,107 @@ vector<vector<int> > makeAdjacencyMatrix(string fin) {
   return adj;
 }
 
-void apply1(vector<vector<int> > &adj) {
+vector<int> apply1(vector<vector<int> > &adj) {
+  vector<int> applied_edges;
   for (int u = 0; u < adj.size(); u++) {
     for (int v = 0; v < adj[u].size(); v++) {
-      heavy_non_edge_rule(adj, u, v);
+      if (heavy_non_edge_rule(adj, u, v)) {
+        applied_edges.push_back(u);
+        applied_edges.push_back(v);
+      }
+    }
+  }
+  return applied_edges;
+}
+
+void apply2(vector<vector<int> > &adj,
+            vector< pair<pair<int, vector<int> >, pair<int, vector<int> > > > &merged_edges) {
+  for (int u = 0; u < adj.size(); u++) {
+    for (int v = 0; v < adj[u].size(); v++) {
+      while(heavy_edge_single_end_rule(adj, u, v, merged_edges))
+        continue;
     }
   }
 }
 
-void apply2(vector<vector<int> > &adj) {
+void apply3(vector<vector<int> > &adj,
+            vector< pair<pair<int, vector<int> >, pair<int, vector<int> > > > &merged_edges) {
   for (int u = 0; u < adj.size(); u++) {
     for (int v = 0; v < adj[u].size(); v++) {
-      while(heavy_edge_single_end_rule(adj, u, v))
+      while(heavy_edge_both_end_rule(adj, u, v, merged_edges))
         continue;
         // print(adj);
     }
   }
 }
 
-void apply3(vector<vector<int> > &adj) {
-  for (int u = 0; u < adj.size(); u++) {
-    for (int v = 0; v < adj[u].size(); v++) {
-      while(heavy_edge_both_end_rule(adj, u, v))
-        continue;
-        // print(adj);
-    }
-  }
+// void unapply1(vector<vector<int> > &adj) {
+//   for (int u = 0; u < ad.size(); u++) {
+//     for (int j = 0; j < adj.size(); u++) {
+//
+//     }
+//   }
+// }
+
+vector<vector<int> > expand_to_original_size(vector<vector<int > > reduced,
+  int original_size) {
+  // Get the original size to expand into
+  vector<vector<int> > rebuilt_graph;
+  cout << original_size << endl;
+  for (int i = 0; i < original_size; i++) {
+
+   // Make the empty row
+   vector<int> temp(original_size, 0);
+
+   // fill the row with what is in the reduced graph
+   if (i < reduced.size()) {
+     for (int j = 0; j < reduced.size(); j++) {
+       temp[j] = reduced[i][j];
+     }
+     rebuilt_graph.push_back(temp);
+   }
+   else {
+     rebuilt_graph.push_back(temp);
+   }
+ }
+
+  // Unmerge edges
+  return rebuilt_graph;
+
+}
+
+vector<vector<int> > rebuild_graph(vector<vector<int > > reduced,
+                                   vector< pair<pair<int, vector<int> >, pair<int, vector<int> > > > merged_edges,
+                                   int original_size) {
+
+  // Get the original size to expand into
+  vector<vector<int> > rebuilt_graph = expand_to_original_size(reduced, original_size);
+
+  return rebuilt_graph;
 }
 
 int main(int argc,  char **argv) {
   string fin = argv[1];
 
-
   // std::cout << "Implementing data reduction rules: " << fin << std::endl;
   vector<vector<int> > adj = makeAdjacencyMatrix(fin);
   int total = adj.size();
-
-  // print(adj);
+  int sum = 0;
+  int total_cost = 0;
+  for (int u = 0; u < adj.size(); u++) {
+    for (int v = 0; v < adj.size(); v++) {
+      sum += adj[u][v];
+    }
+  }
+  print(adj);
+  int og_size = adj.size();
 
   vector<vector<int> > clique;
+  vector<int> applied_edges;
+
+  // We will store the merges as a vector of pairs, so it will be like
+  // a pair of these: pair<vertex, neighbors> all shoved in a vector.
+  vector< pair<pair<int, vector<int> >, pair<int, vector<int> > > > merged_edges;
   for (int u = 0; u < adj.size(); u++) {
     for (int v = 0; v < adj.size(); v++) {
       if (u != v) {
@@ -303,10 +390,20 @@ int main(int argc,  char **argv) {
           // print(clique);
           // cout << endl;
           apply1(clique);
-          apply2(clique);
-          apply3(clique);
+          // print(applied_edges);
+          apply2(clique, merged_edges);
+          apply3(clique, merged_edges);
           // print(clique);
           total -= (total - clique.size());
+
+          for (int i = 0; i < clique.size(); i++) {
+            for (int j = 0; j < clique.size(); j++) {
+              if (clique[i][j] != -INF) {
+                sum = clique[i][j];
+              }
+            }
+          }
+
           // if (clique.size() != n)
           //   cout << fin << ", " << n << ", " << clique.size() << endl;
         }
@@ -314,39 +411,25 @@ int main(int argc,  char **argv) {
     }
   }
 
-  // print(adj);
+  for (int i = 0; i < merged_edges.size(); i++) {
+    cout << i << ": " << merged_edges[i].first.first << " merged with " << merged_edges[i].second.first << endl;
+    cout << "\tu neighbors: ";
+    for (int u = 0; u < merged_edges[i].first.second.size(); u++)
+      cout << merged_edges[i].first.second[u] << ", ";
+    cout << endl << "\tv neighbors: ";
+    for (int v = 0; v < merged_edges[i].second.second.size(); v++) {
+      cout << merged_edges[i].second.second[v] << ", ";
+    }
+    cout << endl;
+  }
 
-  // // Apply Rule 1 to every pair of vertices
-  // for (int u = 0; u < adj.size(); u++) {
-  //   for (int v = 0; v < adj[u].size(); v++) {
-  //     heavy_non_edge_rule(adj, u, v);
-  //   }
-  // }
 
-  // print(adj);
-  // cout << endl << "Rule 2" << endl;
+  int s = total_cost-sum;
+  if (total_cost-sum <= 0) s = -1;
 
-  // Apply Rule 2 to every pair of vertices
-  // for (int u = 0; u < adj.size(); u++) {
-  //   for (int v = 0; v < adj[u].size(); v++) {
-  //     while(heavy_edge_single_end_rule(adj, u, v))
-  //       continue;
-  //       // print(adj);
-  //   }
-  // }
+  cout << fin << ", " << n << ", " << total << ",  " <<  s << endl;
 
-  // cout << endl << "Rule 3" << endl;
-
-  // Apply Rule 3 to every pair of vertices
-  // for (int u = 0; u < adj.size(); u++) {
-  //   for (int v = 0; v < adj[u].size(); v++) {
-  //     while(heavy_edge_both_end_rule(adj, u, v))
-  //       continue;
-  //       // print(adj);
-  //   }
-  // }
-
-  cout << fin << ", " << n << ", " << total << endl;
+  print(rebuild_graph(adj, merged_edges, og_size));
 
   return 0;
 }
