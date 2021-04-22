@@ -146,7 +146,7 @@ void Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
           << (edits - initial_edits) << ")" << END;
     }
     evictSolution(graph, edits);
-  } else if ( _context.general.verbose_output ) {
+  } else if ( _context.general.verbose_output && edits > initial_edits ) {
     LOG << RED << "MUTATE: Worsen solution quality (Initial:"
         << initial_edits << ", After: " << edits << ", Delta:"
         << (edits - initial_edits) << ")" << END;
