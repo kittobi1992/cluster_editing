@@ -31,7 +31,8 @@ struct EvolutionaryParameters {
   size_t large_clique_threshold = 0;
   float clique_isolate_prob = 0.0;
   float neighbor_clique_isolate_prob = 0.0;
-  size_t num_largest_cliques_to_isolate = 0;
+  float node_isolation_prob = 0.0;
+  float node_move_prob = 0.0;
 };
 
 std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& params);

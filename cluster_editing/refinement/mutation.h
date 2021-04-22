@@ -125,4 +125,66 @@ class LargeCliqueWithNeighborIsolator {
   LargeCliqueWithNeighborIsolator() { }
 };
 
+class RandomNodeIsolator {
+
+ public:
+  static void mutate(Graph& graph, const Context& context) {
+    CliqueStats stats(graph);
+    for ( const CliqueID& c : graph.nodes() ) {
+      if ( stats.cliques[c].size() > 1 ) {
+        size_t current_size = stats.cliques[c].size();
+        for ( const NodeID& u : stats.cliques[c].nodes ) {
+          const float p = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
+          if ( p <= context.refinement.evo.node_isolation_prob ) {
+            const CliqueID target = stats.empty_cliques.back();
+            stats.empty_cliques.pop_back();
+            graph.setClique(u, target);
+            --current_size;
+          }
+          if ( current_size == 1 ) {
+            break;
+          }
+        }
+      }
+    }
+  }
+
+ private:
+  RandomNodeIsolator() { }
+};
+
+class RandomNodeMover {
+
+ public:
+  static void mutate(Graph& graph, const Context& context) {
+    std::vector<CliqueID> target_cliques;
+    for ( const NodeID& u : graph.nodes() ) {
+      const float p = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
+      if ( p <= context.refinement.evo.node_move_prob ) {
+        const CliqueID from = graph.clique(u);
+        for ( const Neighbor& n : graph.neighbors(u) ) {
+          const CliqueID to = graph.clique(n.target);
+          if ( from != to ) {
+            target_cliques.push_back(to);
+          }
+        }
+
+        if ( !target_cliques.empty() ) {
+          std::sort(target_cliques.begin(), target_cliques.end());
+          target_cliques.erase( std::unique(
+            target_cliques.begin(), target_cliques.end() ), target_cliques.end() );
+          const CliqueID target = target_cliques[
+            utils::Randomize::instance().getRandomInt(0, target_cliques.size() - 1)];
+          graph.setClique(u, target);
+          target_cliques.clear();
+        }
+      }
+    }
+  }
+
+ private:
+  RandomNodeMover() { }
+};
+
+
 }  // namespace cluster_editing

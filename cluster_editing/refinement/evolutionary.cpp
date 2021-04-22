@@ -98,7 +98,9 @@ namespace {
 enum class Mutation : uint8_t {
   LARGE_CLIQUE_ISOLATOR = 0,
   LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR = 1,
-  NUM_MUTATIONS = 2
+  RANDOM_NODE_ISOLATOR = 2,
+  RANDOM_NODE_MOVER = 3,
+  NUM_MUTATIONS = 4
 };
 
 } // namespace
@@ -117,6 +119,14 @@ void Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
     if ( _context.general.verbose_output )
       LOG << "Mutation Action: LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR";
     LargeCliqueWithNeighborIsolator::mutate(graph, _context);
+  } else if ( mutation == Mutation::RANDOM_NODE_ISOLATOR ) {
+    if ( _context.general.verbose_output )
+      LOG << "Mutation Action: RANDOM_NODE_ISOLATOR";
+    RandomNodeIsolator::mutate(graph, _context);
+  } else if ( mutation == Mutation::RANDOM_NODE_MOVER ) {
+    if ( _context.general.verbose_output )
+      LOG << "Mutation Action: RANDOM_NODE_MOVER";
+    RandomNodeMover::mutate(graph, _context);
   }
 
   if ( _context.general.verbose_output ) {

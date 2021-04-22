@@ -29,7 +29,8 @@ std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& para
   str << "    Large Clique Threshold:      " << params.large_clique_threshold << std::endl;
   str << "    Clique Isolation Prob.:      " << params.clique_isolate_prob << std::endl;
   str << "    Neigh.Clique Isolation Prob: " << params.neighbor_clique_isolate_prob << std::endl;
-  str << "    Num. Larges Cliques To Iso.: " << params.num_largest_cliques_to_isolate << std::endl;
+  str << "    Node Isolation Prob.:        " << params.node_isolation_prob << std::endl;
+  str << "    Node Move Prob.:             " << params.node_move_prob << std::endl;
   return str;
 }
 

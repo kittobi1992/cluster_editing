@@ -91,8 +91,10 @@ namespace cluster_editing {
              "Probability for mutation operator that isolate cliques")
             ("r-evo-neighbor-clique-isolation-prob", po::value<float>(&context.refinement.evo.neighbor_clique_isolate_prob)->value_name("<float>"),
              "Probability for mutation operator that isolate cliques with neighbors")
-            ("r-evo-num-largest-cliques-to-isolate", po::value<size_t>(&context.refinement.evo.num_largest_cliques_to_isolate)->value_name("<size_t>"),
-             "Number of largest cliques that we isolate in largest clique isolator mutator")
+            ("r-evo-node-isolation-prob", po::value<float>(&context.refinement.evo.node_isolation_prob)->value_name("<float>"),
+             "Probability for mutation operator to isolate a node")
+            ("r-evo-node-move-prob", po::value<float>(&context.refinement.evo.node_move_prob)->value_name("<float>"),
+             "Probability for mutation operator to move a node")
             ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
              "Maximum iterations made by the label propagation refiner")
             ("r-maximum-fm-iterations", po::value<int>(&context.refinement.fm.maximum_fm_iterations)->value_name("<int>"),
