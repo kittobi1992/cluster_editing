@@ -21,13 +21,21 @@ struct GeneralParameters {
 
 std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);
 
-struct InitialPartitioningParameters {
-  int initial_solution_pool_size = 0;
-  int initial_lp_iterations = 0;
-  double scale_lp_iteration_factor = 1.0;
+struct EvolutionaryParameters {
+  int solution_pool_size = 0;
+  int evolutionary_steps = 0;
+  int lp_iterations = 0;
+  int lp_iterations_after_mutate = 0;
+  float intensivate_prob = 0.0;
+  float mutate_prob = 0.0;
+  size_t large_clique_threshold = 0;
+  float clique_isolate_prob = 0.0;
+  float neighbor_clique_isolate_prob = 0.0;
+  float node_isolation_prob = 0.0;
+  float node_move_prob = 0.0;
 };
 
-std::ostream & operator<< (std::ostream& str, const InitialPartitioningParameters& params);
+std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& params);
 
 struct LabelPropagationRefinerParameters {
   int maximum_lp_iterations = std::numeric_limits<int>::max();
@@ -51,11 +59,11 @@ struct FMParameters {
 std::ostream & operator<< (std::ostream& str, const FMParameters& params);
 
 struct RefinementParameters {
-  bool use_ip = false;
+  bool use_evo = false;
   bool use_lp_refiner = false;
   bool use_boundary_fm_refiner = false;
   bool use_localized_fm_refiner = false;
-  InitialPartitioningParameters ip;
+  EvolutionaryParameters evo;
   LabelPropagationRefinerParameters lp;
   FMParameters fm;
 };

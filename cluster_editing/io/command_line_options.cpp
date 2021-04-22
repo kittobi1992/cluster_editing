@@ -65,20 +65,36 @@ namespace cluster_editing {
                                                              const int num_columns) {
     po::options_description options("Refinement Options", num_columns);
     options.add_options()
-            ("r-use-ip", po::value<bool>(&context.refinement.use_ip)->value_name("<bool>")->default_value(false),
-             "If true, then initial partitioning is used to generate a start solution.")
+            ("r-use-evo", po::value<bool>(&context.refinement.use_evo)->value_name("<bool>")->default_value(false),
+             "If true, then evolutionary algorithm is used.")
             ("r-use-lp-refiner", po::value<bool>(&context.refinement.use_lp_refiner)->value_name("<bool>")->default_value(false),
              "If true, then label propagation is used to improve quality.")
             ("r-use-boundary-fm-refiner", po::value<bool>(&context.refinement.use_boundary_fm_refiner)->value_name("<bool>")->default_value(false),
              "If true, then Boundary FM is used to improve quality.")
             ("r-use-localized-fm-refiner", po::value<bool>(&context.refinement.use_localized_fm_refiner)->value_name("<bool>")->default_value(false),
              "If true, then Localized FM is used to improve quality.")
-            ("r-ip-pool-size", po::value<int>(&context.refinement.ip.initial_solution_pool_size)->value_name("<int>"),
-             "Number of different initial partitions")
-            ("r-ip-lp-iterations", po::value<int>(&context.refinement.ip.initial_lp_iterations)->value_name("<int>"),
-             "Number of LP iterations in the first IP round")
-            ("r-ip-scale-lp-iterations-factor", po::value<double>(&context.refinement.ip.scale_lp_iteration_factor)->value_name("<double>"),
-             "Number of LP iterations are scaled with this factor after each IP round")
+            ("r-evo-pool-size", po::value<int>(&context.refinement.evo.solution_pool_size)->value_name("<int>"),
+             "Number of different solution in evolutionary algorithm")
+            ("r-evo-steps", po::value<int>(&context.refinement.evo.evolutionary_steps)->value_name("<int>"),
+             "Steps made by evolutionary algorithm")
+            ("r-evo-lp-iterations", po::value<int>(&context.refinement.evo.lp_iterations)->value_name("<int>"),
+             "Number of LP iterations in evolutionary algorithm")
+            ("r-evo-lp-iterations-after-mutate", po::value<int>(&context.refinement.evo.lp_iterations_after_mutate)->value_name("<int>"),
+             "Number of LP iterations after mutate operation in evolutionary algorithm")
+            ("r-evo-intensivate-prob", po::value<float>(&context.refinement.evo.intensivate_prob)->value_name("<float>"),
+             "Probability that random solutions is further refined")
+            ("r-evo-mutate-prob", po::value<float>(&context.refinement.evo.mutate_prob)->value_name("<float>"),
+             "Probability that we apply mutation operator to solution")
+            ("r-evo-large-clique-threshold", po::value<size_t>(&context.refinement.evo.large_clique_threshold)->value_name("<size_t>"),
+             "All cliques greater than this threshold are considered as large")
+            ("r-evo-clique-isolation-prob", po::value<float>(&context.refinement.evo.clique_isolate_prob)->value_name("<float>"),
+             "Probability for mutation operator that isolate cliques")
+            ("r-evo-neighbor-clique-isolation-prob", po::value<float>(&context.refinement.evo.neighbor_clique_isolate_prob)->value_name("<float>"),
+             "Probability for mutation operator that isolate cliques with neighbors")
+            ("r-evo-node-isolation-prob", po::value<float>(&context.refinement.evo.node_isolation_prob)->value_name("<float>"),
+             "Probability for mutation operator to isolate a node")
+            ("r-evo-node-move-prob", po::value<float>(&context.refinement.evo.node_move_prob)->value_name("<float>"),
+             "Probability for mutation operator to move a node")
             ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
              "Maximum iterations made by the label propagation refiner")
             ("r-maximum-fm-iterations", po::value<int>(&context.refinement.fm.maximum_fm_iterations)->value_name("<int>"),

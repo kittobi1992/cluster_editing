@@ -1,6 +1,7 @@
 #include "flat.h"
 
 #include "cluster_editing/macros.h"
+#include "cluster_editing/refinement/evolutionary.h"
 #include "cluster_editing/refinement/lp_refiner.h"
 #include "cluster_editing/refinement/fm_refiner.h"
 #include "cluster_editing/refinement/stopping_rule.h"
@@ -54,8 +55,8 @@ namespace {
     };
 
     // Create Initial Solution Pool
-    int solution_pool_size = context.refinement.ip.initial_solution_pool_size;
-    int current_lp_iterations = context.refinement.ip.initial_lp_iterations;
+    int solution_pool_size = context.refinement.evo.solution_pool_size;
+    int current_lp_iterations = context.refinement.evo.lp_iterations;
     while ( solution_pool_size > 0 ) {
       context.refinement.lp.maximum_lp_iterations = current_lp_iterations;
       for ( int i = 0; i < solution_pool_size; ++i ) {
@@ -66,8 +67,6 @@ namespace {
           return sol_1.edits < sol_2.edits;
         });
       solution_pool_size = ( solution_pool_size == 1 ? 0 : ( solution_pool_size / 2 ) + ( solution_pool_size % 2 != 0) );
-      current_lp_iterations = static_cast<double>(current_lp_iterations) *
-        context.refinement.ip.scale_lp_iteration_factor;
     }
 
     // Apply best solution
@@ -86,11 +85,6 @@ void solve(Graph& graph, const Context& context) {
   io::printFlatBanner(context);
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-
-  // Compute initial partition
-  if ( context.refinement.use_ip ) {
-    initial_partition(graph, context);
-  }
 
   // Label Propagation
   if ( context.refinement.use_lp_refiner ) {
@@ -111,6 +105,13 @@ void solve(Graph& graph, const Context& context) {
     FMRefiner<AdaptiveStoppingRule> fm_refiner(graph, context, FMType::localized);
     fm_refiner.initialize(graph);
     fm_refiner.refine(graph);
+  }
+
+  // Evolutionary
+  if ( context.refinement.use_evo ) {
+    Evolutionary evo(graph, context);
+    evo.initialize(graph);
+    evo.refine(graph);
   }
 
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();

@@ -99,11 +99,19 @@ int main() {
   context.general.num_fruitless_repititions = 10;
   utils::Randomize::instance().setSeed(context.general.seed);
 
-  // Initial Partitioning Options
-  context.refinement.use_ip = true;
-  context.refinement.ip.initial_solution_pool_size = 5;
-  context.refinement.ip.initial_lp_iterations = 25;
-  context.refinement.ip.scale_lp_iteration_factor = 2.0;
+  // Evolutionary Options
+  context.refinement.use_evo = true;
+  context.refinement.evo.solution_pool_size = 3;
+  context.refinement.evo.evolutionary_steps = 1000;
+  context.refinement.evo.lp_iterations = 25;
+  context.refinement.evo.lp_iterations_after_mutate = 50;
+  context.refinement.evo.intensivate_prob = 0.25;
+  context.refinement.evo.mutate_prob = 0.75;
+  context.refinement.evo.large_clique_threshold = 3;
+  context.refinement.evo.clique_isolate_prob = 0.01;
+  context.refinement.evo.neighbor_clique_isolate_prob = 0.0001;
+  context.refinement.evo.node_isolation_prob = 0.01;
+  context.refinement.evo.node_move_prob = 0.01;
 
   // LP Refiner Options
   context.refinement.use_lp_refiner = true;
@@ -114,7 +122,7 @@ int main() {
   context.refinement.lp.early_exit_window = 100;
 
   // FM Refiner Options
-  context.refinement.use_boundary_fm_refiner = true;
+  context.refinement.use_boundary_fm_refiner = false;
   context.refinement.use_localized_fm_refiner = false;
   context.refinement.fm.maximum_fm_iterations = 100;
   context.refinement.fm.fraction_of_fruitless_moves = 0.05;

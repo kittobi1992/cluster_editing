@@ -17,11 +17,20 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params) {
 }
 
 
-std::ostream & operator<< (std::ostream& str, const InitialPartitioningParameters& params) {
-  str << "\n  Initial Partitioning Parameters:" << std::endl;
-  str << "    Initial Solution Pool Size:  " << params.initial_solution_pool_size << std::endl;
-  str << "    Initial LP Iterations:       " << params.initial_lp_iterations << std::endl;
-  str << "    Scale LP Iterations Factor:  " << params.scale_lp_iteration_factor << std::endl;
+std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& params) {
+  str << "\n  Evolutionary Parameters:" << std::endl;
+  str << "    Solution Pool Size:          " << params.solution_pool_size << std::endl;
+  str << "    Evolutionary Steps:          " << params.evolutionary_steps << std::endl;
+  str << "    LP Iterations:               " << params.lp_iterations << std::endl;
+  str << "    LP Iterations After Mutate:  " << params.lp_iterations_after_mutate << std::endl;
+  str << "    Intensivate Probability:     " << params.intensivate_prob << std::endl;
+  str << "    Muate Probability:           " << params.mutate_prob << std::endl;
+  str << "    Combine Probability:         " << (1.0 - params.intensivate_prob - params.mutate_prob) << std::endl;
+  str << "    Large Clique Threshold:      " << params.large_clique_threshold << std::endl;
+  str << "    Clique Isolation Prob.:      " << params.clique_isolate_prob << std::endl;
+  str << "    Neigh.Clique Isolation Prob: " << params.neighbor_clique_isolate_prob << std::endl;
+  str << "    Node Isolation Prob.:        " << params.node_isolation_prob << std::endl;
+  str << "    Node Move Prob.:             " << params.node_move_prob << std::endl;
   return str;
 }
 
@@ -48,8 +57,8 @@ std::ostream & operator<< (std::ostream& str, const FMParameters& params) {
 
 std::ostream & operator<< (std::ostream& str, const RefinementParameters& params) {
   str << "Refinement Parameters:" << std::endl;
-  if ( params.use_ip ) {
-    str << params.ip;
+  if ( params.use_evo ) {
+    str << params.evo;
   }
   if ( params.use_lp_refiner ) {
     str << params.lp;

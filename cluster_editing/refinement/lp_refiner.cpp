@@ -23,10 +23,18 @@ void LabelPropagationRefiner::initializeImpl(Graph& graph) {
   _clique_weight.assign(graph.numNodes(), 0);
   _empty_cliques.clear();
   _nodes.clear();
+  _window_improvement = 0;
+  _round_improvements.clear();
   for ( const NodeID& u : graph.nodes() ) {
     _nodes.push_back(u);
     const CliqueID from = graph.clique(u);
     ++_clique_weight[from];
+  }
+
+  for ( const NodeID& u : graph.nodes() ) {
+    if ( _clique_weight[u] == 0 ) {
+      _empty_cliques.push_back(u);
+    }
   }
 }
 
