@@ -43,6 +43,10 @@ EdgeWeight FMRefiner<StoppingRule>::refineImpl(Graph& graph) {
   EdgeWeight start_metric = metrics::edits(graph);
   EdgeWeight current_metric = start_metric;
 
+  if ( _context.isTimeLimitReached() ) {
+    return current_metric;
+  }
+
   utils::ProgressBar fm_progress(
     _context.refinement.fm.maximum_fm_iterations, start_metric,
     _context.general.verbose_output && !debug);

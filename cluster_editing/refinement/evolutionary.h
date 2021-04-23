@@ -27,17 +27,12 @@
 #include "cluster_editing/datastructures/fast_reset_flag_array.h"
 #include "cluster_editing/utils/randomize.h"
 #include "cluster_editing/refinement/mutation.h"
+#include "cluster_editing/refinement/action_selector.h"
 
 namespace cluster_editing {
 
 class Evolutionary final : public IRefiner {
  private:
-
-  enum class Action : uint8_t {
-    INTESIVATE = 0,
-    MUTATE = 1,
-    COMBINE = 2
-  };
 
   static constexpr bool debug = false;
 
@@ -46,11 +41,6 @@ class Evolutionary final : public IRefiner {
   struct SolutionStats {
     EdgeWeight edits;
     Solution* solution;
-    bool no_intensivate = false;
-
-    void reset() {
-      no_intensivate = false;
-    }
   };
 
   using Population = std::vector<SolutionStats>;
@@ -65,7 +55,8 @@ class Evolutionary final : public IRefiner {
       static_cast<EdgeWeight>(graph.numEdges()), nullptr}),
     _solutions(context.refinement.evo.solution_pool_size),
     _lp_refiner(graph, _context),
-    _mutator(_context) { }
+    _mutator(_context),
+    _evo_action_selector( { EvoAction::INTESIVATE, EvoAction::MUTATE } ) { }
 
   Evolutionary(const Evolutionary&) = delete;
   Evolutionary(Evolutionary&&) = delete;
@@ -83,28 +74,14 @@ class Evolutionary final : public IRefiner {
 
   void evolutionaryStep(Graph& graph);
 
-  void intensivate(Graph& graph, SolutionStats& stats);
+  EdgeWeight intensivate(Graph& graph, SolutionStats& stats);
 
-  void mutate(Graph& graph, SolutionStats& stats);
+  EdgeWeight mutate(Graph& graph, SolutionStats& stats);
 
   EdgeWeight refineSolution(Graph& graph,
                             const int lp_iterations,
                             const bool use_random_node_order,
                             const bool show_detailed_output);
-
-  Action selectAction(const bool no_intensivate) const {
-    const float p =
-      utils::Randomize::instance().getRandomFloat(
-        ( no_intensivate ? _context.refinement.evo.intensivate_prob : 0.0 ), 1.0);
-    if ( p < _context.refinement.evo.intensivate_prob ) {
-      return Action::INTESIVATE;
-    } else if ( p < _context.refinement.evo.intensivate_prob +
-                    _context.refinement.evo.mutate_prob ) {
-      return Action::MUTATE;
-    } else {
-      return Action::COMBINE;
-    }
-  }
 
   void evictSolution(const Graph& graph,
                      const EdgeWeight edits) {
@@ -112,7 +89,6 @@ class Evolutionary final : public IRefiner {
     const EdgeWeight worst_edits = _population.back().edits;
     if ( edits < worst_edits ) {
       _population.back().edits = edits;
-      _population.back().reset();
       storeSolution(graph, *_population.back().solution);
       if ( _show_detailed_output) {
         LOG << "Evict worst solution in pool with" << worst_edits
@@ -156,5 +132,6 @@ class Evolutionary final : public IRefiner {
   std::vector<Solution> _solutions;
   LabelPropagationRefiner _lp_refiner;
   Mutator _mutator;
+  ActionSelector<EvoAction> _evo_action_selector;
 };
 }  // namespace cluster_editing

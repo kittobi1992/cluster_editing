@@ -29,9 +29,6 @@ std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& para
   str << "    Use Random Node Ordering:    " << std::boolalpha << params.use_random_node_ordering << std::endl;
   str << "    Enable All Mut. After Steps: " << params.enable_all_mutations_after_steps << std::endl;
   str << "    Enabled Mutations:           " << params.enabled_mutations << std::endl;
-  str << "    Intensivate Probability:     " << params.intensivate_prob << std::endl;
-  str << "    Muate Probability:           " << params.mutate_prob << std::endl;
-  str << "    Combine Probability:         " << (1.0 - params.intensivate_prob - params.mutate_prob) << std::endl;
   str << "    Large Clique Threshold:      " << params.large_clique_threshold << std::endl;
   str << "    Min Clique Isolation Prob.:  " << params.min_clique_isolate_prob << std::endl;
   str << "    Max Clique Isolation Prob.:  " << params.max_clique_isolate_prob << std::endl;

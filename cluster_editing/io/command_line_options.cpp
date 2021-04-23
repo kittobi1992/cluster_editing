@@ -93,10 +93,6 @@ namespace cluster_editing {
              "All mutations are automatically enabled after this number of steps")
             ("r-evo-enabled-mutations", po::value<std::string>(&context.refinement.evo.enabled_mutations)->value_name("<string>"),
              "String that indicates which mutations operators are enabled (e.g., 1101)")
-            ("r-evo-intensivate-prob", po::value<float>(&context.refinement.evo.intensivate_prob)->value_name("<float>"),
-             "Probability that random solutions is further refined")
-            ("r-evo-mutate-prob", po::value<float>(&context.refinement.evo.mutate_prob)->value_name("<float>"),
-             "Probability that we apply mutation operator to solution")
             ("r-evo-large-clique-threshold", po::value<size_t>(&context.refinement.evo.large_clique_threshold)->value_name("<size_t>"),
              "All cliques greater than this threshold are considered as large")
             ("r-evo-min-clique-isolation-prob", po::value<float>(&context.refinement.evo.min_clique_isolate_prob)->value_name("<float>"),

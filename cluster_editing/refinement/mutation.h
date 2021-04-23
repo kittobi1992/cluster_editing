@@ -23,6 +23,7 @@
 #include "cluster_editing/context/context.h"
 #include "cluster_editing/definitions.h"
 #include "cluster_editing/utils/randomize.h"
+#include "cluster_editing/refinement/action_selector.h"
 
 namespace cluster_editing {
 
@@ -186,16 +187,6 @@ class RandomNodeMover {
   RandomNodeMover() { }
 };
 
-
-enum class Mutation : uint8_t {
-  LARGE_CLIQUE_ISOLATOR = 0,
-  LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR = 1,
-  RANDOM_NODE_ISOLATOR = 2,
-  RANDOM_NODE_MOVER = 3,
-  NUM_MUTATIONS = 4
-};
-
-
 class Mutator {
 
   struct MutationProbs {
@@ -211,7 +202,7 @@ class Mutator {
     _context(context),
     _show_detailed_output(context.general.verbose_output && context.refinement.evo.enable_detailed_output),
     _probs(),
-    _active_mutations() {
+    _mutation_selector() {
     activateMutations(_context.refinement.evo.enabled_mutations);
     _probs.clique_isolation_prob = _context.refinement.evo.max_clique_isolate_prob;
     _probs.neighbor_clique_isolation_prob = _context.refinement.evo.max_neighbor_clique_isolate_prob;
@@ -220,7 +211,7 @@ class Mutator {
   }
 
   Mutation mutate(Graph& graph) {
-    const Mutation mutation = chooseMutation();
+    const Mutation mutation = _mutation_selector.chooseAction(_show_detailed_output);
     const float prob = chooseMutationProbability(mutation);
     if ( mutation == Mutation::LARGE_CLIQUE_ISOLATOR ) {
       if ( _show_detailed_output )
@@ -274,25 +265,21 @@ class Mutator {
         _context.refinement.evo.min_node_move_prob,
         _context.refinement.evo.max_node_move_prob);
     }
+
+    _mutation_selector.notifyImprovement(mutation, std::max( 0, before_edits - after_edits ));
   }
 
   void activateMutations(const std::string& enabled_mutations) {
-    ASSERT(enabled_mutations.size() == static_cast<size_t>(Mutation::NUM_MUTATIONS));
-    _active_mutations.clear();
+    std::vector<Mutation> active_mutations;
     for ( size_t i = 0; i < enabled_mutations.size(); ++i ) {
       if ( enabled_mutations[i] == '1' ) {
-        _active_mutations.push_back(static_cast<Mutation>(i));
+        active_mutations.push_back(static_cast<Mutation>(i));
       }
     }
+    _mutation_selector.initializeActions(active_mutations);
   }
 
  private:
-  Mutation chooseMutation() const {
-    const int rnd_mutation = utils::Randomize::instance().getRandomInt(
-      0, _active_mutations.size() - 1);
-    return _active_mutations[rnd_mutation];
-  }
-
   float chooseMutationProbability(const Mutation& mutation) {
     const bool select_random_probability =
       utils::Randomize::instance().getRandomFloat(0.0, 1.0) <=
@@ -337,7 +324,7 @@ class Mutator {
   const Context& _context;
   const bool _show_detailed_output;
   MutationProbs _probs;
-  std::vector<Mutation> _active_mutations;
+  ActionSelector<Mutation> _mutation_selector;
 };
 
 }  // namespace cluster_editing

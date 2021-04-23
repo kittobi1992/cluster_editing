@@ -18,6 +18,10 @@ void Evolutionary::initializeImpl(Graph& graph) {
 EdgeWeight Evolutionary::refineImpl(Graph& graph) {
   utils::Timer::instance().start_timer("evolutionary", "Evolutionary");
 
+  if ( _context.isTimeLimitReached() ) {
+    return 0;
+  }
+
   // Create Initial Population
   utils::Timer::instance().start_timer("initial_population", "Create Initial Population");
   createInitialPopulation(graph);
@@ -59,7 +63,6 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph) {
 
 void Evolutionary::createInitialPopulation(Graph& graph) {
   for ( int i = 0; i < _context.refinement.evo.solution_pool_size; ++i ) {
-    graph.reset();
     _population[i].edits = refineSolution(graph,
       _context.refinement.evo.initial_lp_iterations, true,
       _context.general.verbose_output);
@@ -80,20 +83,20 @@ void Evolutionary::evolutionaryStep(Graph& graph) {
   // Pick random solution
   int i = utils::Randomize::instance().getRandomInt(0, _population.size() - 1);
   applySolution(graph, *_population[i].solution);
-  const Action action = selectAction(_population[i].no_intensivate);
+  const EvoAction action = _evo_action_selector.chooseAction(_show_detailed_output);
 
-  if ( action == Action::INTESIVATE ) {
+  EdgeWeight delta = 0;
+  if ( action == EvoAction::INTESIVATE ) {
     if ( _show_detailed_output ) LOG << "Evolutionary Action: INTENSIVATE";
-    intensivate(graph, _population[i]);
-  } else if ( action == Action::MUTATE ) {
+    delta = intensivate(graph, _population[i]);
+  } else if ( action == EvoAction::MUTATE ) {
     if ( _show_detailed_output ) LOG << "Evolutionary Action: MUTATE";
-    mutate(graph, _population[i]);
-  } else if ( action == Action::COMBINE ) {
-    if ( _show_detailed_output ) LOG << "Evolutionary Action: COMBINE";
+    delta = mutate(graph, _population[i]);
   }
+  _evo_action_selector.notifyImprovement(action, delta);
 }
 
-void Evolutionary::intensivate(Graph& graph, SolutionStats& stats) {
+EdgeWeight Evolutionary::intensivate(Graph& graph, SolutionStats& stats) {
   // Refine
   const EdgeWeight initial_edits = stats.edits;
   stats.edits = refineSolution(graph,
@@ -102,19 +105,17 @@ void Evolutionary::intensivate(Graph& graph, SolutionStats& stats) {
     _show_detailed_output);
   storeSolution(graph, *stats.solution);
   if ( stats.edits < initial_edits ) {
-    stats.reset();
     if ( _show_detailed_output ) {
       LOG << GREEN << "INTENSIVATE: Improve solution from"
           << initial_edits << "to" << stats.edits
           << "( Delta: " << (stats.edits - initial_edits)
           << ")" << END;
     }
-  } else {
-    stats.no_intensivate = true;
   }
+  return std::max(0, initial_edits - stats.edits);
 }
 
-void Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
+EdgeWeight Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
   const EdgeWeight initial_edits = stats.edits;
 
   // Mutate
@@ -145,6 +146,7 @@ void Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
         << initial_edits << ", After: " << edits << ", Delta:"
         << (edits - initial_edits) << ")" << END;
   }
+  return std::max(0, initial_edits - edits);
 }
 
 EdgeWeight Evolutionary::refineSolution(Graph& graph,
