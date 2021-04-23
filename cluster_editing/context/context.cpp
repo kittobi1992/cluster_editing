@@ -27,15 +27,21 @@ std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& para
   str << "    Intensivate LP Iterations:   " << params.intensivate_lp_iterations << std::endl;
   str << "    LP Iterations After Mutate:  " << params.lp_iterations_after_mutate << std::endl;
   str << "    Use Random Node Ordering:    " << std::boolalpha << params.use_random_node_ordering << std::endl;
+  str << "    Enable All Mut. After Steps: " << params.enable_all_mutations_after_steps << std::endl;
   str << "    Enabled Mutations:           " << params.enabled_mutations << std::endl;
   str << "    Intensivate Probability:     " << params.intensivate_prob << std::endl;
   str << "    Muate Probability:           " << params.mutate_prob << std::endl;
   str << "    Combine Probability:         " << (1.0 - params.intensivate_prob - params.mutate_prob) << std::endl;
   str << "    Large Clique Threshold:      " << params.large_clique_threshold << std::endl;
-  str << "    Clique Isolation Prob.:      " << params.clique_isolate_prob << std::endl;
-  str << "    Neigh.Clique Isolation Prob: " << params.neighbor_clique_isolate_prob << std::endl;
-  str << "    Node Isolation Prob.:        " << params.node_isolation_prob << std::endl;
-  str << "    Node Move Prob.:             " << params.node_move_prob << std::endl;
+  str << "    Min Clique Isolation Prob.:  " << params.min_clique_isolate_prob << std::endl;
+  str << "    Max Clique Isolation Prob.:  " << params.max_clique_isolate_prob << std::endl;
+  str << "    Min NeighClique Isolation P: " << params.min_neighbor_clique_isolate_prob << std::endl;
+  str << "    Max NeighClique Isolation P: " << params.max_neighbor_clique_isolate_prob << std::endl;
+  str << "    Min Node Isolation Prob.:    " << params.min_node_isolation_prob << std::endl;
+  str << "    Max Node Isolation Prob.:    " << params.max_node_isolation_prob << std::endl;
+  str << "    Min Node Move Prob.:         " << params.min_node_move_prob << std::endl;
+  str << "    Max Node Move Prob.:         " << params.max_node_move_prob << std::endl;
+  str << "    Random Prob Selection Prob.: " << params.random_prob_selection_prob << std::endl;
   return str;
 }
 

@@ -26,6 +26,7 @@
 #include "cluster_editing/datastructures/sparse_map.h"
 #include "cluster_editing/datastructures/fast_reset_flag_array.h"
 #include "cluster_editing/utils/randomize.h"
+#include "cluster_editing/refinement/mutation.h"
 
 namespace cluster_editing {
 
@@ -36,14 +37,6 @@ class Evolutionary final : public IRefiner {
     INTESIVATE = 0,
     MUTATE = 1,
     COMBINE = 2
-  };
-
-  enum class Mutation : uint8_t {
-    LARGE_CLIQUE_ISOLATOR = 0,
-    LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR = 1,
-    RANDOM_NODE_ISOLATOR = 2,
-    RANDOM_NODE_MOVER = 3,
-    NUM_MUTATIONS = 4
   };
 
   static constexpr bool debug = false;
@@ -72,15 +65,7 @@ class Evolutionary final : public IRefiner {
       static_cast<EdgeWeight>(graph.numEdges()), nullptr}),
     _solutions(context.refinement.evo.solution_pool_size),
     _lp_refiner(graph, _context),
-    _active_mutations() {
-    ASSERT(_context.refinement.evo.enabled_mutations.size() ==
-           static_cast<size_t>(Mutation::NUM_MUTATIONS));
-    for ( size_t i = 0; i < _context.refinement.evo.enabled_mutations.size(); ++i ) {
-      if ( _context.refinement.evo.enabled_mutations[i] == '1' ) {
-        _active_mutations.push_back(static_cast<Mutation>(i));
-      }
-    }
-  }
+    _mutator(_context) { }
 
   Evolutionary(const Evolutionary&) = delete;
   Evolutionary(Evolutionary&&) = delete;
@@ -170,6 +155,6 @@ class Evolutionary final : public IRefiner {
   Population _population;
   std::vector<Solution> _solutions;
   LabelPropagationRefiner _lp_refiner;
-  std::vector<Mutation> _active_mutations;
+  Mutator _mutator;
 };
 }  // namespace cluster_editing

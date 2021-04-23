@@ -89,6 +89,8 @@ namespace cluster_editing {
              "Number of LP iterations after mutate operation in evolutionary algorithm")
             ("r-evo-lp-use-random-node-ordering", po::value<bool>(&context.refinement.evo.use_random_node_ordering)->value_name("<bool>"),
              "If true, then we choose a random node order in LP refiner")
+            ("r-evo-enable-all-mutations-after-step", po::value<int>(&context.refinement.evo.enable_all_mutations_after_steps)->value_name("<int>"),
+             "All mutations are automatically enabled after this number of steps")
             ("r-evo-enabled-mutations", po::value<std::string>(&context.refinement.evo.enabled_mutations)->value_name("<string>"),
              "String that indicates which mutations operators are enabled (e.g., 1101)")
             ("r-evo-intensivate-prob", po::value<float>(&context.refinement.evo.intensivate_prob)->value_name("<float>"),
@@ -97,14 +99,24 @@ namespace cluster_editing {
              "Probability that we apply mutation operator to solution")
             ("r-evo-large-clique-threshold", po::value<size_t>(&context.refinement.evo.large_clique_threshold)->value_name("<size_t>"),
              "All cliques greater than this threshold are considered as large")
-            ("r-evo-clique-isolation-prob", po::value<float>(&context.refinement.evo.clique_isolate_prob)->value_name("<float>"),
-             "Probability for mutation operator that isolate cliques")
-            ("r-evo-neighbor-clique-isolation-prob", po::value<float>(&context.refinement.evo.neighbor_clique_isolate_prob)->value_name("<float>"),
-             "Probability for mutation operator that isolate cliques with neighbors")
-            ("r-evo-node-isolation-prob", po::value<float>(&context.refinement.evo.node_isolation_prob)->value_name("<float>"),
-             "Probability for mutation operator to isolate a node")
-            ("r-evo-node-move-prob", po::value<float>(&context.refinement.evo.node_move_prob)->value_name("<float>"),
-             "Probability for mutation operator to move a node")
+            ("r-evo-min-clique-isolation-prob", po::value<float>(&context.refinement.evo.min_clique_isolate_prob)->value_name("<float>"),
+             "Minimum probability for mutation operator that isolate cliques")
+            ("r-evo-min-neighbor-clique-isolation-prob", po::value<float>(&context.refinement.evo.min_neighbor_clique_isolate_prob)->value_name("<float>"),
+             "Minimum probability for mutation operator that isolate cliques with neighbors")
+            ("r-evo-min-node-isolation-prob", po::value<float>(&context.refinement.evo.min_node_isolation_prob)->value_name("<float>"),
+             "Minimum probability for mutation operator to isolate a node")
+            ("r-evo-min-node-move-prob", po::value<float>(&context.refinement.evo.min_node_move_prob)->value_name("<float>"),
+             "Minimum probability for mutation operator to move a node")
+            ("r-evo-max-clique-isolation-prob", po::value<float>(&context.refinement.evo.max_clique_isolate_prob)->value_name("<float>"),
+             "Maximum probability for mutation operator that isolate cliques")
+            ("r-evo-max-neighbor-clique-isolation-prob", po::value<float>(&context.refinement.evo.max_neighbor_clique_isolate_prob)->value_name("<float>"),
+             "Maximum probability for mutation operator that isolate cliques with neighbors")
+            ("r-evo-max-node-isolation-prob", po::value<float>(&context.refinement.evo.max_node_isolation_prob)->value_name("<float>"),
+             "Maximum probability for mutation operator to isolate a node")
+            ("r-evo-max-node-move-prob", po::value<float>(&context.refinement.evo.max_node_move_prob)->value_name("<float>"),
+             "Maximum probability for mutation operator to move a node")
+            ("r-evo-random-prob-selection-prob", po::value<float>(&context.refinement.evo.random_prob_selection_prob)->value_name("<float>"),
+             "Probability to select a random probability for mutation probability")
             ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
              "Maximum iterations made by the label propagation refiner")
             ("r-maximum-fm-iterations", po::value<int>(&context.refinement.fm.maximum_fm_iterations)->value_name("<int>"),

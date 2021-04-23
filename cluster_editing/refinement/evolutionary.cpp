@@ -4,7 +4,6 @@
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/utils/progress_bar.h"
 #include "cluster_editing/metrics.h"
-#include "cluster_editing/refinement/mutation.h"
 
 namespace cluster_editing {
 
@@ -34,6 +33,12 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph) {
       sortSolutions();
       evo_progress.setObjective(_population[0].edits);
       evo_progress += 1;
+    }
+
+    if ( i == _context.refinement.evo.enable_all_mutations_after_steps ) {
+      const std::string enable_all_mutations(
+        static_cast<int>(Mutation::NUM_MUTATIONS), '1');
+      _mutator.activateMutations(enable_all_mutations);
     }
 
     if ( _context.isTimeLimitReached() ) {
@@ -110,29 +115,10 @@ void Evolutionary::intensivate(Graph& graph, SolutionStats& stats) {
 }
 
 void Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
-  // Mutate
   const EdgeWeight initial_edits = stats.edits;
-  const int rnd_mutation = utils::Randomize::instance().getRandomInt(
-    0, _active_mutations.size() - 1);
-  const Mutation mutation = _active_mutations[rnd_mutation];
-  if ( mutation == Mutation::LARGE_CLIQUE_ISOLATOR ) {
-    if ( _show_detailed_output )
-      LOG << "Mutation Action: LARGE_CLIQUE_ISOLATOR";
-    LargeCliqueIsolator::mutate(graph, _context);
-  } else if ( mutation == Mutation::LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR ) {
-    if ( _show_detailed_output )
-      LOG << "Mutation Action: LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR";
-    LargeCliqueWithNeighborIsolator::mutate(graph, _context);
-  } else if ( mutation == Mutation::RANDOM_NODE_ISOLATOR ) {
-    if ( _show_detailed_output )
-      LOG << "Mutation Action: RANDOM_NODE_ISOLATOR";
-    RandomNodeIsolator::mutate(graph, _context);
-  } else if ( mutation == Mutation::RANDOM_NODE_MOVER ) {
-    if ( _show_detailed_output )
-      LOG << "Mutation Action: RANDOM_NODE_MOVER";
-    RandomNodeMover::mutate(graph, _context);
-  }
 
+  // Mutate
+  const Mutation mutation = _mutator.mutate(graph);
   if ( _show_detailed_output ) {
     const EdgeWeight mutate_edits = metrics::edits(graph);
     LOG << "Mutation changed solution from" << initial_edits
@@ -146,6 +132,7 @@ void Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
     _context.refinement.evo.lp_iterations_after_mutate,
     _context.refinement.evo.use_random_node_ordering,
     _show_detailed_output);
+  _mutator.updateProbs(mutation, initial_edits, edits);
   if ( edits < initial_edits ) {
     if ( _show_detailed_output ) {
       LOG << GREEN << "MUTATE: Improved solution quality from"
