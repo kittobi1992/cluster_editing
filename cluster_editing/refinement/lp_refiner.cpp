@@ -48,6 +48,10 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
     _context.refinement.lp.maximum_lp_iterations, start_metric,
     _context.general.verbose_output && !debug);
 
+  if ( _context.isTimeLimitReached() ) {
+    return current_metric;
+  }
+
   if ( _context.refinement.lp.node_order == NodeOrdering::random_shuffle ) {
     utils::Randomize::instance().shuffleVector(_nodes, _nodes.size());
   } else if ( _context.refinement.lp.node_order == NodeOrdering::degree_increasing ) {
@@ -114,6 +118,10 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
       if ( _window_improvement <= _context.refinement.lp.min_improvement ) {
         break;
       }
+    }
+
+    if ( _context.isTimeLimitReached() ) {
+      break;
     }
   }
   lp_progress += (_context.refinement.lp.maximum_lp_iterations - lp_progress.count());

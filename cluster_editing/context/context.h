@@ -3,6 +3,7 @@
 #include <string>
 #include <limits>
 
+#include "cluster_editing/definitions.h"
 #include "context_enum_classes.h"
 
 namespace cluster_editing {
@@ -17,22 +18,32 @@ struct GeneralParameters {
   int seed = 0;
   int num_repititions = 0;
   int num_fruitless_repititions = 0;
+  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  double time_limit = 0.0;
 };
 
 std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);
 
 struct EvolutionaryParameters {
+  bool enable_detailed_output = false;
   int solution_pool_size = 0;
   int evolutionary_steps = 0;
-  int lp_iterations = 0;
+  int initial_lp_iterations = 0;
+  int intensivate_lp_iterations = 0;
   int lp_iterations_after_mutate = 0;
-  float intensivate_prob = 0.0;
-  float mutate_prob = 0.0;
+  bool use_random_node_ordering = true;
+  int enable_all_mutations_after_steps = 0;
+  std::string enabled_mutations = "0000";
   size_t large_clique_threshold = 0;
-  float clique_isolate_prob = 0.0;
-  float neighbor_clique_isolate_prob = 0.0;
-  float node_isolation_prob = 0.0;
-  float node_move_prob = 0.0;
+  float min_clique_isolate_prob = 0.0;
+  float max_clique_isolate_prob = 0.0;
+  float min_neighbor_clique_isolate_prob = 0.0;
+  float max_neighbor_clique_isolate_prob = 0.0;
+  float min_node_isolation_prob = 0.0;
+  float max_node_isolation_prob = 0.0;
+  float min_node_move_prob = 0.0;
+  float max_node_move_prob = 0.0;
+  float random_prob_selection_prob = 0.0;
 };
 
 std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& params);
@@ -78,6 +89,12 @@ class Context {
   Context() { }
 
   void computeParameters(const int num_nodes);
+
+  bool isTimeLimitReached() const {
+    HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed_seconds(end - general.start);
+    return elapsed_seconds.count() > general.time_limit;
+  }
 };
 
 std::ostream & operator<< (std::ostream& str, const Context& params);

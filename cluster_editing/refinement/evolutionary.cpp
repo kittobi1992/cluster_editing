@@ -4,7 +4,6 @@
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/utils/progress_bar.h"
 #include "cluster_editing/metrics.h"
-#include "cluster_editing/refinement/mutation.h"
 
 namespace cluster_editing {
 
@@ -19,16 +18,39 @@ void Evolutionary::initializeImpl(Graph& graph) {
 EdgeWeight Evolutionary::refineImpl(Graph& graph) {
   utils::Timer::instance().start_timer("evolutionary", "Evolutionary");
 
+  if ( _context.isTimeLimitReached() ) {
+    return 0;
+  }
+
   // Create Initial Population
   utils::Timer::instance().start_timer("initial_population", "Create Initial Population");
   createInitialPopulation(graph);
   utils::Timer::instance().stop_timer("initial_population");
 
+  utils::ProgressBar evo_progress(
+    _context.refinement.evo.evolutionary_steps, metrics::edits(graph),
+    _context.general.verbose_output && !debug && !_context.refinement.evo.enable_detailed_output);
   utils::Timer::instance().start_timer("evo_steps", "Evolutionary Steps");
   for ( int i = 0; i < _context.refinement.evo.evolutionary_steps; ++i ) {
     evolutionaryStep(graph);
+    if ( evo_progress.isEnabled() ) {
+      sortSolutions();
+      evo_progress.setObjective(_population[0].edits);
+      evo_progress += 1;
+    }
+
+    if ( i == _context.refinement.evo.enable_all_mutations_after_steps ) {
+      const std::string enable_all_mutations(
+        static_cast<int>(Mutation::NUM_MUTATIONS), '1');
+      _mutator.activateMutations(enable_all_mutations);
+    }
+
+    if ( _context.isTimeLimitReached() ) {
+      break;
+    }
   }
   utils::Timer::instance().stop_timer("evo_steps");
+  evo_progress += (_context.refinement.evo.evolutionary_steps - evo_progress.count());
 
   // Apply best solution to graph
   sortSolutions();
@@ -41,13 +63,14 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph) {
 
 void Evolutionary::createInitialPopulation(Graph& graph) {
   for ( int i = 0; i < _context.refinement.evo.solution_pool_size; ++i ) {
-    graph.reset();
-    _population[i].edits = refineSolution(graph);
+    _population[i].edits = refineSolution(graph,
+      _context.refinement.evo.initial_lp_iterations, true,
+      _context.general.verbose_output);
     storeSolution(graph, *_population[i].solution);
   }
   sortSolutions();
 
-  if ( _context.general.verbose_output ) {
+  if ( _show_detailed_output ) {
     std::cout << "Create Initial Solution Pool:";
     for ( size_t i = 0; i < _population.size(); ++i ) {
       std::cout << " " << _population[i].edits;
@@ -60,76 +83,44 @@ void Evolutionary::evolutionaryStep(Graph& graph) {
   // Pick random solution
   int i = utils::Randomize::instance().getRandomInt(0, _population.size() - 1);
   applySolution(graph, *_population[i].solution);
-  const Action action = selectAction(_population[i].no_intensivate);
+  const EvoAction action = _evo_action_selector.chooseAction(_show_detailed_output);
 
-  if ( action == Action::INTESIVATE ) {
-    if ( _context.general.verbose_output ) LOG << "Evolutionary Action: INTENSIVATE";
-    intensivate(graph, _population[i]);
-  } else if ( action == Action::MUTATE ) {
-    if ( _context.general.verbose_output ) LOG << "Evolutionary Action: MUTATE";
-    mutate(graph, _population[i]);
-  } else if ( action == Action::COMBINE ) {
-    if ( _context.general.verbose_output ) LOG << "Evolutionary Action: COMBINE";
+  EdgeWeight delta = 0;
+  if ( action == EvoAction::INTESIVATE ) {
+    if ( _show_detailed_output ) LOG << "Evolutionary Action: INTENSIVATE";
+    delta = intensivate(graph, _population[i]);
+  } else if ( action == EvoAction::MUTATE ) {
+    if ( _show_detailed_output ) LOG << "Evolutionary Action: MUTATE";
+    delta = mutate(graph, _population[i]);
   }
+  _evo_action_selector.notifyImprovement(action, delta);
 }
 
-void Evolutionary::intensivate(Graph& graph, SolutionStats& stats) {
+EdgeWeight Evolutionary::intensivate(Graph& graph, SolutionStats& stats) {
   // Refine
   const EdgeWeight initial_edits = stats.edits;
-  _context.refinement.lp.maximum_lp_iterations =
-    _context.refinement.evo.lp_iterations;
-  stats.edits = refineSolution(graph);
+  stats.edits = refineSolution(graph,
+    _context.refinement.evo.intensivate_lp_iterations,
+    _context.refinement.evo.use_random_node_ordering,
+    _show_detailed_output);
   storeSolution(graph, *stats.solution);
   if ( stats.edits < initial_edits ) {
-    stats.reset();
-    if ( _context.general.verbose_output ) {
+    if ( _show_detailed_output ) {
       LOG << GREEN << "INTENSIVATE: Improve solution from"
           << initial_edits << "to" << stats.edits
           << "( Delta: " << (stats.edits - initial_edits)
           << ")" << END;
     }
-  } else {
-    stats.no_intensivate = true;
   }
+  return std::max(0, initial_edits - stats.edits);
 }
 
-namespace {
-
-enum class Mutation : uint8_t {
-  LARGE_CLIQUE_ISOLATOR = 0,
-  LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR = 1,
-  RANDOM_NODE_ISOLATOR = 2,
-  RANDOM_NODE_MOVER = 3,
-  NUM_MUTATIONS = 4
-};
-
-} // namespace
-
-void Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
-  // Mutate
+EdgeWeight Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
   const EdgeWeight initial_edits = stats.edits;
-  const Mutation mutation = static_cast<Mutation>(
-    utils::Randomize::instance().getRandomInt(0,
-      static_cast<int>(Mutation::NUM_MUTATIONS) - 1));
-  if ( mutation == Mutation::LARGE_CLIQUE_ISOLATOR ) {
-    if ( _context.general.verbose_output )
-      LOG << "Mutation Action: LARGE_CLIQUE_ISOLATOR";
-    LargeCliqueIsolator::mutate(graph, _context);
-  } else if ( mutation == Mutation::LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR ) {
-    if ( _context.general.verbose_output )
-      LOG << "Mutation Action: LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR";
-    LargeCliqueWithNeighborIsolator::mutate(graph, _context);
-  } else if ( mutation == Mutation::RANDOM_NODE_ISOLATOR ) {
-    if ( _context.general.verbose_output )
-      LOG << "Mutation Action: RANDOM_NODE_ISOLATOR";
-    RandomNodeIsolator::mutate(graph, _context);
-  } else if ( mutation == Mutation::RANDOM_NODE_MOVER ) {
-    if ( _context.general.verbose_output )
-      LOG << "Mutation Action: RANDOM_NODE_MOVER";
-    RandomNodeMover::mutate(graph, _context);
-  }
 
-  if ( _context.general.verbose_output ) {
+  // Mutate
+  const Mutation mutation = _mutator.mutate(graph);
+  if ( _show_detailed_output ) {
     const EdgeWeight mutate_edits = metrics::edits(graph);
     LOG << "Mutation changed solution from" << initial_edits
         << "to" << mutate_edits << "edits";
@@ -138,27 +129,43 @@ void Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
   // Refine
   _context.refinement.lp.maximum_lp_iterations =
     _context.refinement.evo.lp_iterations_after_mutate;
-  const EdgeWeight edits = refineSolution(graph);
+  const EdgeWeight edits = refineSolution(graph,
+    _context.refinement.evo.lp_iterations_after_mutate,
+    _context.refinement.evo.use_random_node_ordering,
+    _show_detailed_output);
+  _mutator.updateProbs(mutation, initial_edits, edits);
   if ( edits < initial_edits ) {
-    if ( _context.general.verbose_output ) {
+    if ( _show_detailed_output ) {
       LOG << GREEN << "MUTATE: Improved solution quality from"
           << initial_edits << "to" << edits << "( Delta:"
           << (edits - initial_edits) << ")" << END;
     }
     evictSolution(graph, edits);
-  } else if ( _context.general.verbose_output ) {
+  } else if ( _show_detailed_output && edits > initial_edits ) {
     LOG << RED << "MUTATE: Worsen solution quality (Initial:"
         << initial_edits << ", After: " << edits << ", Delta:"
         << (edits - initial_edits) << ")" << END;
   }
+  return std::max(0, initial_edits - edits);
 }
 
-EdgeWeight Evolutionary::refineSolution(Graph& graph) {
+EdgeWeight Evolutionary::refineSolution(Graph& graph,
+                                        const int lp_iterations,
+                                        const bool use_random_node_order,
+                                        const bool show_detailed_output) {
   _lp_refiner.initialize(graph);
   // Choose some random node ordering for LP refiner
-  _context.refinement.lp.node_order =
-    static_cast<NodeOrdering>(utils::Randomize::instance().getRandomInt(0, 3));
-  return _lp_refiner.refine(graph);
+  _context.refinement.lp.maximum_lp_iterations = lp_iterations;
+  if ( use_random_node_order ) {
+    _context.refinement.lp.node_order =
+      static_cast<NodeOrdering>(utils::Randomize::instance().getRandomInt(0, 3));
+    } else {
+    _context.refinement.lp.node_order = _original_context.refinement.lp.node_order;
+  }
+  _context.general.verbose_output = show_detailed_output;
+  const EdgeWeight edits = _lp_refiner.refine(graph);
+  _context.general.verbose_output = _original_context.general.verbose_output;
+  return edits;
 }
 
 } // namespace cluster_editing
