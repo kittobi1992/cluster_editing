@@ -19,10 +19,14 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params) {
 
 std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& params) {
   str << "\n  Evolutionary Parameters:" << std::endl;
+  str << "    Enable Detailed Output:      " << std::boolalpha << params.enable_detailed_output << std::endl;
   str << "    Solution Pool Size:          " << params.solution_pool_size << std::endl;
   str << "    Evolutionary Steps:          " << params.evolutionary_steps << std::endl;
-  str << "    LP Iterations:               " << params.lp_iterations << std::endl;
+  str << "    Initial LP Iterations:       " << params.initial_lp_iterations << std::endl;
+  str << "    Intensivate LP Iterations:   " << params.intensivate_lp_iterations << std::endl;
   str << "    LP Iterations After Mutate:  " << params.lp_iterations_after_mutate << std::endl;
+  str << "    Use Random Node Ordering:    " << std::boolalpha << params.use_random_node_ordering << std::endl;
+  str << "    Enabled Mutations:           " << params.enabled_mutations << std::endl;
   str << "    Intensivate Probability:     " << params.intensivate_prob << std::endl;
   str << "    Muate Probability:           " << params.mutate_prob << std::endl;
   str << "    Combine Probability:         " << (1.0 - params.intensivate_prob - params.mutate_prob) << std::endl;

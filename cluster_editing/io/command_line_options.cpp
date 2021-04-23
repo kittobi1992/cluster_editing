@@ -73,14 +73,22 @@ namespace cluster_editing {
              "If true, then Boundary FM is used to improve quality.")
             ("r-use-localized-fm-refiner", po::value<bool>(&context.refinement.use_localized_fm_refiner)->value_name("<bool>")->default_value(false),
              "If true, then Localized FM is used to improve quality.")
+            ("r-evo-enable-detailed-output", po::value<bool>(&context.refinement.evo.enable_detailed_output)->value_name("<bool>"),
+             "If true, then detailed output is shown in evolutionary algorithm")
             ("r-evo-pool-size", po::value<int>(&context.refinement.evo.solution_pool_size)->value_name("<int>"),
              "Number of different solution in evolutionary algorithm")
             ("r-evo-steps", po::value<int>(&context.refinement.evo.evolutionary_steps)->value_name("<int>"),
              "Steps made by evolutionary algorithm")
-            ("r-evo-lp-iterations", po::value<int>(&context.refinement.evo.lp_iterations)->value_name("<int>"),
-             "Number of LP iterations in evolutionary algorithm")
+            ("r-evo-initial-lp-iterations", po::value<int>(&context.refinement.evo.initial_lp_iterations)->value_name("<int>"),
+             "Number of LP iterations for initial solution in evolutionary algorithm")
+            ("r-evo-intensivate-lp-iterations", po::value<int>(&context.refinement.evo.intensivate_lp_iterations)->value_name("<int>"),
+             "Number of LP iterations for intensivate operation in evolutionary algorithm")
             ("r-evo-lp-iterations-after-mutate", po::value<int>(&context.refinement.evo.lp_iterations_after_mutate)->value_name("<int>"),
              "Number of LP iterations after mutate operation in evolutionary algorithm")
+            ("r-evo-lp-use-random-node-ordering", po::value<bool>(&context.refinement.evo.use_random_node_ordering)->value_name("<bool>"),
+             "If true, then we choose a random node order in LP refiner")
+            ("r-evo-enabled-mutations", po::value<std::string>(&context.refinement.evo.enabled_mutations)->value_name("<string>"),
+             "String that indicates which mutations operators are enabled (e.g., 1101)")
             ("r-evo-intensivate-prob", po::value<float>(&context.refinement.evo.intensivate_prob)->value_name("<float>"),
              "Probability that random solutions is further refined")
             ("r-evo-mutate-prob", po::value<float>(&context.refinement.evo.mutate_prob)->value_name("<float>"),

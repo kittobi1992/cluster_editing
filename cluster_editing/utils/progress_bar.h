@@ -69,6 +69,10 @@ class ProgressBar {
     _enable = false;
   }
 
+  bool isEnabled() const {
+    return _enable;
+  }
+
   size_t count() const {
     return _count.load();
   }

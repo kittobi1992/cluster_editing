@@ -38,6 +38,14 @@ class Evolutionary final : public IRefiner {
     COMBINE = 2
   };
 
+  enum class Mutation : uint8_t {
+    LARGE_CLIQUE_ISOLATOR = 0,
+    LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR = 1,
+    RANDOM_NODE_ISOLATOR = 2,
+    RANDOM_NODE_MOVER = 3,
+    NUM_MUTATIONS = 4
+  };
+
   static constexpr bool debug = false;
 
   using Solution = std::vector<CliqueID>;
@@ -58,12 +66,20 @@ class Evolutionary final : public IRefiner {
   explicit Evolutionary(const Graph& graph,
                         const Context& context) :
     _context(context),
+    _original_context(context),
+    _show_detailed_output(context.general.verbose_output && context.refinement.evo.enable_detailed_output),
     _population(context.refinement.evo.solution_pool_size, SolutionStats {
       static_cast<EdgeWeight>(graph.numEdges()), nullptr}),
     _solutions(context.refinement.evo.solution_pool_size),
-    _lp_refiner(graph, _context) {
-    _context.refinement.lp.maximum_lp_iterations =
-      _context.refinement.evo.lp_iterations;
+    _lp_refiner(graph, _context),
+    _active_mutations() {
+    ASSERT(_context.refinement.evo.enabled_mutations.size() ==
+           static_cast<size_t>(Mutation::NUM_MUTATIONS));
+    for ( size_t i = 0; i < _context.refinement.evo.enabled_mutations.size(); ++i ) {
+      if ( _context.refinement.evo.enabled_mutations[i] == '1' ) {
+        _active_mutations.push_back(static_cast<Mutation>(i));
+      }
+    }
   }
 
   Evolutionary(const Evolutionary&) = delete;
@@ -86,7 +102,10 @@ class Evolutionary final : public IRefiner {
 
   void mutate(Graph& graph, SolutionStats& stats);
 
-  EdgeWeight refineSolution(Graph& graph);
+  EdgeWeight refineSolution(Graph& graph,
+                            const int lp_iterations,
+                            const bool use_random_node_order,
+                            const bool show_detailed_output);
 
   Action selectAction(const bool no_intensivate) const {
     const float p =
@@ -110,11 +129,11 @@ class Evolutionary final : public IRefiner {
       _population.back().edits = edits;
       _population.back().reset();
       storeSolution(graph, *_population.back().solution);
-      if ( _context.general.verbose_output ) {
+      if ( _show_detailed_output) {
         LOG << "Evict worst solution in pool with" << worst_edits
             << "edits and store new solution with" << edits << "edits";
       }
-    } else if (_context.general.verbose_output) {
+    } else if ( _show_detailed_output ) {
       LOG << "New solution with" << edits << "edits is not"
           << "better than worst solution in the pool with"
           << worst_edits << "edits";
@@ -146,8 +165,11 @@ class Evolutionary final : public IRefiner {
   }
 
   Context _context;
+  const Context& _original_context;
+  const bool _show_detailed_output;
   Population _population;
   std::vector<Solution> _solutions;
   LabelPropagationRefiner _lp_refiner;
+  std::vector<Mutation> _active_mutations;
 };
 }  // namespace cluster_editing

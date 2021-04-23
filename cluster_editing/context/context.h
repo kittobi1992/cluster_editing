@@ -22,10 +22,14 @@ struct GeneralParameters {
 std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);
 
 struct EvolutionaryParameters {
+  bool enable_detailed_output = false;
   int solution_pool_size = 0;
   int evolutionary_steps = 0;
-  int lp_iterations = 0;
+  int initial_lp_iterations = 0;
+  int intensivate_lp_iterations = 0;
   int lp_iterations_after_mutate = 0;
+  bool use_random_node_ordering = true;
+  std::string enabled_mutations = "0000";
   float intensivate_prob = 0.0;
   float mutate_prob = 0.0;
   size_t large_clique_threshold = 0;
