@@ -97,24 +97,33 @@ int main() {
   context.general.seed = 2;
   context.general.num_repititions = 1;
   context.general.num_fruitless_repititions = 10;
+  context.general.time_limit = 570; // 9 min and 30 secs
   utils::Randomize::instance().setSeed(context.general.seed);
 
   // Evolutionary Options
   context.refinement.use_evo = true;
-  context.refinement.evo.solution_pool_size = 3;
+  context.refinement.evo.enable_detailed_output = true;
+  context.refinement.evo.solution_pool_size = 1;
   context.refinement.evo.evolutionary_steps = 1000;
-  context.refinement.evo.lp_iterations = 25;
+  context.refinement.evo.initial_lp_iterations = 100;
+  context.refinement.evo.intensivate_lp_iterations = 25;
   context.refinement.evo.lp_iterations_after_mutate = 50;
-  context.refinement.evo.intensivate_prob = 0.25;
-  context.refinement.evo.mutate_prob = 0.75;
+  context.refinement.evo.use_random_node_ordering = false;
+  context.refinement.evo.enable_all_mutations_after_steps = 500;
+  context.refinement.evo.enabled_mutations = "0011";
   context.refinement.evo.large_clique_threshold = 3;
-  context.refinement.evo.clique_isolate_prob = 0.01;
-  context.refinement.evo.neighbor_clique_isolate_prob = 0.0001;
-  context.refinement.evo.node_isolation_prob = 0.01;
-  context.refinement.evo.node_move_prob = 0.01;
+  context.refinement.evo.min_clique_isolate_prob = 0.01;
+  context.refinement.evo.max_clique_isolate_prob = 0.1;
+  context.refinement.evo.min_neighbor_clique_isolate_prob = 0.0001;
+  context.refinement.evo.max_neighbor_clique_isolate_prob = 0.01;
+  context.refinement.evo.min_node_isolation_prob = 0.01;
+  context.refinement.evo.max_node_isolation_prob = 0.25;
+  context.refinement.evo.min_node_move_prob = 0.01;
+  context.refinement.evo.max_node_move_prob = 0.25;
+  context.refinement.evo.random_prob_selection_prob = 0.25;
 
   // LP Refiner Options
-  context.refinement.use_lp_refiner = true;
+  context.refinement.use_lp_refiner = false;
   context.refinement.lp.maximum_lp_iterations = 1000;
   context.refinement.lp.random_shuffle_each_round = false;
   context.refinement.lp.node_order = NodeOrdering::none;
