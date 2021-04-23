@@ -3,6 +3,7 @@
 #include <string>
 #include <limits>
 
+#include "cluster_editing/definitions.h"
 #include "context_enum_classes.h"
 
 namespace cluster_editing {
@@ -17,6 +18,8 @@ struct GeneralParameters {
   int seed = 0;
   int num_repititions = 0;
   int num_fruitless_repititions = 0;
+  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  double time_limit = 0.0;
 };
 
 std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);
@@ -82,6 +85,12 @@ class Context {
   Context() { }
 
   void computeParameters(const int num_nodes);
+
+  bool isTimeLimitReached() const {
+    HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed_seconds(end - general.start);
+    return elapsed_seconds.count() > general.time_limit;
+  }
 };
 
 std::ostream & operator<< (std::ostream& str, const Context& params);

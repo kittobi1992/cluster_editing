@@ -264,6 +264,10 @@ EdgeWeight FMRefiner<StoppingRule>::localizedFMSearch(Graph& graph,
     #ifndef NDEBUG
     checkPQGains(graph);
     #endif
+
+    if ( _context.isTimeLimitReached() ) {
+      break;
+    }
   }
 
   #ifndef NDEBUG

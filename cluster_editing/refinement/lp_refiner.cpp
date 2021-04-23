@@ -115,6 +115,10 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
         break;
       }
     }
+
+    if ( _context.isTimeLimitReached() ) {
+      break;
+    }
   }
   lp_progress += (_context.refinement.lp.maximum_lp_iterations - lp_progress.count());
   utils::Timer::instance().stop_timer("lp");

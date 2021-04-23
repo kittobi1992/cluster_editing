@@ -13,6 +13,7 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params) {
   str << "  Seed:                          " << params.seed << std::endl;
   str << "  Number of Repititions:         " << params.num_repititions << std::endl;
   str << "  Number Fruitless Repititions:  " << params.num_fruitless_repititions << std::endl;
+  str << "  Time Limit:                    " << params.time_limit << std::endl;
   return str;
 }
 

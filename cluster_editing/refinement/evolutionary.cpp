@@ -35,6 +35,10 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph) {
       evo_progress.setObjective(_population[0].edits);
       evo_progress += 1;
     }
+
+    if ( _context.isTimeLimitReached() ) {
+      break;
+    }
   }
   utils::Timer::instance().stop_timer("evo_steps");
   evo_progress += (_context.refinement.evo.evolutionary_steps - evo_progress.count());

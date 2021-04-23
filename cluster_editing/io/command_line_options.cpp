@@ -57,7 +57,9 @@ namespace cluster_editing {
             ("num-repititions", po::value<int>(&context.general.num_repititions)->value_name("<int>"),
              "Number of Repititions")
             ("num-fruitless-repititions", po::value<int>(&context.general.num_fruitless_repititions)->value_name("<int>"),
-             "If for specified number of repititions no improvement is found, then the algorithm terminates.");
+             "If for specified number of repititions no improvement is found, then the algorithm terminates.")
+            ("time-limit", po::value<double>(&context.general.time_limit)->value_name("<double>"),
+             "Time limit.");
     return options;
   }
 
