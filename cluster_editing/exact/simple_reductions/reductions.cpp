@@ -32,7 +32,6 @@ void print(vector<int> vec) {
   }
 }
 
-
 bool computeCriticalClique(vector<vector<int> > adj, vector<vector<int> > &newAdj, int u, int v) {
   // vector<int> u_neighbors = adj[u];
   // vector<int> v_neighbors = adj[v];
@@ -314,19 +313,19 @@ void apply3(vector<vector<int> > &adj,
   }
 }
 
-// void unapply1(vector<vector<int> > &adj) {
-//   for (int u = 0; u < ad.size(); u++) {
-//     for (int j = 0; j < adj.size(); u++) {
-//
-//     }
-//   }
-// }
 
+/*
+  expand_to_original_size
+  expand the graph to add rows and cols to the original size
+
+  @params
+    - reduced: the reduced adj matrix
+    - original_size: the original size of the adj matrix
+*/
 vector<vector<int> > expand_to_original_size(vector<vector<int > > reduced,
-  int original_size) {
+                                             int original_size) {
   // Get the original size to expand into
   vector<vector<int> > rebuilt_graph;
-  cout << original_size << endl;
   for (int i = 0; i < original_size; i++) {
 
    // Make the empty row
@@ -349,12 +348,87 @@ vector<vector<int> > expand_to_original_size(vector<vector<int > > reduced,
 
 }
 
+/*
+  expand_graph
+  shift everything in row/col of idx to the right and down to make room for a spot there
+
+  @params
+   - adj: reference to the adj matrix we are expanding
+   - idx: the idx of the row/col we have to add in
+*/
+void expand_graph(vector<vector<int> > &adj, int idx) {
+  for (int i = adj.size()-1; i > idx; i--) {
+    for (int j = adj.size()-1; j > idx; j--) {
+      adj[i][j] = adj[i-1][j-1];
+    }
+  }
+  for (int i = 0; i < adj.size(); i++) {
+    adj[i][idx] = 0;
+    adj[idx][i] = 0;
+  }
+}
+
+/*
+  rebuild_graph
+  Rebuild the graph from the reductions we have applied to the original state
+
+  @params
+   - reduced: the reduced graph
+   - merged_edges: the vector of all the reductions we have applied from previous functions
+   - original_size: the original size of the adj matrix
+  @return
+   - the rebuilt graph in the form of an adj matrix
+*/
 vector<vector<int> > rebuild_graph(vector<vector<int > > reduced,
                                    vector< pair<pair<int, vector<int> >, pair<int, vector<int> > > > merged_edges,
                                    int original_size) {
 
+  cout << endl << "REBUILDING..." << endl;
+
   // Get the original size to expand into
   vector<vector<int> > rebuilt_graph = expand_to_original_size(reduced, original_size);
+  pair<pair<int, vector<int> >, pair<int, vector<int> > > reduction;
+  pair<int, vector<int> > u_edge;
+  pair<int, vector<int> > v_edge;
+  int u;
+  int v;
+  vector<int> u_neighbors;
+  vector<int> v_neighbors;
+
+  for (int i = merged_edges.size()-1; i > -1; i--) {
+    reduction = merged_edges[i];
+
+    // Grab the vertext and its neighbors from the reduction pair
+    u_edge = reduction.first;
+    v_edge = reduction.second;
+
+    // Pull out the vertex value and its neighbors
+    u =  u_edge.first;
+    u_neighbors = u_edge.second;
+    v = v_edge.first;
+    v_neighbors = v_edge.second;
+
+    // Expand the graph so v has its row and column back
+    expand_graph(rebuilt_graph, v);
+
+    // clear u's neighbors
+    for (int idx = 0; idx < rebuilt_graph.size(); idx++) {
+      rebuilt_graph[u][idx] = 0;
+      rebuilt_graph[idx][u] = 0;
+    }
+
+    // Set u's neighbors
+    for (int idx = 0; idx < u_neighbors.size(); idx++) {
+      rebuilt_graph[u][u_neighbors[idx]] = 1;
+      rebuilt_graph[u_neighbors[idx]][u] = 1;
+    }
+
+    // Set v's neighbors
+    for (int idx = 0; idx < v_neighbors.size(); idx++) {
+      rebuilt_graph[v][v_neighbors[idx]] = 1;
+      rebuilt_graph[v_neighbors[idx]][v] = 1;
+    }
+  }
 
   return rebuilt_graph;
 }
@@ -403,25 +477,22 @@ int main(int argc,  char **argv) {
               }
             }
           }
-
-          // if (clique.size() != n)
-          //   cout << fin << ", " << n << ", " << clique.size() << endl;
         }
       }
     }
   }
 
-  for (int i = 0; i < merged_edges.size(); i++) {
-    cout << i << ": " << merged_edges[i].first.first << " merged with " << merged_edges[i].second.first << endl;
-    cout << "\tu neighbors: ";
-    for (int u = 0; u < merged_edges[i].first.second.size(); u++)
-      cout << merged_edges[i].first.second[u] << ", ";
-    cout << endl << "\tv neighbors: ";
-    for (int v = 0; v < merged_edges[i].second.second.size(); v++) {
-      cout << merged_edges[i].second.second[v] << ", ";
-    }
-    cout << endl;
-  }
+  // for (int i = 0; i < merged_edges.size(); i++) {
+  //   cout << i << ": " << merged_edges[i].first.first << " merged with " << merged_edges[i].second.first << endl;
+  //   cout << "\tu neighbors: ";
+  //   for (int u = 0; u < merged_edges[i].first.second.size(); u++)
+  //     cout << merged_edges[i].first.second[u] << ", ";
+  //   cout << endl << "\tv neighbors: ";
+  //   for (int v = 0; v < merged_edges[i].second.second.size(); v++) {
+  //     cout << merged_edges[i].second.second[v] << ", ";
+  //   }
+  //   cout << endl;
+  // }
 
 
   int s = total_cost-sum;
