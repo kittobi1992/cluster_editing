@@ -52,7 +52,7 @@ class Evolutionary final : public IRefiner {
     _original_context(context),
     _show_detailed_output(context.general.verbose_output && context.refinement.evo.enable_detailed_output),
     _population(context.refinement.evo.solution_pool_size, SolutionStats {
-      static_cast<EdgeWeight>(graph.numEdges()), nullptr}),
+      static_cast<EdgeWeight>(graph.numEdges() / 2), nullptr}),
     _solutions(context.refinement.evo.solution_pool_size),
     _lp_refiner(graph, _context),
     _mutator(_context),

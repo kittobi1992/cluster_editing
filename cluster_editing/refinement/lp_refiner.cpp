@@ -8,32 +8,16 @@
 
 namespace cluster_editing {
 
-/**
- * Lessons learned:
- *  - LP Refiner converges slowly for large sparse graphs (still good improvements
- *    later iterations)
- *  - A move of a vertex can change the gain of a non-adjacent vertex, since
- *    number of insertions depends on cluster size
- *  - Tie breaking is important to achieve higher quality
- *  - Often finds exact solution for small instances
- */
 
 void LabelPropagationRefiner::initializeImpl(Graph& graph) {
   _moved_vertices = 0;
-  _clique_weight.assign(graph.numNodes(), 0);
-  _empty_cliques.clear();
   _nodes.clear();
   _window_improvement = 0;
   _round_improvements.clear();
-  for ( const NodeID& u : graph.nodes() ) {
-    _nodes.push_back(u);
-    const CliqueID from = graph.clique(u);
-    ++_clique_weight[from];
-  }
-
-  for ( const NodeID& u : graph.nodes() ) {
-    if ( _clique_weight[u] == 0 ) {
-      _empty_cliques.push_back(u);
+  utils::CommonOperations::instance(graph).computeEmptyCliques(graph);
+  if ( _context.refinement.lp.node_order != NodeOrdering::none ) {
+    for ( const NodeID u : graph.nodes() ) {
+      _nodes.push_back(u);
     }
   }
 }
@@ -63,28 +47,38 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph, const EdgeWeight cu
     });
   }
 
+  auto process_vertex = [&](const NodeID u) {
+    const CliqueID from = graph.clique(u);
+    Rating rating = computeBestTargetClique(graph, u, false);
+    const CliqueID to = rating.clique;
+    if ( to != from ) {
+      moveVertex(graph, u, to);
+      ++_moved_vertices;
+      converged = false;
+
+      // Verify, if rating is correct
+      ASSERT(current_metric + rating.delta ==
+        metrics::edge_deletions(graph) + metrics::edge_insertions(graph),
+        "Rating is wrong. Expected:" <<
+        (metrics::edge_deletions(graph) + metrics::edge_insertions(graph)) <<
+        "but is" << (current_metric + rating.delta) << "(" <<
+        V(current_metric) << "," << V(rating.delta) << ")");
+      current_metric += rating.delta;
+    }
+  };
+
   // enable early exit on large graphs, if FM refiner is used afterwards
   for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
     utils::Timer::instance().start_timer("local_moving", "Local Moving");
     converged = true;
     const EdgeWeight initial_metric = current_metric;
-    for ( const NodeID& u : _nodes ) {
-      const CliqueID from = graph.clique(u);
-      Rating rating = computeBestTargetClique(graph, u, false);
-      const CliqueID to = rating.clique;
-      if ( to != from ) {
-        moveVertex(graph, u, to);
-        ++_moved_vertices;
-        converged = false;
-
-        // Verify, if rating is correct
-        ASSERT(current_metric + rating.delta ==
-          metrics::edge_deletions(graph) + metrics::edge_insertions(graph),
-          "Rating is wrong. Expected:" <<
-          (metrics::edge_deletions(graph) + metrics::edge_insertions(graph)) <<
-          "but is" << (current_metric + rating.delta) << "(" <<
-          V(current_metric) << "," << V(rating.delta) << ")");
-        current_metric += rating.delta;
+    if ( _context.refinement.lp.node_order == NodeOrdering::none ) {
+      for ( const NodeID& u : graph.nodes() ) {
+        process_vertex(u);
+      }
+    } else {
+      for ( const NodeID& u : _nodes ) {
+        process_vertex(u);
       }
     }
     utils::Timer::instance().stop_timer("local_moving");
@@ -131,10 +125,10 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph, const EdgeWeight cu
 void LabelPropagationRefiner::moveVertex(Graph& graph, const NodeID u, const CliqueID to) {
   const CliqueID from = graph.clique(u);
   ASSERT(from != to);
-  --_clique_weight[from];
-  const bool from_becomes_empty = _clique_weight[from] == 0;
-  const bool to_becomes_non_empty = _clique_weight[to] == 0;
-  ++_clique_weight[to];
+  --_clique_sizes[from];
+  const bool from_becomes_empty = _clique_sizes[from] == 0;
+  const bool to_becomes_non_empty = _clique_sizes[to] == 0;
+  ++_clique_sizes[to];
   graph.setClique(u, to);
 
 
@@ -177,7 +171,7 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique
 
   const EdgeWeight u_degree = graph.degree(u);
   const EdgeWeight from_rating =
-    insertions(_clique_weight[from] - 1 /* assumes u is not part of clique 'from'*/, _rating[from]) +
+    insertions(_clique_sizes[from] - 1 /* assumes u is not part of clique 'from'*/, _rating[from]) +
     deletions(u_degree, _rating[from]);
   best_rating.rating = from_rating;
   best_rating.delta = 0;
@@ -186,7 +180,7 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique
     const CliqueID to = entry.key;
     if ( to != from ) {
       const EdgeWeight to_rating =
-        insertions(_clique_weight[to], entry.value) +
+        insertions(_clique_sizes[to], entry.value) +
         deletions(u_degree, entry.value);
 
       // It looks like that tie breaking is very important to achieve better quality
