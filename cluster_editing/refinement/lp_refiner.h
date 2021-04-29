@@ -63,7 +63,7 @@ class LabelPropagationRefiner final : public IRefiner {
 
   void initializeImpl(Graph& graph) final;
 
-  EdgeWeight refineImpl(Graph& graph) final ;
+  EdgeWeight refineImpl(Graph& graph, const EdgeWeight current_edits) final ;
 
   void moveVertex(Graph& graph, const NodeID u, const CliqueID to);
 

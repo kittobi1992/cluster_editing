@@ -15,20 +15,20 @@ void Evolutionary::initializeImpl(Graph& graph) {
   }
 }
 
-EdgeWeight Evolutionary::refineImpl(Graph& graph) {
+EdgeWeight Evolutionary::refineImpl(Graph& graph, const EdgeWeight current_edits) {
   utils::Timer::instance().start_timer("evolutionary", "Evolutionary");
-
   if ( _context.isTimeLimitReached() ) {
     return 0;
   }
 
   // Create Initial Population
   utils::Timer::instance().start_timer("initial_population", "Create Initial Population");
-  createInitialPopulation(graph);
+  createInitialPopulation(graph, current_edits);
   utils::Timer::instance().stop_timer("initial_population");
 
+  sortSolutions();
   utils::ProgressBar evo_progress(
-    _context.refinement.evo.evolutionary_steps, metrics::edits(graph),
+    _context.refinement.evo.evolutionary_steps, _population[0].edits,
     _context.general.verbose_output && !debug && !_context.refinement.evo.enable_detailed_output);
   utils::Timer::instance().start_timer("evo_steps", "Evolutionary Steps");
   for ( int i = 0; i < _context.refinement.evo.evolutionary_steps; ++i ) {
@@ -58,12 +58,12 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph) {
   ASSERT(metrics::edits(graph) == _population[0].edits);
 
   utils::Timer::instance().stop_timer("evolutionary");
-  return 0;
+  return _population[0].edits;
 }
 
-void Evolutionary::createInitialPopulation(Graph& graph) {
+void Evolutionary::createInitialPopulation(Graph& graph, const EdgeWeight current_edits) {
   for ( int i = 0; i < _context.refinement.evo.solution_pool_size; ++i ) {
-    _population[i].edits = refineSolution(graph,
+    _population[i].edits = refineSolution(graph, current_edits,
       _context.refinement.evo.initial_lp_iterations, true,
       _context.general.verbose_output);
     storeSolution(graph, *_population[i].solution);
@@ -99,7 +99,7 @@ void Evolutionary::evolutionaryStep(Graph& graph) {
 EdgeWeight Evolutionary::intensivate(Graph& graph, SolutionStats& stats) {
   // Refine
   const EdgeWeight initial_edits = stats.edits;
-  stats.edits = refineSolution(graph,
+  stats.edits = refineSolution(graph, stats.edits,
     _context.refinement.evo.intensivate_lp_iterations,
     _context.refinement.evo.use_random_node_ordering,
     _show_detailed_output);
@@ -130,6 +130,7 @@ EdgeWeight Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
   _context.refinement.lp.maximum_lp_iterations =
     _context.refinement.evo.lp_iterations_after_mutate;
   const EdgeWeight edits = refineSolution(graph,
+    metrics::edits(graph),
     _context.refinement.evo.lp_iterations_after_mutate,
     _context.refinement.evo.use_random_node_ordering,
     _show_detailed_output);
@@ -150,6 +151,7 @@ EdgeWeight Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
 }
 
 EdgeWeight Evolutionary::refineSolution(Graph& graph,
+                                        const EdgeWeight current_edits,
                                         const int lp_iterations,
                                         const bool use_random_node_order,
                                         const bool show_detailed_output) {
@@ -163,7 +165,7 @@ EdgeWeight Evolutionary::refineSolution(Graph& graph,
     _context.refinement.lp.node_order = _original_context.refinement.lp.node_order;
   }
   _context.general.verbose_output = show_detailed_output;
-  const EdgeWeight edits = _lp_refiner.refine(graph);
+  const EdgeWeight edits = _lp_refiner.refine(graph, current_edits);
   _context.general.verbose_output = _original_context.general.verbose_output;
   return edits;
 }

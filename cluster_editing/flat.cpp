@@ -19,32 +19,34 @@ void solve(Graph& graph, const Context& context) {
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 
+  EdgeWeight current_edits = static_cast<EdgeWeight>(graph.numEdges()) / 2;
+
   // Label Propagation
   if ( context.refinement.use_lp_refiner ) {
     LabelPropagationRefiner lp_refiner(graph, context);
     lp_refiner.initialize(graph);
-    lp_refiner.refine(graph);
+    current_edits = lp_refiner.refine(graph, current_edits);
   }
 
   // Boundary FM
   if ( context.refinement.use_boundary_fm_refiner ) {
     FMRefiner<FruitlessMovesStoppingRule> fm_refiner(graph, context, FMType::boundary);
     fm_refiner.initialize(graph);
-    fm_refiner.refine(graph);
+    current_edits = fm_refiner.refine(graph, current_edits);
   }
 
   // Localized FM
   if ( context.refinement.use_localized_fm_refiner ) {
     FMRefiner<AdaptiveStoppingRule> fm_refiner(graph, context, FMType::localized);
     fm_refiner.initialize(graph);
-    fm_refiner.refine(graph);
+    current_edits = fm_refiner.refine(graph, current_edits);
   }
 
   // Evolutionary
   if ( context.refinement.use_evo ) {
     Evolutionary evo(graph, context);
     evo.initialize(graph);
-    evo.refine(graph);
+    current_edits = evo.refine(graph, current_edits);
   }
 
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();

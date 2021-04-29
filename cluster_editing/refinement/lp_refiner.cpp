@@ -38,12 +38,11 @@ void LabelPropagationRefiner::initializeImpl(Graph& graph) {
   }
 }
 
-EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
+EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph, const EdgeWeight current_edits) {
   utils::Timer::instance().start_timer("lp", "Label Propagation");
   bool converged = false;
-  EdgeWeight start_metric =
-    metrics::edge_deletions(graph) + metrics::edge_insertions(graph);
-  EdgeWeight current_metric = start_metric;
+  EdgeWeight start_metric = current_edits;
+  EdgeWeight current_metric = current_edits;
   utils::ProgressBar lp_progress(
     _context.refinement.lp.maximum_lp_iterations, start_metric,
     _context.general.verbose_output && !debug);
