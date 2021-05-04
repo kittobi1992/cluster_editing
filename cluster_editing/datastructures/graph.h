@@ -114,6 +114,7 @@ class Graph {
     _num_nodes(0),
     _num_edges(0),
     _total_weight(0),
+    _max_degree(0),
     _nodes(),
     _edges(),
     _best_cliques(),
@@ -131,6 +132,10 @@ class Graph {
 
   NodeWeight totalWeight() const {
     return _total_weight;
+  }
+
+  NodeID maxDegree() const {
+    return _max_degree;
   }
 
   // ########################## Iterators ##########################
@@ -232,6 +237,7 @@ class Graph {
   NodeID _num_nodes;
   EdgeID _num_edges;
   NodeWeight _total_weight;
+  NodeID _max_degree;
 
   // ! Index Array
   std::vector<Node> _nodes;

@@ -18,6 +18,8 @@ namespace cluster_editing::ds {
       graph._nodes[source].setFirstEntry(current_idx);
       graph._nodes[source].setClique(source);
       graph._best_cliques[source] = source;
+      graph._max_degree = std::max(
+        graph._max_degree, static_cast<NodeID>(adj_list[source].size()));
       for ( const NodeID& target : adj_list[source] ) {
         graph._edges.emplace_back(target);
         ++current_idx;

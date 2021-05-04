@@ -30,6 +30,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include <cmath>
 
 #include "cluster_editing/macros.h"
 
@@ -190,6 +191,201 @@ class SparseMap final : public SparseMapBase<Key, Value, SparseMap<Key, Value> >
   using Base::_sparse;
   using Base::_dense;
   using Base::_size;
+};
+
+/*!
+ * Sparse map implementation that uses a fixed size.
+ * In contrast to the implementation in KaHyPar (see kahypar/datastructure/sparse_map.h),
+ * which uses as size the cardinality of the key universe, hash collisions have to be handled
+ * explicitly. Hash collisions are resolved with linear probing.
+ * Advantage of the implementation is that it uses significantly less space than the
+ * version in KaHyPar and should be therefore more cache-efficient.
+ * Note, there is no fallback strategy if all slots of the sparse map are occupied by an
+ * element. Please make sure that no more than MAP_SIZE elements are inserted into the
+ * sparse map. Otherwise, the behavior is undefined.
+ */
+template <typename Key, typename Value>
+class FixedSizeSparseMap {
+
+  struct MapElement {
+    Key key;
+    Value value;
+  };
+
+  struct SparseElement {
+    MapElement* element;
+    size_t timestamp;
+  };
+
+ public:
+
+  static constexpr size_t MAP_SIZE = 32768; // Size of sparse map is approx. 1 MB
+
+  static_assert(MAP_SIZE && ((MAP_SIZE & (MAP_SIZE - 1)) == 0UL), "Size of map is not a power of two!");
+
+  explicit FixedSizeSparseMap(const Value initial_value) :
+    _map_size(0),
+    _initial_value(initial_value),
+    _data(nullptr),
+    _size(0),
+    _timestamp(1),
+    _sparse(nullptr),
+    _dense(nullptr) {
+    allocate(MAP_SIZE);
+  }
+
+  explicit FixedSizeSparseMap(const size_t max_size,
+                              const Value initial_value) :
+    _map_size(0),
+    _initial_value(initial_value),
+    _data(nullptr),
+    _size(0),
+    _timestamp(1),
+    _sparse(nullptr),
+    _dense(nullptr) {
+    allocate(max_size);
+  }
+
+  FixedSizeSparseMap(const FixedSizeSparseMap&) = delete;
+  FixedSizeSparseMap& operator= (const FixedSizeSparseMap& other) = delete;
+
+  FixedSizeSparseMap(FixedSizeSparseMap&& other) :
+    _map_size(other._map_size),
+    _initial_value(other._initial_value),
+    _data(std::move(other._data)),
+    _size(other._size),
+    _timestamp(other._timestamp),
+    _sparse(std::move(other._sparse)),
+    _dense(std::move(other._dense)) {
+    other._data = nullptr;
+    other._sparse = nullptr;
+    other._dense = nullptr;
+  }
+
+  ~FixedSizeSparseMap() = default;
+
+  size_t capacity() const {
+    return _map_size;
+  }
+
+  size_t size() const {
+    return _size;
+  }
+
+  const MapElement* begin() const {
+    return _dense;
+  }
+
+  const MapElement* end() const {
+    return _dense + _size;
+  }
+
+  MapElement* begin() {
+    return _dense;
+  }
+
+  MapElement* end() {
+    return _dense + _size;
+  }
+
+  void setMaxSize(const size_t max_size) {
+    if ( max_size > _map_size ) {
+      freeInternalData();
+      allocate(max_size);
+    }
+  }
+
+  bool contains(const Key key) const {
+    SparseElement* s = find(key);
+    return containsValidElement(key, s);
+  }
+
+  Value& operator[] (const Key key) {
+    SparseElement* s = find(key);
+    if ( containsValidElement(key, s) ) {
+      ASSERT(s->element);
+      return s->element->value;
+    } else {
+      return addElement(key, _initial_value, s)->value;
+    }
+  }
+
+  const Value & get(const Key key) const {
+    ASSERT(contains(key));
+    return find(key)->element->value;
+  }
+
+  void clear() {
+    _size = 0;
+    ++_timestamp;
+  }
+
+  void freeInternalData() {
+    _size = 0;
+    _timestamp = 0;
+    _data = nullptr;
+    _sparse = nullptr;
+    _dense = nullptr;
+  }
+
+ private:
+  inline SparseElement* find(const Key key) const {
+    ASSERT(_size < _map_size);
+    size_t hash = key & ( _map_size - 1 );
+    while ( _sparse[hash].timestamp == _timestamp ) {
+      ASSERT(_sparse[hash].element);
+      if ( _sparse[hash].element->key == key ) {
+        return &_sparse[hash];
+      }
+      hash = (hash + 1) & ( _map_size - 1 );
+    }
+    return &_sparse[hash];
+  }
+
+  inline bool containsValidElement(const Key key,
+                                   const SparseElement* s) const {
+    unused(key);
+    ASSERT(s);
+    const bool is_contained = s->timestamp == _timestamp;
+    ASSERT(!is_contained || s->element->key == key);
+    return is_contained;
+  }
+
+  inline MapElement* addElement(const Key key,
+                                const Value value,
+                                SparseElement* s) {
+    ASSERT(find(key) == s);
+    _dense[_size] = MapElement { key, value };
+    *s = SparseElement { &_dense[_size++], _timestamp };
+    return s->element;
+  }
+
+  void allocate(const size_t size) {
+    if ( _data == nullptr ) {
+      _map_size = align_to_next_power_of_two(size);
+      _data = std::make_unique<uint8_t[]>(
+        _map_size * sizeof(MapElement) + _map_size * sizeof(SparseElement));
+      _size = 0;
+      _timestamp = 1;
+      _sparse = reinterpret_cast<SparseElement*>(_data.get());
+      _dense = reinterpret_cast<MapElement*>(_data.get() +  + sizeof(SparseElement) * _map_size);
+      memset(_data.get(), 0, _map_size * (sizeof(MapElement) + sizeof(SparseElement)));
+    }
+
+  }
+
+  size_t align_to_next_power_of_two(const size_t size) const {
+    return std::pow(2.0, std::ceil(std::log2(static_cast<double>(size))));
+  }
+
+  size_t _map_size;
+  const Value _initial_value;
+  std::unique_ptr<uint8_t[]> _data;
+
+  size_t _size;
+  size_t _timestamp;
+  SparseElement* _sparse;
+  MapElement* _dense;
 };
 }  // namespace ds
 }  // namespace kahypar

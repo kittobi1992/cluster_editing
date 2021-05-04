@@ -77,7 +77,7 @@ class LabelPropagationRefiner final : public IRefiner {
   std::vector<NodeID> _nodes;
   std::vector<NodeID>& _clique_sizes;
   std::vector<CliqueID>& _empty_cliques;
-  ds::SparseMap<CliqueID, EdgeWeight>& _rating;
+  ds::FixedSizeSparseMap<CliqueID, EdgeWeight>& _rating;
   EdgeWeight _window_improvement;
   std::vector<EdgeWeight> _round_improvements;
   std::vector<CliqueID> _cliques_with_same_rating;

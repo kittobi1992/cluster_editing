@@ -95,7 +95,7 @@ class CommonOperations {
     _internal_edges(graph.numNodes(), 0),
     _empty_cliques(),
     _cliques(graph.numNodes()),
-    _rating(graph.numNodes()) { }
+    _rating(3 * graph.maxDegree(), 0) { }
 
   ~CommonOperations() = default;
 
@@ -109,7 +109,7 @@ class CommonOperations {
   std::vector<NodeID> _internal_edges;
   std::vector<CliqueID> _empty_cliques;
   std::vector<std::vector<NodeID>> _cliques;
-  ds::SparseMap<CliqueID, EdgeWeight> _rating;
+  ds::FixedSizeSparseMap<CliqueID, EdgeWeight> _rating;
 
 };
 }  // namespace utils
