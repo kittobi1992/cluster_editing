@@ -109,12 +109,6 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph, const EdgeWeight cu
     }
 
     const EdgeWeight round_delta = initial_metric - current_metric;
-    if ( round_delta > 0 ) {
-      utils::Timer::instance().start_timer("checkpoint", "Checkpoint");
-      graph.checkpoint(current_metric);
-      utils::Timer::instance().stop_timer("checkpoint");
-    }
-
     _window_improvement += round_delta;
     _round_improvements.push_back(round_delta);
     if ( _round_improvements.size() >= _context.refinement.lp.early_exit_window) {
@@ -130,6 +124,13 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph, const EdgeWeight cu
     }
   }
   lp_progress += (_context.refinement.lp.maximum_lp_iterations - lp_progress.count());
+
+  const EdgeWeight delta = start_metric - current_metric;
+  if ( delta > 0 ) {
+    utils::Timer::instance().start_timer("checkpoint", "Checkpoint");
+    graph.checkpoint(current_metric);
+    utils::Timer::instance().stop_timer("checkpoint");
+  }
   utils::Timer::instance().stop_timer("lp");
   return current_metric;
 }
