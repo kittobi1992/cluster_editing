@@ -21,8 +21,8 @@ void FMRefiner<StoppingRule>::initializeImpl(Graph& graph) {
     EdgeWeight weight = 0;
     const CliqueID clique = graph.clique(u);
     // TODO accelerate case with singleton init?
-    for (const Neighbor& nb : graph.neighbors(u)) {
-      if (graph.clique(nb.target) == clique) {
+    for (const NodeID& v : graph.neighbors(u)) {
+      if (graph.clique(v) == clique) {
         ++weight;
       }
     }
@@ -39,8 +39,8 @@ void FMRefiner<StoppingRule>::initializeImpl(Graph& graph) {
 }
 
 template<typename StoppingRule>
-EdgeWeight FMRefiner<StoppingRule>::refineImpl(Graph& graph) {
-  EdgeWeight start_metric = metrics::edits(graph);
+EdgeWeight FMRefiner<StoppingRule>::refineImpl(Graph& graph, const EdgeWeight current_edits) {
+  EdgeWeight start_metric = current_edits;
   EdgeWeight current_metric = start_metric;
 
   if ( _context.isTimeLimitReached() ) {
@@ -258,8 +258,7 @@ EdgeWeight FMRefiner<StoppingRule>::localizedFMSearch(Graph& graph,
     deltaGainUpdates(graph, u, from, to);
 
     // Push all neighbors into PQ
-    for ( const Neighbor& n : graph.neighbors(u) ) {
-      const NodeID v = n.target;
+    for ( const NodeID& v : graph.neighbors(u) ) {
       if ( !_moved_nodes[v] ) {
         insertIntoPQ(graph, v);
       }
@@ -309,8 +308,8 @@ void FMRefiner<StoppingRule>::moveVertex(Graph& graph, NodeID u, CliqueID to, bo
 
   removeFromCurrentClique(u, from);
   EdgeWeight weight_to_target_clique = 0;
-  for (const Neighbor& nb : graph.neighbors(u)) {
-    if (graph.clique(nb.target) == to) {
+  for (const NodeID& v : graph.neighbors(u)) {
+    if (graph.clique(v) == to) {
       ++weight_to_target_clique;
     }
   }
@@ -359,9 +358,7 @@ void FMRefiner<StoppingRule>::deltaGainUpdates(const Graph& graph, const NodeID 
   const CliqueID actual_target = graph.clique(u);
 
   // update neighbors -- in original graph
-  for (const Neighbor& nb : graph.neighbors(u)) {
-    const NodeID v = nb.target;
-
+  for (const NodeID& v : graph.neighbors(u)) {
     EdgeWeight delta = 0;
     if (graph.clique(v) == from) {
       --n[v].weight_to_current_clique;
@@ -422,8 +419,7 @@ void FMRefiner<StoppingRule>::deltaGainUpdates(const Graph& graph, const NodeID 
   // any neighbor wants to join
   if (to == ISOLATE_CLIQUE) {
     const CliqueID actual_to = graph.clique(u);
-    for (const Neighbor& nb : graph.neighbors(u)) {
-      const NodeID v = nb.target;
+    for (const NodeID& v : graph.neighbors(u)) {
       if (!pq.contains(v)) continue;
       const EdgeWeight delta = gain(graph.clique(v), actual_to, n[v].weight_to_current_clique, 1);
       if (delta < pq.keyOf(v)) {
@@ -460,8 +456,7 @@ template<typename StoppingRule>
 void FMRefiner<StoppingRule>::rollback(Graph& graph) {
   for (Move& m : moves) {
     CliqueID from = graph.clique(m.node), to = m.from;
-    for (const Neighbor& nb : graph.neighbors(m.node)) {
-      const NodeID v = nb.target;
+    for (const NodeID& v : graph.neighbors(m.node)) {
       if (graph.clique(v) == from) {
         --n[v].weight_to_current_clique;
       } else if (graph.clique(v) == to) {
@@ -476,8 +471,8 @@ void FMRefiner<StoppingRule>::rollback(Graph& graph) {
 template<typename StoppingRule>
 typename FMRefiner<StoppingRule>::Rating FMRefiner<StoppingRule>::computeBestClique(const Graph& graph, const NodeID u) {
   edge_weight_to_clique.clear();
-  for ( const Neighbor& nb : graph.neighbors(u) ) {
-    const CliqueID v_c = graph.clique(nb.target);
+  for ( const NodeID& v : graph.neighbors(u) ) {
+    const CliqueID v_c = graph.clique(v);
     ++edge_weight_to_clique[v_c];
   }
 
@@ -538,8 +533,8 @@ void FMRefiner<StoppingRule>::checkPQGains(const Graph& graph) {
                                         n[v].weight_to_current_clique, n[v].weight_to_target_clique);
 
     edge_weight_to_clique.clear();
-    for (const Neighbor& nb : graph.neighbors(v)) {
-      ++edge_weight_to_clique[graph.clique(nb.target)];
+    for (const NodeID& w : graph.neighbors(v)) {
+      ++edge_weight_to_clique[graph.clique(w)];
     }
 
     if (n[v].desired_target == ISOLATE_CLIQUE) {
@@ -558,8 +553,8 @@ void FMRefiner<StoppingRule>::checkPQGains(const Graph& graph) {
         std::cout << graph.clique(w) << " ";
       }
       std::cout << "\nneighbors: ";
-      for (const Neighbor& nb : graph.neighbors(v)) {
-        std::cout << nb.target << " " << graph.clique(nb.target) << " | ";
+      for (const NodeID& w : graph.neighbors(v)) {
+        std::cout << w << " " << graph.clique(w) << " | ";
       }
       std::cout << std::endl;
     }
@@ -571,8 +566,8 @@ template<typename StoppingRule>
 void FMRefiner<StoppingRule>::checkCliqueWeights(const Graph& graph) {
   for (NodeID u : graph.nodes()) {
     edge_weight_to_clique.clear();
-    for (const Neighbor& nb : graph.neighbors(u)) {
-      ++edge_weight_to_clique[graph.clique(nb.target)];
+    for (const NodeID& v : graph.neighbors(u)) {
+      ++edge_weight_to_clique[graph.clique(v)];
     }
     assert(n[u].weight_to_current_clique == edge_weight_to_clique[graph.clique(u)]);
   }

@@ -131,6 +131,9 @@ namespace cluster_editing {
              " - degree_decreasing\n")
             ("r-lp-min-improvement", po::value<int>(&context.refinement.lp.min_improvement)->value_name("<int>"),
              "Minimal improvement per early exit window, if FM refiner is also activated")
+            ("r-lp-rating-map-degree-threshold", po::value<NodeID>(&context.refinement.lp.rating_map_degree_threshold)->value_name("<uint32_t>"),
+             "For all nodes with degree greater than this threshold, rating are aggregated in hash map."
+             "For all others, incident edges are sorted and rating are aggregated on-the-fly.")
             ("r-lp-early-exit-window", po::value<size_t>(&context.refinement.lp.early_exit_window)->value_name("<size_t>"),
              "If label propagation improvement is less than min_improvement in the last early_exit_window rounds"
              "then label propagation terminates")

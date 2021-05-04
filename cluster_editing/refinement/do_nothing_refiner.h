@@ -15,6 +15,6 @@ class DoNothingRefiner final : public IRefiner {
  private:
   void initializeImpl(Graph&) override final { }
 
-  bool refineImpl(Graph&) override final { return false; }
+  EdgeWeight refineImpl(Graph&, const EdgeWeight current_edits) override final { return current_edits; }
 };
 }  // namespace cluster_editing

@@ -47,6 +47,7 @@ std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParam
   str << "    Maximum LP Iterations:       " << params.maximum_lp_iterations << std::endl;
   str << "    Random Shuffle each Round:   " << std::boolalpha << params.random_shuffle_each_round << std::endl;
   str << "    Node Ordering:               " << params.node_order << std::endl;
+  str << "    Rating Map Degree Threshold: " << params.rating_map_degree_threshold << std::endl;
   str << "    Min Improvement:             " << params.min_improvement << std::endl;
   str << "    Early Exit Window:           " << params.early_exit_window << std::endl;
   return str;

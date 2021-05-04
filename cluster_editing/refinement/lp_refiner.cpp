@@ -8,42 +8,25 @@
 
 namespace cluster_editing {
 
-/**
- * Lessons learned:
- *  - LP Refiner converges slowly for large sparse graphs (still good improvements
- *    later iterations)
- *  - A move of a vertex can change the gain of a non-adjacent vertex, since
- *    number of insertions depends on cluster size
- *  - Tie breaking is important to achieve higher quality
- *  - Often finds exact solution for small instances
- */
 
 void LabelPropagationRefiner::initializeImpl(Graph& graph) {
   _moved_vertices = 0;
-  _clique_weight.assign(graph.numNodes(), 0);
-  _empty_cliques.clear();
   _nodes.clear();
   _window_improvement = 0;
   _round_improvements.clear();
-  for ( const NodeID& u : graph.nodes() ) {
-    _nodes.push_back(u);
-    const CliqueID from = graph.clique(u);
-    ++_clique_weight[from];
-  }
-
-  for ( const NodeID& u : graph.nodes() ) {
-    if ( _clique_weight[u] == 0 ) {
-      _empty_cliques.push_back(u);
+  utils::CommonOperations::instance(graph).computeEmptyCliques(graph);
+  if ( _context.refinement.lp.node_order != NodeOrdering::none ) {
+    for ( const NodeID u : graph.nodes() ) {
+      _nodes.push_back(u);
     }
   }
 }
 
-EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
+EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph, const EdgeWeight current_edits) {
   utils::Timer::instance().start_timer("lp", "Label Propagation");
   bool converged = false;
-  EdgeWeight start_metric =
-    metrics::edge_deletions(graph) + metrics::edge_insertions(graph);
-  EdgeWeight current_metric = start_metric;
+  EdgeWeight start_metric = current_edits;
+  EdgeWeight current_metric = current_edits;
   utils::ProgressBar lp_progress(
     _context.refinement.lp.maximum_lp_iterations, start_metric,
     _context.general.verbose_output && !debug);
@@ -64,14 +47,20 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
     });
   }
 
-  // enable early exit on large graphs, if FM refiner is used afterwards
-  for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
-    utils::Timer::instance().start_timer("local_moving", "Local Moving");
-    converged = true;
-    const EdgeWeight initial_metric = current_metric;
-    for ( const NodeID& u : _nodes ) {
-      const CliqueID from = graph.clique(u);
-      Rating rating = computeBestTargetClique(graph, u, false);
+  // Sorting-based rating is beneficial if the number of nodes is greater
+  // than 150000
+  const NodeID rating_map_degree_threshold = graph.numNodes() > 150000 ?
+    _context.refinement.lp.rating_map_degree_threshold : 0;
+  auto process_vertex = [&](const NodeID u) {
+    const CliqueID from = graph.clique(u);
+    const NodeID u_degree = graph.degree(u);
+    if ( u_degree > 0 ) {
+      Rating rating;
+      if ( u_degree < rating_map_degree_threshold ) {
+        rating = computeBestTargetCliqueWithSorting(graph, u);
+      } else {
+        rating = computeBestTargetCliqueWithRatingMap(graph, u);
+      }
       const CliqueID to = rating.clique;
       if ( to != from ) {
         moveVertex(graph, u, to);
@@ -86,6 +75,22 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
           "but is" << (current_metric + rating.delta) << "(" <<
           V(current_metric) << "," << V(rating.delta) << ")");
         current_metric += rating.delta;
+      }
+    }
+  };
+
+  // enable early exit on large graphs, if FM refiner is used afterwards
+  for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
+    utils::Timer::instance().start_timer("local_moving", "Local Moving");
+    converged = true;
+    const EdgeWeight initial_metric = current_metric;
+    if ( _context.refinement.lp.node_order == NodeOrdering::none ) {
+      for ( const NodeID& u : graph.nodes() ) {
+        process_vertex(u);
+      }
+    } else {
+      for ( const NodeID& u : _nodes ) {
+        process_vertex(u);
       }
     }
     utils::Timer::instance().stop_timer("local_moving");
@@ -104,12 +109,6 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
     }
 
     const EdgeWeight round_delta = initial_metric - current_metric;
-    if ( round_delta > 0 ) {
-      utils::Timer::instance().start_timer("checkpoint", "Checkpoint");
-      graph.checkpoint(current_metric);
-      utils::Timer::instance().stop_timer("checkpoint");
-    }
-
     _window_improvement += round_delta;
     _round_improvements.push_back(round_delta);
     if ( _round_improvements.size() >= _context.refinement.lp.early_exit_window) {
@@ -125,6 +124,13 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
     }
   }
   lp_progress += (_context.refinement.lp.maximum_lp_iterations - lp_progress.count());
+
+  const EdgeWeight delta = start_metric - current_metric;
+  if ( delta > 0 ) {
+    utils::Timer::instance().start_timer("checkpoint", "Checkpoint");
+    graph.checkpoint(current_metric);
+    utils::Timer::instance().stop_timer("checkpoint");
+  }
   utils::Timer::instance().stop_timer("lp");
   return current_metric;
 }
@@ -132,10 +138,10 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph) {
 void LabelPropagationRefiner::moveVertex(Graph& graph, const NodeID u, const CliqueID to) {
   const CliqueID from = graph.clique(u);
   ASSERT(from != to);
-  --_clique_weight[from];
-  const bool from_becomes_empty = _clique_weight[from] == 0;
-  const bool to_becomes_non_empty = _clique_weight[to] == 0;
-  ++_clique_weight[to];
+  --_clique_sizes[from];
+  const bool from_becomes_empty = _clique_sizes[from] == 0;
+  const bool to_becomes_non_empty = _clique_sizes[to] == 0;
+  ++_clique_sizes[to];
   graph.setClique(u, to);
 
 
@@ -162,32 +168,32 @@ namespace {
 
 }
 
-LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique(Graph& graph,
-                                                                                 const NodeID u,
-                                                                                 const bool force_isolation) {
+LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetCliqueWithRatingMap(Graph& graph,
+                                                                                              const NodeID u) {
   _rating.clear();
   Rating best_rating;
   const CliqueID from = graph.clique(u);
   best_rating.clique = from;
   _rating[from] = 0;
 
-  for ( const Neighbor& n : graph.neighbors(u) ) {
-    const CliqueID to = graph.clique(n.target);
+  for ( const NodeID& v : graph.neighbors(u) ) {
+    const CliqueID to = graph.clique(v);
     ++_rating[to];
   }
 
   const EdgeWeight u_degree = graph.degree(u);
   const EdgeWeight from_rating =
-    insertions(_clique_weight[from] - 1 /* assumes u is not part of clique 'from'*/, _rating[from]) +
+    insertions(_clique_sizes[from] - 1 /* assumes u is not part of clique 'from'*/, _rating[from]) +
     deletions(u_degree, _rating[from]);
   best_rating.rating = from_rating;
   best_rating.delta = 0;
-  std::vector<CliqueID> cliques_with_same_rating = { from };
+  _cliques_with_same_rating.clear();
+  _cliques_with_same_rating.push_back(from);
   for ( const auto& entry : _rating ) {
     const CliqueID to = entry.key;
     if ( to != from ) {
       const EdgeWeight to_rating =
-        insertions(_clique_weight[to], entry.value) +
+        insertions(_clique_sizes[to], entry.value) +
         deletions(u_degree, entry.value);
 
       // It looks like that tie breaking is very important to achieve better quality
@@ -195,33 +201,112 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique
         best_rating.clique = to;
         best_rating.rating = to_rating;
         best_rating.delta = to_rating - from_rating;
-        cliques_with_same_rating.clear();
-        cliques_with_same_rating.push_back(to);
+        _cliques_with_same_rating.clear();
+        _cliques_with_same_rating.push_back(to);
       } else if ( to_rating == best_rating.rating ) {
-        cliques_with_same_rating.push_back(to);
+        _cliques_with_same_rating.push_back(to);
       }
     }
   }
 
-  // Check if it is beneficial to isolate the vertex again
-  if ( !_empty_cliques.empty() && ( u_degree < best_rating.rating ||
-       ( u_degree == best_rating.rating && force_isolation ) ) ) {
+  // Check if it is beneficial to isolate the vertex
+  if ( !_empty_cliques.empty() &&  u_degree < best_rating.rating ) {
     best_rating.clique = _empty_cliques.back();
     best_rating.rating = u_degree;
     best_rating.delta = u_degree - from_rating;
-    cliques_with_same_rating.clear();
-    cliques_with_same_rating.push_back(_empty_cliques.back());
+    _cliques_with_same_rating.clear();
+    _cliques_with_same_rating.push_back(_empty_cliques.back());
   } else if ( !_empty_cliques.empty() && u_degree == best_rating.rating ) {
-    cliques_with_same_rating.push_back(_empty_cliques.back());
+    _cliques_with_same_rating.push_back(_empty_cliques.back());
   }
 
   // Random tie breaking
-  if ( cliques_with_same_rating.size() > 1 ) {
+  if ( _cliques_with_same_rating.size() > 1 ) {
     const size_t tie_breaking_idx = utils::Randomize::instance().getRandomInt(
-      0, cliques_with_same_rating.size() - 1);
-    best_rating.clique = cliques_with_same_rating[tie_breaking_idx];
+      0, _cliques_with_same_rating.size() - 1);
+    best_rating.clique = _cliques_with_same_rating[tie_breaking_idx];
   }
 
+  return best_rating;
+}
+
+LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetCliqueWithSorting(Graph& graph,
+                                                                                            const NodeID u) {
+  // Sort incident edges according to their clique id
+  graph.sortNeighborsByCliqueID(u);
+
+  Rating best_rating;
+  best_rating.clique = INVALID_CLIQUE;
+  best_rating.rating = std::numeric_limits<EdgeWeight>::max();
+  Rating current_rating;
+  current_rating.clique = graph.clique(*graph.neighbors(u).begin());
+  current_rating.rating = 0;
+
+  _cliques_with_same_rating.clear();
+  const EdgeWeight u_degree = graph.degree(u);
+  const CliqueID from = graph.clique(u);
+  EdgeWeight from_rating = std::numeric_limits<EdgeWeight>::max();
+  auto computeRating = [&]() {
+    const CliqueID to = current_rating.clique;
+    const EdgeWeight to_rating =
+      insertions(_clique_sizes[to] - (to == from ? 1 : 0) , current_rating.rating) +
+      deletions(u_degree, current_rating.rating);
+
+    if ( to_rating < best_rating.rating ) {
+      best_rating.clique = to;
+      best_rating.rating = to_rating;
+      _cliques_with_same_rating.clear();
+      _cliques_with_same_rating.push_back(to);
+    } else if ( to_rating == best_rating.rating ) {
+      _cliques_with_same_rating.push_back(to);
+    }
+
+    // From rating is required to calculate delta
+    // for the number of edits if we apply the move
+    if ( to == from ) {
+      from_rating = to_rating;
+    }
+  };
+
+  // All neighbors with same clique id are now in a
+  // consecutive range within the adjacency list
+  for ( const NodeID& v : graph.neighbors(u) ) {
+    const CliqueID to = graph.clique(v);
+    if ( current_rating.clique != to ) {
+      computeRating();
+      current_rating.clique = to;
+      current_rating.rating = 0;
+    }
+    ++current_rating.rating;
+  }
+  computeRating();
+
+  // From rating is required to calculate delta
+  // for the number of edits if we apply the move
+  // => fallback if u is not adjacent to from clique
+  if ( from_rating == std::numeric_limits<EdgeWeight>::max() ) {
+    from_rating = insertions(_clique_sizes[from] - 1, 0) + deletions(u_degree, 0);
+  }
+
+  // Check if it is beneficial to isolate the vertex
+  if ( !_empty_cliques.empty() &&  u_degree < best_rating.rating ) {
+    best_rating.clique = _empty_cliques.back();
+    best_rating.rating = u_degree;
+    best_rating.delta = u_degree - from_rating;
+    _cliques_with_same_rating.clear();
+    _cliques_with_same_rating.push_back(_empty_cliques.back());
+  } else if ( !_empty_cliques.empty() && u_degree == best_rating.rating ) {
+    _cliques_with_same_rating.push_back(_empty_cliques.back());
+  }
+
+  // Random tie breaking
+  if ( _cliques_with_same_rating.size() > 1 ) {
+    const size_t tie_breaking_idx = utils::Randomize::instance().getRandomInt(
+      0, _cliques_with_same_rating.size() - 1);
+    best_rating.clique = _cliques_with_same_rating[tie_breaking_idx];
+  }
+
+  best_rating.delta = best_rating.rating - from_rating;
   return best_rating;
 }
 

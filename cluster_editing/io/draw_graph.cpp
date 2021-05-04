@@ -12,7 +12,7 @@ void ignore_line(std::istream& in) {
 void draw_graph(const std::filesystem::path& graph_file_in,
                 const std::filesystem::path& coords_file_in,
                 const std::filesystem::path& partition_file_in,
-                const std::filesystem::path& ipe_file_out) 
+                const std::filesystem::path& ipe_file_out)
 {
   Graph G = io::readGraphFile(graph_file_in);
   draw_graph(G, read_coords(coords_file_in, G.numNodes()),
@@ -23,7 +23,7 @@ void draw_graph(const std::filesystem::path& graph_file_in,
 void draw_graph(const Graph& G,
                 const std::vector<std::vector<double>>& coords,
                 const std::vector<unsigned>& partition,
-                const std::filesystem::path& ipe_file_out) 
+                const std::filesystem::path& ipe_file_out)
 {
   unsigned max_partition = *std::max_element(partition.begin(), partition.end());
   max_partition++;
@@ -31,8 +31,7 @@ void draw_graph(const Graph& G,
   // write ipe file
   IpeFile ipe(ipe_file_out);
   for (auto u : G.nodes()) {
-    for (auto adj : G.neighbors(u)) {
-      auto v = adj.target;
+    for (const NodeID& v : G.neighbors(u)) {
       Color v_col = hsv(partition[v] * 360 / max_partition, 1, 0.8);
 
       if (partition[u] == partition[v]) {
@@ -51,7 +50,7 @@ void draw_graph(const Graph& G,
 }
 
 std::vector<std::vector<double>> read_coords(
-    const std::filesystem::path& coords_file_in, unsigned num_nodes) 
+    const std::filesystem::path& coords_file_in, unsigned num_nodes)
 {
   std::vector<std::vector<double>> coords(num_nodes, {0, 0});
   std::ifstream in(coords_file_in);
@@ -73,7 +72,7 @@ std::vector<std::vector<double>> read_coords(
 }
 
 std::vector<unsigned> read_partition(
-    const std::filesystem::path& partition_file_in, unsigned num_nodes) 
+    const std::filesystem::path& partition_file_in, unsigned num_nodes)
 {
   std::vector<unsigned> partition(num_nodes, 0);
   std::ifstream in(partition_file_in);

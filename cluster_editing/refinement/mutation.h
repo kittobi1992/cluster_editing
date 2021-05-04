@@ -23,56 +23,29 @@
 #include "cluster_editing/context/context.h"
 #include "cluster_editing/definitions.h"
 #include "cluster_editing/utils/randomize.h"
+#include "cluster_editing/utils/common_operations.h"
 #include "cluster_editing/refinement/action_selector.h"
 
 namespace cluster_editing {
-
-struct Clique {
-  CliqueID c;
-  std::vector<NodeID> nodes;
-
-  size_t size() {
-    return nodes.size();
-  }
-};
-
-struct CliqueStats {
-  explicit CliqueStats(const Graph& graph) :
-    cliques(graph.numNodes()),
-    empty_cliques(),
-    num_cliques(0) {
-    for ( const NodeID& u : graph.nodes() ) {
-      cliques[u].c = u;
-      cliques[graph.clique(u)].nodes.push_back(u);
-    }
-    for ( const NodeID& u : graph.nodes() ) {
-      if ( cliques[u].nodes.size() == 0 ) {
-        empty_cliques.push_back(u);
-      } else {
-        ++num_cliques;
-      }
-    }
-  }
-
-  std::vector<Clique> cliques;
-  std::vector<CliqueID> empty_cliques;
-  size_t num_cliques;
-};
 
 class LargeCliqueIsolator {
 
  public:
   static void mutate(Graph& graph, const Context& context, const bool prob) {
-    CliqueStats stats(graph);
+    utils::CommonOperations::instance(graph).computeNodesOfCliqueWithEmptyCliques(graph);
+    std::vector<CliqueID>& empty_cliques =
+      utils::CommonOperations::instance(graph)._empty_cliques;
+    std::vector<std::vector<NodeID>> cliques =
+      utils::CommonOperations::instance(graph)._cliques;
     for ( const CliqueID& c : graph.nodes() ) {
-      if ( stats.cliques[c].size() >= context.refinement.evo.large_clique_threshold ) {
+      if ( cliques[c].size() >= context.refinement.evo.large_clique_threshold ) {
         const float p = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
         if ( p <= prob ) {
-          stats.empty_cliques.push_back(c);
-          for ( const NodeID& u : stats.cliques[c].nodes ) {
-            ASSERT(!stats.empty_cliques.empty());
-            const CliqueID target = stats.empty_cliques.back();
-            stats.empty_cliques.pop_back();
+          empty_cliques.push_back(c);
+          for ( const NodeID& u : cliques[c] ) {
+            ASSERT(!empty_cliques.empty());
+            const CliqueID target = empty_cliques.back();
+            empty_cliques.pop_back();
             graph.setClique(u, target);
           }
         }
@@ -88,33 +61,37 @@ class LargeCliqueWithNeighborIsolator {
 
  public:
   static void mutate(Graph& graph, const Context& context, const float prob) {
-    CliqueStats stats(graph);
+    utils::CommonOperations::instance(graph).computeNodesOfCliqueWithEmptyCliques(graph);
+    std::vector<CliqueID>& empty_cliques =
+      utils::CommonOperations::instance(graph)._empty_cliques;
+    std::vector<std::vector<NodeID>> cliques =
+      utils::CommonOperations::instance(graph)._cliques;
     for ( const CliqueID& c : graph.nodes() ) {
-      if ( stats.cliques[c].size() >= context.refinement.evo.large_clique_threshold ) {
+      if ( cliques[c].size() >= context.refinement.evo.large_clique_threshold ) {
         const float p = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
         if ( p <= prob ) {
-          stats.empty_cliques.push_back(c);
+          empty_cliques.push_back(c);
           std::vector<NodeID> nodes_to_isolate;
-          for ( const NodeID& u : stats.cliques[c].nodes ) {
+          for ( const NodeID& u : cliques[c] ) {
             nodes_to_isolate.push_back(u);
-            for ( const Neighbor& n : graph.neighbors(u) ) {
-              const CliqueID target = graph.clique(n.target);
-              if ( target != c && stats.cliques[target].size() > 0 ) {
-                stats.empty_cliques.push_back(target);
-                for ( const NodeID& v : stats.cliques[target].nodes ) {
+            for ( const NodeID& v : graph.neighbors(u) ) {
+              const CliqueID target = graph.clique(v);
+              if ( target != c && cliques[target].size() > 0 ) {
+                empty_cliques.push_back(target);
+                for ( const NodeID& v : cliques[target] ) {
                   nodes_to_isolate.push_back(v);
                 }
-                stats.cliques[target].nodes.clear();
+                cliques[target].clear();
               }
             }
           }
-          stats.cliques[c].nodes.clear();
+          cliques[c].clear();
 
           // Isolate all nodes and clique c and all nodes in neighbor cliques
           for ( const NodeID& u : nodes_to_isolate ) {
-            ASSERT(!stats.empty_cliques.empty());
-            const CliqueID target = stats.empty_cliques.back();
-            stats.empty_cliques.pop_back();
+            ASSERT(!empty_cliques.empty());
+            const CliqueID target = empty_cliques.back();
+            empty_cliques.pop_back();
             graph.setClique(u, target);
           }
         }
@@ -130,15 +107,19 @@ class RandomNodeIsolator {
 
  public:
   static void mutate(Graph& graph, const float prob) {
-    CliqueStats stats(graph);
+    utils::CommonOperations::instance(graph).computeNodesOfCliqueWithEmptyCliques(graph);
+    std::vector<CliqueID>& empty_cliques =
+      utils::CommonOperations::instance(graph)._empty_cliques;
+    std::vector<std::vector<NodeID>> cliques =
+      utils::CommonOperations::instance(graph)._cliques;
     for ( const CliqueID& c : graph.nodes() ) {
-      if ( stats.cliques[c].size() > 1 ) {
-        size_t current_size = stats.cliques[c].size();
-        for ( const NodeID& u : stats.cliques[c].nodes ) {
+      if ( cliques[c].size() > 1 ) {
+        size_t current_size = cliques[c].size();
+        for ( const NodeID& u : cliques[c] ) {
           const float p = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
           if ( p <= prob ) {
-            const CliqueID target = stats.empty_cliques.back();
-            stats.empty_cliques.pop_back();
+            const CliqueID target = empty_cliques.back();
+            empty_cliques.pop_back();
             graph.setClique(u, target);
             --current_size;
           }
@@ -163,8 +144,8 @@ class RandomNodeMover {
       const float p = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
       if ( p <= prob ) {
         const CliqueID from = graph.clique(u);
-        for ( const Neighbor& n : graph.neighbors(u) ) {
-          const CliqueID to = graph.clique(n.target);
+        for ( const NodeID& v : graph.neighbors(u) ) {
+          const CliqueID to = graph.clique(v);
           if ( from != to ) {
             target_cliques.push_back(to);
           }

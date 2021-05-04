@@ -124,10 +124,10 @@ namespace internal {
       for ( const NodeID& u : graph.nodes() ) {
         const CliqueID c = graph.clique(u);
         ++clique_sizes[c];
-        for ( const Neighbor& n : graph.neighbors(u) ) {
-          if ( graph.clique(n.target) == c && u < n.target ) {
+        for ( const NodeID& v : graph.neighbors(u) ) {
+          if ( graph.clique(v) == c && u < v ) {
             ++intra_edges[c];
-          } else if ( graph.clique(n.target) != c ) {
+          } else if ( graph.clique(v) != c ) {
             ++inter_edges[c];
           }
         }

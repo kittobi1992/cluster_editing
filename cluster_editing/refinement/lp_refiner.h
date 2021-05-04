@@ -22,8 +22,8 @@
 
 #include "cluster_editing/refinement/i_refiner.h"
 #include "cluster_editing/context/context.h"
-#include "cluster_editing/datastructures/sparse_map.h"
 #include "cluster_editing/datastructures/fast_reset_flag_array.h"
+#include "cluster_editing/utils/common_operations.h"
 
 namespace cluster_editing {
 
@@ -43,11 +43,12 @@ class LabelPropagationRefiner final : public IRefiner {
                                    const Context& context) :
     _context(context),
     _nodes(),
-    _clique_weight(graph.numNodes()),
-    _empty_cliques(),
-    _rating(graph.numNodes()),
+    _clique_sizes(utils::CommonOperations::instance(graph)._cluster_sizes),
+    _empty_cliques(utils::CommonOperations::instance(graph)._empty_cliques),
+    _rating(utils::CommonOperations::instance(graph)._rating),
     _window_improvement(0),
-    _round_improvements() { }
+    _round_improvements(),
+    _cliques_with_same_rating() { }
 
   LabelPropagationRefiner(const LabelPropagationRefiner&) = delete;
   LabelPropagationRefiner(LabelPropagationRefiner&&) = delete;
@@ -63,19 +64,22 @@ class LabelPropagationRefiner final : public IRefiner {
 
   void initializeImpl(Graph& graph) final;
 
-  EdgeWeight refineImpl(Graph& graph) final ;
+  EdgeWeight refineImpl(Graph& graph, const EdgeWeight current_edits) final ;
 
   void moveVertex(Graph& graph, const NodeID u, const CliqueID to);
 
-  Rating computeBestTargetClique(Graph& graph, const NodeID u, const bool force_isolation);
+  Rating computeBestTargetCliqueWithRatingMap(Graph& graph, const NodeID u);
+
+  Rating computeBestTargetCliqueWithSorting(Graph& graph, const NodeID u);
 
   const Context& _context;
   size_t _moved_vertices;
   std::vector<NodeID> _nodes;
-  std::vector<NodeWeight> _clique_weight;
-  std::vector<CliqueID> _empty_cliques;
-  ds::SparseMap<CliqueID, EdgeWeight> _rating;
+  std::vector<NodeID>& _clique_sizes;
+  std::vector<CliqueID>& _empty_cliques;
+  ds::FixedSizeSparseMap<CliqueID, EdgeWeight>& _rating;
   EdgeWeight _window_improvement;
   std::vector<EdgeWeight> _round_improvements;
+  std::vector<CliqueID> _cliques_with_same_rating;
 };
 }  // namespace cluster_editing
