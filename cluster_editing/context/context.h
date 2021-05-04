@@ -52,6 +52,7 @@ struct LabelPropagationRefinerParameters {
   int maximum_lp_iterations = std::numeric_limits<int>::max();
   bool random_shuffle_each_round = false;
   NodeOrdering node_order = NodeOrdering::none;
+  NodeID rating_map_degree_threshold = 0;
   int min_improvement = 0;
   size_t early_exit_window = 0;
 };

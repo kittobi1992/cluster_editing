@@ -47,7 +47,8 @@ class LabelPropagationRefiner final : public IRefiner {
     _empty_cliques(utils::CommonOperations::instance(graph)._empty_cliques),
     _rating(utils::CommonOperations::instance(graph)._rating),
     _window_improvement(0),
-    _round_improvements() { }
+    _round_improvements(),
+    _cliques_with_same_rating() { }
 
   LabelPropagationRefiner(const LabelPropagationRefiner&) = delete;
   LabelPropagationRefiner(LabelPropagationRefiner&&) = delete;
@@ -67,7 +68,9 @@ class LabelPropagationRefiner final : public IRefiner {
 
   void moveVertex(Graph& graph, const NodeID u, const CliqueID to);
 
-  Rating computeBestTargetClique(Graph& graph, const NodeID u, const bool force_isolation);
+  Rating computeBestTargetCliqueWithRatingMap(Graph& graph, const NodeID u);
+
+  Rating computeBestTargetCliqueWithSorting(Graph& graph, const NodeID u);
 
   const Context& _context;
   size_t _moved_vertices;
@@ -77,5 +80,6 @@ class LabelPropagationRefiner final : public IRefiner {
   ds::SparseMap<CliqueID, EdgeWeight>& _rating;
   EdgeWeight _window_improvement;
   std::vector<EdgeWeight> _round_improvements;
+  std::vector<CliqueID> _cliques_with_same_rating;
 };
 }  // namespace cluster_editing

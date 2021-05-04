@@ -47,23 +47,35 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph, const EdgeWeight cu
     });
   }
 
+  // Sorting-based rating is beneficial if the number of nodes is greater
+  // than 150000
+  const NodeID rating_map_degree_threshold = graph.numNodes() > 150000 ?
+    _context.refinement.lp.rating_map_degree_threshold : 0;
   auto process_vertex = [&](const NodeID u) {
     const CliqueID from = graph.clique(u);
-    Rating rating = computeBestTargetClique(graph, u, false);
-    const CliqueID to = rating.clique;
-    if ( to != from ) {
-      moveVertex(graph, u, to);
-      ++_moved_vertices;
-      converged = false;
+    const NodeID u_degree = graph.degree(u);
+    if ( u_degree > 0 ) {
+      Rating rating;
+      if ( u_degree < rating_map_degree_threshold ) {
+        rating = computeBestTargetCliqueWithSorting(graph, u);
+      } else {
+        rating = computeBestTargetCliqueWithRatingMap(graph, u);
+      }
+      const CliqueID to = rating.clique;
+      if ( to != from ) {
+        moveVertex(graph, u, to);
+        ++_moved_vertices;
+        converged = false;
 
-      // Verify, if rating is correct
-      ASSERT(current_metric + rating.delta ==
-        metrics::edge_deletions(graph) + metrics::edge_insertions(graph),
-        "Rating is wrong. Expected:" <<
-        (metrics::edge_deletions(graph) + metrics::edge_insertions(graph)) <<
-        "but is" << (current_metric + rating.delta) << "(" <<
-        V(current_metric) << "," << V(rating.delta) << ")");
-      current_metric += rating.delta;
+        // Verify, if rating is correct
+        ASSERT(current_metric + rating.delta ==
+          metrics::edge_deletions(graph) + metrics::edge_insertions(graph),
+          "Rating is wrong. Expected:" <<
+          (metrics::edge_deletions(graph) + metrics::edge_insertions(graph)) <<
+          "but is" << (current_metric + rating.delta) << "(" <<
+          V(current_metric) << "," << V(rating.delta) << ")");
+        current_metric += rating.delta;
+      }
     }
   };
 
@@ -155,9 +167,8 @@ namespace {
 
 }
 
-LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique(Graph& graph,
-                                                                                 const NodeID u,
-                                                                                 const bool force_isolation) {
+LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetCliqueWithRatingMap(Graph& graph,
+                                                                                              const NodeID u) {
   _rating.clear();
   Rating best_rating;
   const CliqueID from = graph.clique(u);
@@ -175,7 +186,8 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique
     deletions(u_degree, _rating[from]);
   best_rating.rating = from_rating;
   best_rating.delta = 0;
-  std::vector<CliqueID> cliques_with_same_rating = { from };
+  _cliques_with_same_rating.clear();
+  _cliques_with_same_rating.push_back(from);
   for ( const auto& entry : _rating ) {
     const CliqueID to = entry.key;
     if ( to != from ) {
@@ -188,33 +200,112 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique
         best_rating.clique = to;
         best_rating.rating = to_rating;
         best_rating.delta = to_rating - from_rating;
-        cliques_with_same_rating.clear();
-        cliques_with_same_rating.push_back(to);
+        _cliques_with_same_rating.clear();
+        _cliques_with_same_rating.push_back(to);
       } else if ( to_rating == best_rating.rating ) {
-        cliques_with_same_rating.push_back(to);
+        _cliques_with_same_rating.push_back(to);
       }
     }
   }
 
-  // Check if it is beneficial to isolate the vertex again
-  if ( !_empty_cliques.empty() && ( u_degree < best_rating.rating ||
-       ( u_degree == best_rating.rating && force_isolation ) ) ) {
+  // Check if it is beneficial to isolate the vertex
+  if ( !_empty_cliques.empty() &&  u_degree < best_rating.rating ) {
     best_rating.clique = _empty_cliques.back();
     best_rating.rating = u_degree;
     best_rating.delta = u_degree - from_rating;
-    cliques_with_same_rating.clear();
-    cliques_with_same_rating.push_back(_empty_cliques.back());
+    _cliques_with_same_rating.clear();
+    _cliques_with_same_rating.push_back(_empty_cliques.back());
   } else if ( !_empty_cliques.empty() && u_degree == best_rating.rating ) {
-    cliques_with_same_rating.push_back(_empty_cliques.back());
+    _cliques_with_same_rating.push_back(_empty_cliques.back());
   }
 
   // Random tie breaking
-  if ( cliques_with_same_rating.size() > 1 ) {
+  if ( _cliques_with_same_rating.size() > 1 ) {
     const size_t tie_breaking_idx = utils::Randomize::instance().getRandomInt(
-      0, cliques_with_same_rating.size() - 1);
-    best_rating.clique = cliques_with_same_rating[tie_breaking_idx];
+      0, _cliques_with_same_rating.size() - 1);
+    best_rating.clique = _cliques_with_same_rating[tie_breaking_idx];
   }
 
+  return best_rating;
+}
+
+LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetCliqueWithSorting(Graph& graph,
+                                                                                            const NodeID u) {
+  // Sort incident edges according to their clique id
+  graph.sortNeighborsByCliqueID(u);
+
+  Rating best_rating;
+  best_rating.clique = INVALID_CLIQUE;
+  best_rating.rating = std::numeric_limits<EdgeWeight>::max();
+  Rating current_rating;
+  current_rating.clique = graph.clique((*graph.neighbors(u).begin()).target);
+  current_rating.rating = 0;
+
+  _cliques_with_same_rating.clear();
+  const EdgeWeight u_degree = graph.degree(u);
+  const CliqueID from = graph.clique(u);
+  EdgeWeight from_rating = std::numeric_limits<EdgeWeight>::max();
+  auto computeRating = [&]() {
+    const CliqueID to = current_rating.clique;
+    const EdgeWeight to_rating =
+      insertions(_clique_sizes[to] - (to == from ? 1 : 0) , current_rating.rating) +
+      deletions(u_degree, current_rating.rating);
+
+    if ( to_rating < best_rating.rating ) {
+      best_rating.clique = to;
+      best_rating.rating = to_rating;
+      _cliques_with_same_rating.clear();
+      _cliques_with_same_rating.push_back(to);
+    } else if ( to_rating == best_rating.rating ) {
+      _cliques_with_same_rating.push_back(to);
+    }
+
+    // From rating is required to calculate delta
+    // for the number of edits if we apply the move
+    if ( to == from ) {
+      from_rating = to_rating;
+    }
+  };
+
+  // All neighbors with same clique id are now in a
+  // consecutive range within the adjacency list
+  for ( const Neighbor& n : graph.neighbors(u) ) {
+    const CliqueID to = graph.clique(n.target);
+    if ( current_rating.clique != to ) {
+      computeRating();
+      current_rating.clique = to;
+      current_rating.rating = 0;
+    }
+    ++current_rating.rating;
+  }
+  computeRating();
+
+  // From rating is required to calculate delta
+  // for the number of edits if we apply the move
+  // => fallback if u is not adjacent to from clique
+  if ( from_rating == std::numeric_limits<EdgeWeight>::max() ) {
+    from_rating = insertions(_clique_sizes[from] - 1, 0) + deletions(u_degree, 0);
+  }
+
+  // Check if it is beneficial to isolate the vertex
+  if ( !_empty_cliques.empty() &&  u_degree < best_rating.rating ) {
+    best_rating.clique = _empty_cliques.back();
+    best_rating.rating = u_degree;
+    best_rating.delta = u_degree - from_rating;
+    _cliques_with_same_rating.clear();
+    _cliques_with_same_rating.push_back(_empty_cliques.back());
+  } else if ( !_empty_cliques.empty() && u_degree == best_rating.rating ) {
+    _cliques_with_same_rating.push_back(_empty_cliques.back());
+  }
+
+  // Random tie breaking
+  if ( _cliques_with_same_rating.size() > 1 ) {
+    const size_t tie_breaking_idx = utils::Randomize::instance().getRandomInt(
+      0, _cliques_with_same_rating.size() - 1);
+    best_rating.clique = _cliques_with_same_rating[tie_breaking_idx];
+  }
+
+  best_rating.delta = best_rating.rating - from_rating;
   return best_rating;
 }
 

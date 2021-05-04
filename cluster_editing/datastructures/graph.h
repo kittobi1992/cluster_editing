@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 
 #include "cluster_editing/macros.h"
 #include "cluster_editing/datastructures/graph_common.h"
@@ -220,6 +221,15 @@ class Graph {
     return IteratorRange<NeighborIterator>(
       NeighborIterator(_edges.data() + node(u).firstEntry(), node(u).firstEntry()),
       NeighborIterator(_edges.data() + node(u + 1).firstEntry(), node(u + 1).firstEntry()));
+  }
+
+  void sortNeighborsByCliqueID(const NodeID u) {
+    ASSERT(u <= _num_nodes, "Node" << u << "does not exist");
+    std::sort(_edges.begin() + node(u).firstEntry(),
+              _edges.begin() + node(u + 1).firstEntry(),
+              [&](const Edge& lhs, const Edge& rhs) {
+                return clique(lhs.target()) < clique(rhs.target());
+              });
   }
 
   // ####################### Node Information #######################

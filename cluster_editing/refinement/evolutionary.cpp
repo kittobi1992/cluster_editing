@@ -64,7 +64,8 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph, const EdgeWeight current_edits
 void Evolutionary::createInitialPopulation(Graph& graph, const EdgeWeight current_edits) {
   for ( int i = 0; i < _context.refinement.evo.solution_pool_size; ++i ) {
     _population[i].edits = refineSolution(graph, current_edits,
-      _context.refinement.evo.initial_lp_iterations, true,
+      _context.refinement.evo.initial_lp_iterations,
+      _context.refinement.evo.use_random_node_ordering,
       _context.general.verbose_output);
     storeSolution(graph, *_population[i].solution);
   }
