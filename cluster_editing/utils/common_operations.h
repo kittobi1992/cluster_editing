@@ -55,8 +55,7 @@ class CommonOperations {
     for ( const NodeID& u : graph.nodes() ) {
       const CliqueID u_id = graph.clique(u);
       ++_cluster_sizes[u_id];
-      for ( const Neighbor& n : graph.neighbors(u) ) {
-        const NodeID v = n.target;
+      for ( const NodeID& v : graph.neighbors(u) ) {
         const CliqueID v_id = graph.clique(v);
         if ( u_id == v_id && u < v /* count each internal edge only once */ ) {
           ++_internal_edges[u_id];

@@ -175,8 +175,8 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique
   best_rating.clique = from;
   _rating[from] = 0;
 
-  for ( const Neighbor& n : graph.neighbors(u) ) {
-    const CliqueID to = graph.clique(n.target);
+  for ( const NodeID& v : graph.neighbors(u) ) {
+    const CliqueID to = graph.clique(v);
     ++_rating[to];
   }
 
@@ -238,7 +238,7 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique
   best_rating.clique = INVALID_CLIQUE;
   best_rating.rating = std::numeric_limits<EdgeWeight>::max();
   Rating current_rating;
-  current_rating.clique = graph.clique((*graph.neighbors(u).begin()).target);
+  current_rating.clique = graph.clique(*graph.neighbors(u).begin());
   current_rating.rating = 0;
 
   _cliques_with_same_rating.clear();
@@ -269,8 +269,8 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique
 
   // All neighbors with same clique id are now in a
   // consecutive range within the adjacency list
-  for ( const Neighbor& n : graph.neighbors(u) ) {
-    const CliqueID to = graph.clique(n.target);
+  for ( const NodeID& v : graph.neighbors(u) ) {
+    const CliqueID to = graph.clique(v);
     if ( current_rating.clique != to ) {
       computeRating();
       current_rating.clique = to;

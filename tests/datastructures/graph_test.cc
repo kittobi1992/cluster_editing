@@ -6,12 +6,6 @@ using ::testing::Test;
 
 namespace cluster_editing::ds {
 
-struct WeightedNeigbor {
-  EdgeID id;
-  NodeID target;
-  EdgeWeight weight;
-};
-
 class AGraph : public Test {
  public:
   AGraph() :
@@ -21,33 +15,18 @@ class AGraph : public Test {
 
   void verifyNeighbors(const Graph& test_graph,
                        const NodeID u,
-                       const std::vector<Neighbor>& neighbors) {
+                       const std::vector<NodeID>& neighbors) {
     size_t num_neighbors = 0;
-    for ( const Neighbor& neighbor : test_graph.neighbors(u) ) {
+    for ( const NodeID& v : test_graph.neighbors(u) ) {
       const size_t i = num_neighbors;
-      ASSERT_EQ(neighbor.id, neighbors[i].id);
-      ASSERT_EQ(neighbor.target, neighbors[i].target);
-      ++num_neighbors;
-    }
-    ASSERT_EQ(num_neighbors, neighbors.size());
-  }
-
-  void verifyNeighbors(const Graph& test_graph,
-                       const NodeID u,
-                       const std::vector<WeightedNeigbor>& neighbors) {
-    size_t num_neighbors = 0;
-    for ( const Neighbor& neighbor : test_graph.neighbors(u) ) {
-      const size_t i = num_neighbors;
-      ASSERT_EQ(neighbor.id, neighbors[i].id);
-      ASSERT_EQ(neighbor.target, neighbors[i].target);
-      ASSERT_EQ(1, neighbors[i].weight);
+      ASSERT_EQ(v, neighbors[i]);
       ++num_neighbors;
     }
     ASSERT_EQ(num_neighbors, neighbors.size());
   }
 
   void verifyNeighbors(const NodeID u,
-                       const std::vector<Neighbor>& neighbors) {
+                       const std::vector<NodeID>& neighbors) {
     verifyNeighbors(graph, u, neighbors);
   }
 
@@ -75,48 +54,28 @@ TEST_F(AGraph, VerifyNodeDegrees) {
   ASSERT_EQ(2, graph.degree(5));
 }
 
-TEST_F(AGraph, VerifyEdgeSourceAndTarget1) {
-  ASSERT_EQ(0, graph.source(0));
-  ASSERT_EQ(1, graph.target(0));
-}
-
-TEST_F(AGraph, VerifyEdgeSourceAndTarget2) {
-  ASSERT_EQ(0, graph.source(1));
-  ASSERT_EQ(2, graph.target(1));
-}
-
-TEST_F(AGraph, VerifyEdgeSourceAndTarget3) {
-  ASSERT_EQ(3, graph.source(7));
-  ASSERT_EQ(2, graph.target(7));
-}
-
-TEST_F(AGraph, VerifyEdgeSourceAndTarget4) {
-  ASSERT_EQ(5, graph.source(13));
-  ASSERT_EQ(4, graph.target(13));
-}
-
 TEST_F(AGraph, CheckNeighborsOfNode0) {
-  verifyNeighbors(0, { Neighbor { 0, 1 }, Neighbor { 1, 2 } });
+  verifyNeighbors(0, { 1, 2 });
 }
 
 TEST_F(AGraph, CheckNeighborsOfNode1) {
-  verifyNeighbors(1, { Neighbor { 2, 0 }, Neighbor { 3, 2 } });
+  verifyNeighbors(1, { 0, 2 });
 }
 
 TEST_F(AGraph, CheckNeighborsOfNode2) {
-  verifyNeighbors(2, { Neighbor { 4, 0 }, Neighbor { 5, 1 }, Neighbor { 6, 3 } });
+  verifyNeighbors(2, { 0, 1, 3 });
 }
 
 TEST_F(AGraph, CheckNeighborsOfNode3) {
-  verifyNeighbors(3, { Neighbor { 7, 2 }, Neighbor { 8, 4 }, Neighbor { 9, 5 } });
+  verifyNeighbors(3, { 2, 4, 5 });
 }
 
 TEST_F(AGraph, CheckNeighborsOfNode4) {
-  verifyNeighbors(4, { Neighbor { 10, 3 }, Neighbor { 11, 5 } });
+  verifyNeighbors(4, { 3, 5 });
 }
 
 TEST_F(AGraph, CheckNeighborsOfNode5) {
-  verifyNeighbors(5, { Neighbor { 12, 3 }, Neighbor { 13, 4 } });
+  verifyNeighbors(5, { 3, 4 });
 }
 
 } // namespace cluster_editing::ds

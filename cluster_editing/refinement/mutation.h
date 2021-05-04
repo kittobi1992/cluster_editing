@@ -74,8 +74,8 @@ class LargeCliqueWithNeighborIsolator {
           std::vector<NodeID> nodes_to_isolate;
           for ( const NodeID& u : cliques[c] ) {
             nodes_to_isolate.push_back(u);
-            for ( const Neighbor& n : graph.neighbors(u) ) {
-              const CliqueID target = graph.clique(n.target);
+            for ( const NodeID& v : graph.neighbors(u) ) {
+              const CliqueID target = graph.clique(v);
               if ( target != c && cliques[target].size() > 0 ) {
                 empty_cliques.push_back(target);
                 for ( const NodeID& v : cliques[target] ) {
@@ -144,8 +144,8 @@ class RandomNodeMover {
       const float p = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
       if ( p <= prob ) {
         const CliqueID from = graph.clique(u);
-        for ( const Neighbor& n : graph.neighbors(u) ) {
-          const CliqueID to = graph.clique(n.target);
+        for ( const NodeID& v : graph.neighbors(u) ) {
+          const CliqueID to = graph.clique(v);
           if ( from != to ) {
             target_cliques.push_back(to);
           }

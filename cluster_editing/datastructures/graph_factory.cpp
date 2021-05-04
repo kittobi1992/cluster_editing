@@ -19,9 +19,7 @@ namespace cluster_editing::ds {
       graph._nodes[source].setClique(source);
       graph._best_cliques[source] = source;
       for ( const NodeID& target : adj_list[source] ) {
-        graph._edges.emplace_back();
-        graph._edges.back().setSource(source);
-        graph._edges.back().setTarget(target);
+        graph._edges.emplace_back(target);
         ++current_idx;
       }
     }

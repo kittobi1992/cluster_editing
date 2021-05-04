@@ -45,33 +45,6 @@ class Graph {
     CliqueID _clique;
   };
 
-  class Edge {
-   public:
-    Edge() :
-      _source(INVALID_NODE),
-      _target(INVALID_NODE) { }
-
-    NodeID source() const {
-      return _source;
-    }
-
-    void setSource(const NodeID source) {
-      _source = source;
-    }
-
-    NodeID target() const {
-      return _target;
-    }
-
-    void setTarget(const NodeID target) {
-      _target = target;
-    }
-
-   private:
-    NodeID _source;
-    NodeID _target;
-  };
-
   /*!
    * Iterator for GraphElements (Nodes/Edges)
    */
@@ -129,54 +102,12 @@ class Graph {
     IDType _max_id = 0;
   };
 
-  class NeighborIterator :
-    public std::iterator<std::forward_iterator_tag, // iterator_category
-                         Neighbor,                  // value_type
-                         std::ptrdiff_t,            // difference_type
-                         const Neighbor*,           // pointer
-                         Neighbor> {                // reference
-   public:
-    NeighborIterator(const Edge* start_edge, EdgeID start_id) :
-      _current_edge(start_edge),
-      _current_neighbor(Neighbor { start_id, start_edge->target() }) { }
-
-    // ! Returns the id of the element the iterator currently points to.
-    Neighbor operator* () const {
-      return _current_neighbor;
-    }
-
-    // ! Prefix increment.
-    NeighborIterator & operator++ () {
-      ++_current_neighbor.id;
-      ++_current_edge;
-      _current_neighbor.target = _current_edge->target();
-      return *this;
-    }
-
-    // ! Postfix increment.
-    NeighborIterator operator++ (int) {
-      NeighborIterator copy = *this;
-      operator++ ();
-      return copy;
-    }
-
-    bool operator!= (const NeighborIterator& rhs) {
-      return _current_neighbor.id != rhs._current_neighbor.id;
-    }
-
-    bool operator== (const NeighborIterator& rhs) {
-      return _current_neighbor.id == rhs._current_neighbor.id;
-    }
-
-   private:
-    const Edge* _current_edge;
-    Neighbor _current_neighbor;
-  };
-
   // ! Iterator to iterate over the nodes
   using NodeIterator = GraphElementIterator<NodeID>;
   // ! Iterator to iterate over the edges
   using EdgeIterator = GraphElementIterator<EdgeID>;
+  // ! Iterator to iterate over incident edges
+  using NeighborIterator = typename std::vector<NodeID>::const_iterator;
 
  public:
   Graph() :
@@ -219,16 +150,16 @@ class Graph {
   // ! Returns a range to iterate over all neighbors of a vertex
   IteratorRange<NeighborIterator> neighbors(const NodeID u) const {
     return IteratorRange<NeighborIterator>(
-      NeighborIterator(_edges.data() + node(u).firstEntry(), node(u).firstEntry()),
-      NeighborIterator(_edges.data() + node(u + 1).firstEntry(), node(u + 1).firstEntry()));
+      _edges.cbegin() + node(u).firstEntry(),
+      _edges.cbegin() + node(u + 1).firstEntry());
   }
 
   void sortNeighborsByCliqueID(const NodeID u) {
     ASSERT(u <= _num_nodes, "Node" << u << "does not exist");
     std::sort(_edges.begin() + node(u).firstEntry(),
               _edges.begin() + node(u + 1).firstEntry(),
-              [&](const Edge& lhs, const Edge& rhs) {
-                return clique(lhs.target()) < clique(rhs.target());
+              [&](const NodeID& lhs, const NodeID& rhs) {
+                return clique(lhs) < clique(rhs);
               });
   }
 
@@ -248,16 +179,6 @@ class Graph {
 
   void setClique(const NodeID u, const CliqueID id) {
     node(u).setClique(id);
-  }
-
-  // ####################### Edge Information #######################
-
-  NodeID source(const EdgeID e) const {
-    return edge(e).source();
-  }
-
-  NodeID target(const EdgeID e) const {
-    return edge(e).target();
   }
 
   // ####################### Checkpointing #######################
@@ -308,19 +229,6 @@ class Graph {
     return const_cast<Node&>(static_cast<const Graph&>(*this).node(u));
   }
 
-  // ####################### Edge Information #######################
-
-  // ! Accessor for edge-related information
-  ATTRIBUTE_ALWAYS_INLINE const Edge& edge(const EdgeID e) const {
-    ASSERT(e <= _num_edges, "Edge" << e << "does not exist");
-    return _edges[e];
-  }
-
-  // ! To avoid code duplication we implement non-const version in terms of const version
-  ATTRIBUTE_ALWAYS_INLINE Edge& edge(const EdgeID e) {
-    return const_cast<Edge&>(static_cast<const Graph&>(*this).edge(e));
-  }
-
   NodeID _num_nodes;
   EdgeID _num_edges;
   NodeWeight _total_weight;
@@ -328,7 +236,7 @@ class Graph {
   // ! Index Array
   std::vector<Node> _nodes;
   // ! Indicence Array
-  std::vector<Edge> _edges;
+  std::vector<NodeID> _edges;
 
   // Checkpointing
   std::vector<CliqueID> _best_cliques;

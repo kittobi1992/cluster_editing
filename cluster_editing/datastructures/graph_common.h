@@ -15,10 +15,4 @@ namespace cluster_editing {
   static constexpr NodeID INVALID_NODE = std::numeric_limits<NodeID>::max();
   static constexpr CliqueID INVALID_CLIQUE = std::numeric_limits<CliqueID>::max();
   static constexpr EdgeID INVALID_EDGE = std::numeric_limits<EdgeID>::max();
-
-  struct Neighbor {
-    EdgeID id;
-    NodeID target;
-  };
-
 } // namespace cluster_editing

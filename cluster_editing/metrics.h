@@ -21,8 +21,7 @@ inline EdgeWeight edge_insertions(const Graph& graph) {
 inline EdgeWeight edge_deletions(const Graph& graph) {
   EdgeWeight deletions = 0;
   for ( const NodeID& u : graph.nodes() ) {
-    for ( const Neighbor& n : graph.neighbors(u) ) {
-      const NodeID v = n.target;
+    for ( const NodeID& v : graph.neighbors(u) ) {
       // Only count deletions once
       if ( graph.clique(u) < graph.clique(v) ) {
         ++deletions;
