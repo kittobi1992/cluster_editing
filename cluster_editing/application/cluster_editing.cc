@@ -24,9 +24,9 @@ void printResult(Graph& best) {
     std::vector<std::vector<NodeID>> cliques(best.numNodes());
     for ( const NodeID u : best.nodes() ) {
       cliques[best.clique(u)].push_back(u);
-      for ( const auto& v : best.neighbors(u) ) {
-        if ( u < v.target && best.clique(u) != best.clique(v.target) ) {
-          std::cout << (u + 1) << " " << (v.target + 1) << std::endl;
+      for ( const NodeID& v : best.neighbors(u) ) {
+        if ( u < v && best.clique(u) != best.clique(v) ) {
+          std::cout << (u + 1) << " " << (v + 1) << std::endl;
         }
       }
     }
@@ -37,9 +37,9 @@ void printResult(Graph& best) {
         std::set<NodeID> clique(cliques[c].begin(), cliques[c].end());
 
         for ( const NodeID u : cliques[c] ) {
-          for ( const auto& v : best.neighbors(u) ) {
-            if ( best.clique(u) == best.clique(v.target) ) {
-              clique.erase(v.target);
+          for ( const NodeID& v : best.neighbors(u) ) {
+            if ( best.clique(u) == best.clique(v) ) {
+              clique.erase(v);
             }
           }
 
@@ -49,9 +49,9 @@ void printResult(Graph& best) {
             }
           }
 
-          for ( const auto& v : best.neighbors(u) ) {
-            if ( best.clique(u) == best.clique(v.target) ) {
-              clique.insert(v.target);
+          for ( const NodeID& v : best.neighbors(u) ) {
+            if ( best.clique(u) == best.clique(v) ) {
+              clique.insert(v);
             }
           }
         }
@@ -120,13 +120,14 @@ int main() {
   context.refinement.evo.max_node_isolation_prob = 0.25;
   context.refinement.evo.min_node_move_prob = 0.01;
   context.refinement.evo.max_node_move_prob = 0.25;
-  context.refinement.evo.random_prob_selection_prob = 0.25;
+  context.refinement.evo.random_prob_selection_prob = 0.1;
 
   // LP Refiner Options
   context.refinement.use_lp_refiner = false;
   context.refinement.lp.maximum_lp_iterations = 1000;
   context.refinement.lp.random_shuffle_each_round = false;
   context.refinement.lp.node_order = NodeOrdering::none;
+  context.refinement.lp.rating_map_degree_threshold = 16;
   context.refinement.lp.min_improvement = 5;
   context.refinement.lp.early_exit_window = 100;
 
