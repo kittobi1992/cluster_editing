@@ -43,6 +43,8 @@ struct EvolutionaryParameters {
   float max_node_isolation_prob = 0.0;
   float min_node_move_prob = 0.0;
   float max_node_move_prob = 0.0;
+  float min_node_move_or_isolate_prob = 0.0;
+  float max_node_move_or_isolate_prob = 0.0;
   float random_prob_selection_prob = 0.0;
 };
 

@@ -28,7 +28,8 @@ enum class Mutation : uint8_t {
   LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR = 1,
   RANDOM_NODE_ISOLATOR = 2,
   RANDOM_NODE_MOVER = 3,
-  NUM_MUTATIONS = 4
+  RANDOM_NODE_MOVER_OR_ISOLATOR = 4,
+  NUM_MUTATIONS = 5
 };
 
 std::ostream & operator<< (std::ostream& os, const NodeOrdering& order);
