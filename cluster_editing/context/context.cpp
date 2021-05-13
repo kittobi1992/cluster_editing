@@ -50,6 +50,7 @@ std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParam
   str << "    Random Shuffle each Round:   " << std::boolalpha << params.random_shuffle_each_round << std::endl;
   str << "    Node Ordering:               " << params.node_order << std::endl;
   str << "    Rating Map Degree Threshold: " << params.rating_map_degree_threshold << std::endl;
+  str << "    Min. Target Edit Distance:   " << params.min_target_edit_distance << std::endl;
   str << "    Min Improvement:             " << params.min_improvement << std::endl;
   str << "    Early Exit Window:           " << params.early_exit_window << std::endl;
   return str;
@@ -71,7 +72,7 @@ std::ostream & operator<< (std::ostream& str, const RefinementParameters& params
   if ( params.use_evo ) {
     str << params.evo;
   }
-  if ( params.use_lp_refiner ) {
+  if ( params.use_evo || params.use_lp_refiner ) {
     str << params.lp;
   }
   if ( params.use_boundary_fm_refiner || params.use_localized_fm_refiner ) {

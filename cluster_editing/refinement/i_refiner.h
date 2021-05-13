@@ -18,8 +18,10 @@ class IRefiner {
     initializeImpl(graph);
   }
 
-  EdgeWeight refine(Graph& graph, const EdgeWeight current_edits) {
-    return refineImpl(graph, current_edits);
+  EdgeWeight refine(Graph& graph,
+                    const EdgeWeight current_edits,
+                    const EdgeWeight target_edits = 0) {
+    return refineImpl(graph, current_edits, target_edits);
   }
 
  protected:
@@ -27,7 +29,9 @@ class IRefiner {
 
  private:
   virtual void initializeImpl(Graph& graph) = 0;
-  virtual EdgeWeight refineImpl(Graph& graph, const EdgeWeight current_edits) = 0;
+  virtual EdgeWeight refineImpl(Graph& graph,
+                                const EdgeWeight current_edits,
+                                const EdgeWeight target_edits) = 0;
 };
 
 } // namespace cluster_editing

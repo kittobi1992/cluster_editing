@@ -172,7 +172,25 @@ class TestMutation {
 
  public:
   static void mutate(Graph&, const float) {
-
+    /*utils::CommonOperations::instance(graph).computeNodesOfCliqueWithEmptyCliques(graph);
+    std::vector<CliqueID>& empty_cliques =
+      utils::CommonOperations::instance(graph)._empty_cliques;
+    std::vector<std::vector<NodeID>> cliques =
+      utils::CommonOperations::instance(graph)._cliques;
+    for ( const CliqueID& c : graph.nodes() ) {
+      if ( cliques[c].size() > 1 ) {
+        const float p = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
+        if ( p <= prob ) {
+          std::random_shuffle(cliques[c].begin(), cliques[c].end());
+          const CliqueID target = empty_cliques.back();
+          empty_cliques.pop_back();
+          for ( size_t i = 0; i < cliques[c].size() / 2; ++i ) {
+            const NodeID u = cliques[c][i];
+            graph.setClique(u, target);
+          }
+        }
+      }
+    }*/
   }
 
  private:

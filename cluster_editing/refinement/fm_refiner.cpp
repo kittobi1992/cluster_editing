@@ -39,7 +39,9 @@ void FMRefiner<StoppingRule>::initializeImpl(Graph& graph) {
 }
 
 template<typename StoppingRule>
-EdgeWeight FMRefiner<StoppingRule>::refineImpl(Graph& graph, const EdgeWeight current_edits) {
+EdgeWeight FMRefiner<StoppingRule>::refineImpl(Graph& graph,
+                                               const EdgeWeight current_edits,
+                                               const EdgeWeight) {
   EdgeWeight start_metric = current_edits;
   EdgeWeight current_metric = start_metric;
 

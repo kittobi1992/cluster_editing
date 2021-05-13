@@ -22,7 +22,9 @@ void LabelPropagationRefiner::initializeImpl(Graph& graph) {
   }
 }
 
-EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph, const EdgeWeight current_edits) {
+EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph,
+                                               const EdgeWeight current_edits,
+                                               const EdgeWeight target_edits) {
   utils::Timer::instance().start_timer("lp", "Label Propagation");
   bool converged = false;
   EdgeWeight start_metric = current_edits;
@@ -80,7 +82,8 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph, const EdgeWeight cu
   };
 
   // enable early exit on large graphs, if FM refiner is used afterwards
-  for ( int i = 0; i < _context.refinement.lp.maximum_lp_iterations && !converged; ++i ) {
+  int max_lp_iterations = _context.refinement.lp.maximum_lp_iterations;
+  for ( int i = 0; i < max_lp_iterations && !converged; ++i ) {
     utils::Timer::instance().start_timer("local_moving", "Local Moving");
     converged = true;
     const EdgeWeight initial_metric = current_metric;
@@ -121,6 +124,12 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph, const EdgeWeight cu
 
     if ( _context.isTimeLimitReached() ) {
       break;
+    }
+
+    if ( i + 1 == _context.refinement.lp.maximum_lp_iterations &&
+         current_metric - 25 < target_edits ) {
+      max_lp_iterations *= 2;
+      lp_progress.reset();
     }
   }
   lp_progress += (_context.refinement.lp.maximum_lp_iterations - lp_progress.count());

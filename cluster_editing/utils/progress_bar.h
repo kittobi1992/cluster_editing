@@ -77,6 +77,12 @@ class ProgressBar {
     return _count.load();
   }
 
+  void reset() {
+    _count = 0;
+    _next_tic_count = 0;
+    display_progress();
+  }
+
   size_t operator+=( const size_t increment ) {
     if ( _enable ) {
       _count.fetch_add(increment);
