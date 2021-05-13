@@ -95,7 +95,7 @@ int main() {
   context.general.verbose_output = false;
   context.general.print_result_line = true;
   context.general.seed = 2;
-  context.general.num_repititions = 1;
+  context.general.num_repititions = 1000;
   context.general.num_fruitless_repititions = 10;
   context.general.time_limit = 570; // 9 min and 30 secs
   utils::Randomize::instance().setSeed(context.general.seed);
@@ -110,7 +110,7 @@ int main() {
   context.refinement.evo.lp_iterations_after_mutate = 50;
   context.refinement.evo.use_random_node_ordering = false;
   context.refinement.evo.enable_all_mutations_after_steps = 500;
-  context.refinement.evo.enabled_mutations = "0011";
+  context.refinement.evo.enabled_mutations = "00110";
   context.refinement.evo.large_clique_threshold = 3;
   context.refinement.evo.min_clique_isolate_prob = 0.01;
   context.refinement.evo.max_clique_isolate_prob = 0.1;
@@ -120,6 +120,8 @@ int main() {
   context.refinement.evo.max_node_isolation_prob = 0.25;
   context.refinement.evo.min_node_move_prob = 0.01;
   context.refinement.evo.max_node_move_prob = 0.25;
+  context.refinement.evo.min_test_mutation_prob = 0.01;
+  context.refinement.evo.max_test_mutation_prob = 0.25;
   context.refinement.evo.random_prob_selection_prob = 0.1;
 
   // LP Refiner Options
@@ -128,6 +130,7 @@ int main() {
   context.refinement.lp.random_shuffle_each_round = false;
   context.refinement.lp.node_order = NodeOrdering::none;
   context.refinement.lp.rating_map_degree_threshold = 16;
+  context.refinement.lp.min_target_edit_distance = 30;
   context.refinement.lp.min_improvement = 5;
   context.refinement.lp.early_exit_window = 100;
 
@@ -178,18 +181,6 @@ int main() {
     // Check if solution is better than best solution found so far
     check_for_new_best_solution();
   };
-
-  // First Iteration
-  HighResClockTimepoint s = std::chrono::high_resolution_clock::now();
-  solve();
-  HighResClockTimepoint e = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> solve_time(e - s);
-  double time = solve_time.count();
-  if ( time < 240 ) {
-    context.general.num_repititions = std::min(std::max(static_cast<int>((240.0 - time) / time), 1), 1000);
-  } else {
-    context.general.num_repititions = 0;
-  }
 
   for ( int i = 0;
         i < context.general.num_repititions &&
