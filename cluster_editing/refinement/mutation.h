@@ -168,6 +168,35 @@ class RandomNodeMover {
   RandomNodeMover() { }
 };
 
+class TestMutation {
+
+ public:
+  static void mutate(Graph&, const float) {
+    /*utils::CommonOperations::instance(graph).computeNodesOfCliqueWithEmptyCliques(graph);
+    std::vector<CliqueID>& empty_cliques =
+      utils::CommonOperations::instance(graph)._empty_cliques;
+    std::vector<std::vector<NodeID>> cliques =
+      utils::CommonOperations::instance(graph)._cliques;
+    for ( const CliqueID& c : graph.nodes() ) {
+      if ( cliques[c].size() > 1 ) {
+        const float p = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
+        if ( p <= prob ) {
+          std::random_shuffle(cliques[c].begin(), cliques[c].end());
+          const CliqueID target = empty_cliques.back();
+          empty_cliques.pop_back();
+          for ( size_t i = 0; i < cliques[c].size() / 2; ++i ) {
+            const NodeID u = cliques[c][i];
+            graph.setClique(u, target);
+          }
+        }
+      }
+    }*/
+  }
+
+ private:
+  TestMutation() { }
+};
+
 class Mutator {
 
   struct MutationProbs {
@@ -175,6 +204,7 @@ class Mutator {
     float neighbor_clique_isolation_prob;
     float node_isolation_prob;
     float node_move_prob;
+    float node_move_or_isolate_prob;
     float last_prob;
   };
 
@@ -189,6 +219,7 @@ class Mutator {
     _probs.neighbor_clique_isolation_prob = _context.refinement.evo.max_neighbor_clique_isolate_prob;
     _probs.node_isolation_prob = _context.refinement.evo.max_node_isolation_prob;
     _probs.node_move_prob = _context.refinement.evo.max_node_move_prob;
+    _probs.node_move_or_isolate_prob = _context.refinement.evo.max_test_mutation_prob;
   }
 
   Mutation mutate(Graph& graph) {
@@ -210,6 +241,10 @@ class Mutator {
       if ( _show_detailed_output )
         LOG << "Mutation Action: RANDOM_NODE_MOVER ( p =" << prob << ")";
       RandomNodeMover::mutate(graph, prob);
+    } else if ( mutation == Mutation::TEST_MUTATION ) {
+      if ( _show_detailed_output )
+        LOG << "Mutation Action: TEST_MUTATION ( p =" << prob << ")";
+      TestMutation::mutate(graph, prob);
     }
     _probs.last_prob = prob;
     return mutation;
@@ -236,7 +271,7 @@ class Mutator {
     } else if ( mutation == Mutation::LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR ) {
       update_prob(_probs.neighbor_clique_isolation_prob,
         _context.refinement.evo.min_neighbor_clique_isolate_prob,
-        _context.refinement.evo.max_clique_isolate_prob);
+        _context.refinement.evo.max_neighbor_clique_isolate_prob);
     } else if ( mutation == Mutation::RANDOM_NODE_ISOLATOR ) {
       update_prob(_probs.node_isolation_prob,
         _context.refinement.evo.min_node_isolation_prob,
@@ -245,6 +280,10 @@ class Mutator {
       update_prob(_probs.node_move_prob,
         _context.refinement.evo.min_node_move_prob,
         _context.refinement.evo.max_node_move_prob);
+    } else if ( mutation == Mutation::TEST_MUTATION ) {
+      update_prob(_probs.node_move_or_isolate_prob,
+        _context.refinement.evo.min_test_mutation_prob,
+        _context.refinement.evo.max_test_mutation_prob);
     }
 
     _mutation_selector.notifyImprovement(mutation, std::max( 0, before_edits - after_edits ));
@@ -275,7 +314,7 @@ class Mutator {
       }
     } else if ( mutation == Mutation::LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR ) {
       if ( !select_random_probability ) {
-        return _probs.node_isolation_prob;
+        return _probs.neighbor_clique_isolation_prob;
       } else {
         return utils::Randomize::instance().getRandomFloat(
           _context.refinement.evo.min_neighbor_clique_isolate_prob,
@@ -297,6 +336,14 @@ class Mutator {
         return utils::Randomize::instance().getRandomFloat(
           _context.refinement.evo.min_node_move_prob,
           _context.refinement.evo.max_node_move_prob);
+      }
+    } else if ( mutation == Mutation::TEST_MUTATION ) {
+      if ( !select_random_probability ) {
+        return _probs.node_move_or_isolate_prob;
+      } else {
+        return utils::Randomize::instance().getRandomFloat(
+          _context.refinement.evo.min_test_mutation_prob,
+          _context.refinement.evo.max_test_mutation_prob);
       }
     }
     return 0.0f;

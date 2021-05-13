@@ -38,6 +38,8 @@ std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& para
   str << "    Max Node Isolation Prob.:    " << params.max_node_isolation_prob << std::endl;
   str << "    Min Node Move Prob.:         " << params.min_node_move_prob << std::endl;
   str << "    Max Node Move Prob.:         " << params.max_node_move_prob << std::endl;
+  str << "    Min Test Mutation Prob.:     " << params.min_test_mutation_prob << std::endl;
+  str << "    Max Test Mutation Prob.:     " << params.max_test_mutation_prob << std::endl;
   str << "    Random Prob Selection Prob.: " << params.random_prob_selection_prob << std::endl;
   return str;
 }
@@ -48,6 +50,7 @@ std::ostream & operator<< (std::ostream& str, const LabelPropagationRefinerParam
   str << "    Random Shuffle each Round:   " << std::boolalpha << params.random_shuffle_each_round << std::endl;
   str << "    Node Ordering:               " << params.node_order << std::endl;
   str << "    Rating Map Degree Threshold: " << params.rating_map_degree_threshold << std::endl;
+  str << "    Min. Target Edit Distance:   " << params.min_target_edit_distance << std::endl;
   str << "    Min Improvement:             " << params.min_improvement << std::endl;
   str << "    Early Exit Window:           " << params.early_exit_window << std::endl;
   return str;
@@ -69,7 +72,7 @@ std::ostream & operator<< (std::ostream& str, const RefinementParameters& params
   if ( params.use_evo ) {
     str << params.evo;
   }
-  if ( params.use_lp_refiner ) {
+  if ( params.use_evo || params.use_lp_refiner ) {
     str << params.lp;
   }
   if ( params.use_boundary_fm_refiner || params.use_localized_fm_refiner ) {

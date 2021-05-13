@@ -15,7 +15,9 @@ void Evolutionary::initializeImpl(Graph& graph) {
   }
 }
 
-EdgeWeight Evolutionary::refineImpl(Graph& graph, const EdgeWeight current_edits) {
+EdgeWeight Evolutionary::refineImpl(Graph& graph,
+                                    const EdgeWeight current_edits,
+                                    const EdgeWeight) {
   utils::Timer::instance().start_timer("evolutionary", "Evolutionary");
   if ( _context.isTimeLimitReached() ) {
     return 0;
@@ -134,7 +136,8 @@ EdgeWeight Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
     metrics::edits(graph),
     _context.refinement.evo.lp_iterations_after_mutate,
     _context.refinement.evo.use_random_node_ordering,
-    _show_detailed_output);
+    _show_detailed_output,
+    initial_edits);
   _mutator.updateProbs(mutation, initial_edits, edits);
   if ( edits < initial_edits ) {
     if ( _show_detailed_output ) {
@@ -155,7 +158,8 @@ EdgeWeight Evolutionary::refineSolution(Graph& graph,
                                         const EdgeWeight current_edits,
                                         const int lp_iterations,
                                         const bool use_random_node_order,
-                                        const bool show_detailed_output) {
+                                        const bool show_detailed_output,
+                                        const EdgeWeight target_edits) {
   _lp_refiner.initialize(graph);
   // Choose some random node ordering for LP refiner
   _context.refinement.lp.maximum_lp_iterations = lp_iterations;
@@ -166,7 +170,7 @@ EdgeWeight Evolutionary::refineSolution(Graph& graph,
     _context.refinement.lp.node_order = _original_context.refinement.lp.node_order;
   }
   _context.general.verbose_output = show_detailed_output;
-  const EdgeWeight edits = _lp_refiner.refine(graph, current_edits);
+  const EdgeWeight edits = _lp_refiner.refine(graph, current_edits, target_edits);
   _context.general.verbose_output = _original_context.general.verbose_output;
   return edits;
 }

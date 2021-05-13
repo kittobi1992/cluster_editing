@@ -59,7 +59,9 @@ private:
 
   void initializeImpl(Graph& graph) final;
 
-  EdgeWeight refineImpl(Graph& graph, const EdgeWeight current_edits) final ;
+  EdgeWeight refineImpl(Graph& graph,
+                        const EdgeWeight current_edits,
+                        const EdgeWeight target_edits) final ;
 
   EdgeWeight boundaryFM(Graph& graph, const EdgeWeight current_metric);
 

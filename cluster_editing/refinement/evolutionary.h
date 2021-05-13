@@ -68,7 +68,9 @@ class Evolutionary final : public IRefiner {
 
   void initializeImpl(Graph& graph) final;
 
-  EdgeWeight refineImpl(Graph& graph, const EdgeWeight current_edits) final ;
+  EdgeWeight refineImpl(Graph& graph,
+                        const EdgeWeight current_edits,
+                        const EdgeWeight target_edits) final ;
 
   void createInitialPopulation(Graph& graph, const EdgeWeight current_edits);
 
@@ -82,7 +84,8 @@ class Evolutionary final : public IRefiner {
                             const EdgeWeight current_edits,
                             const int lp_iterations,
                             const bool use_random_node_order,
-                            const bool show_detailed_output);
+                            const bool show_detailed_output,
+                            const EdgeWeight target_edits = 0);
 
   void evictSolution(const Graph& graph,
                      const EdgeWeight edits) {

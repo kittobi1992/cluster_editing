@@ -43,6 +43,8 @@ struct EvolutionaryParameters {
   float max_node_isolation_prob = 0.0;
   float min_node_move_prob = 0.0;
   float max_node_move_prob = 0.0;
+  float min_test_mutation_prob = 0.0;
+  float max_test_mutation_prob = 0.0;
   float random_prob_selection_prob = 0.0;
 };
 
@@ -53,6 +55,7 @@ struct LabelPropagationRefinerParameters {
   bool random_shuffle_each_round = false;
   NodeOrdering node_order = NodeOrdering::none;
   NodeID rating_map_degree_threshold = 0;
+  int min_target_edit_distance = 0;
   int min_improvement = 0;
   size_t early_exit_window = 0;
 };

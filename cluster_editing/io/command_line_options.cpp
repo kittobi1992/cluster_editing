@@ -103,6 +103,8 @@ namespace cluster_editing {
              "Minimum probability for mutation operator to isolate a node")
             ("r-evo-min-node-move-prob", po::value<float>(&context.refinement.evo.min_node_move_prob)->value_name("<float>"),
              "Minimum probability for mutation operator to move a node")
+            ("r-evo-min-test-mutation-prob", po::value<float>(&context.refinement.evo.min_test_mutation_prob)->value_name("<float>"),
+             "Minimum probability for test mutation operator")
             ("r-evo-max-clique-isolation-prob", po::value<float>(&context.refinement.evo.max_clique_isolate_prob)->value_name("<float>"),
              "Maximum probability for mutation operator that isolate cliques")
             ("r-evo-max-neighbor-clique-isolation-prob", po::value<float>(&context.refinement.evo.max_neighbor_clique_isolate_prob)->value_name("<float>"),
@@ -111,6 +113,8 @@ namespace cluster_editing {
              "Maximum probability for mutation operator to isolate a node")
             ("r-evo-max-node-move-prob", po::value<float>(&context.refinement.evo.max_node_move_prob)->value_name("<float>"),
              "Maximum probability for mutation operator to move a node")
+            ("r-evo-max-test-mutation-prob", po::value<float>(&context.refinement.evo.max_test_mutation_prob)->value_name("<float>"),
+             "Maximum probability for test mutation operator")
             ("r-evo-random-prob-selection-prob", po::value<float>(&context.refinement.evo.random_prob_selection_prob)->value_name("<float>"),
              "Probability to select a random probability for mutation probability")
             ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
@@ -134,6 +138,8 @@ namespace cluster_editing {
             ("r-lp-rating-map-degree-threshold", po::value<NodeID>(&context.refinement.lp.rating_map_degree_threshold)->value_name("<uint32_t>"),
              "For all nodes with degree greater than this threshold, rating are aggregated in hash map."
              "For all others, incident edges are sorted and rating are aggregated on-the-fly.")
+            ("r-lp-min-target-edit-distance", po::value<int>(&context.refinement.lp.min_target_edit_distance)->value_name("<int>"),
+             "Intensivate on solution, if current edits are not that far away from target edits (important for evo)")
             ("r-lp-early-exit-window", po::value<size_t>(&context.refinement.lp.early_exit_window)->value_name("<size_t>"),
              "If label propagation improvement is less than min_improvement in the last early_exit_window rounds"
              "then label propagation terminates")
