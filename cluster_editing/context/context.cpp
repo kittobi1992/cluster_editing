@@ -38,8 +38,8 @@ std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& para
   str << "    Max Node Isolation Prob.:    " << params.max_node_isolation_prob << std::endl;
   str << "    Min Node Move Prob.:         " << params.min_node_move_prob << std::endl;
   str << "    Max Node Move Prob.:         " << params.max_node_move_prob << std::endl;
-  str << "    Min Node Move + Iso. Prob.:  " << params.min_node_move_or_isolate_prob << std::endl;
-  str << "    Max Node Move + Iso. Prob.:  " << params.max_node_move_or_isolate_prob << std::endl;
+  str << "    Min Test Mutation Prob.:     " << params.min_test_mutation_prob << std::endl;
+  str << "    Max Test Mutation Prob.:     " << params.max_test_mutation_prob << std::endl;
   str << "    Random Prob Selection Prob.: " << params.random_prob_selection_prob << std::endl;
   return str;
 }

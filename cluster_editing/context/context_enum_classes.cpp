@@ -31,7 +31,7 @@ namespace cluster_editing {
       case Mutation::LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR: return os << "LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR";
       case Mutation::RANDOM_NODE_ISOLATOR: return os << "RANDOM_NODE_ISOLATOR";
       case Mutation::RANDOM_NODE_MOVER: return os << "RANDOM_NODE_MOVER";
-      case Mutation::RANDOM_NODE_MOVER_OR_ISOLATOR: return os << "RANDOM_NODE_MOVER_OR_ISOLATOR";
+      case Mutation::TEST_MUTATION: return os << "TEST_MUTATION";
       case Mutation::NUM_MUTATIONS: return os << "UNDEFINED";
         // omit default case to trigger compiler warning for missing cases
     }
