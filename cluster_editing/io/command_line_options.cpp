@@ -75,6 +75,8 @@ namespace cluster_editing {
              "If true, then Boundary FM is used to improve quality.")
             ("r-use-localized-fm-refiner", po::value<bool>(&context.refinement.use_localized_fm_refiner)->value_name("<bool>")->default_value(false),
              "If true, then Localized FM is used to improve quality.")
+            ("r-use-exact-refiner", po::value<bool>(&context.refinement.use_exact_refiner)->value_name("<bool>")->default_value(false),
+             "If true, then exact refiner is used.")
             ("r-evo-enable-detailed-output", po::value<bool>(&context.refinement.evo.enable_detailed_output)->value_name("<bool>"),
              "If true, then detailed output is shown in evolutionary algorithm")
             ("r-evo-pool-size", po::value<int>(&context.refinement.evo.solution_pool_size)->value_name("<int>"),
@@ -151,7 +153,13 @@ namespace cluster_editing {
             ("r-fm-fraction-fruitless-moves", po::value<double>(&context.refinement.fm.fraction_of_fruitless_moves)->value_name("<double>"),
              "FM terminates, if it not finds an improvement after fruitless_moves * |V| moves")
             ("r-fm-seed-nodes", po::value<size_t>(&context.refinement.fm.num_seed_nodes)->value_name("<size_t>"),
-             "Number of seed nodes used by the localized FM Refiner");
+             "Number of seed nodes used by the localized FM Refiner")
+            ("r-exact-min-subgraph-size", po::value<size_t>(&context.refinement.exact.min_subgraph_size)->value_name("<size_t>"),
+             "Minimum size of subgraph solved by exact refiner")
+            ("r-exact-max-subgraph-size", po::value<size_t>(&context.refinement.exact.max_subgraph_size)->value_name("<size_t>"),
+             "Maximum size of subgraph solved by exact refiner")
+            ("r-exact-time-limit", po::value<int>(&context.refinement.exact.time_limit)->value_name("<int>"),
+             "Time limit of exact refiner in milliseconds");
     return options;
   }
 

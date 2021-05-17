@@ -67,6 +67,15 @@ std::ostream & operator<< (std::ostream& str, const FMParameters& params) {
 }
 
 
+std::ostream & operator<< (std::ostream& str, const ExactParameters& params) {
+  str << "\n  Exact Refiner Parameters:" << std::endl;
+  str << "    Minimum Subgraph Size:       " << params.min_subgraph_size << std::endl;
+  str << "    Maximum Subgraph Size:       " << params.max_subgraph_size << std::endl;
+  str << "    Time Limit:                  " << params.time_limit << std::endl;
+  return str;
+}
+
+
 std::ostream & operator<< (std::ostream& str, const RefinementParameters& params) {
   str << "Refinement Parameters:" << std::endl;
   if ( params.use_evo ) {
@@ -77,6 +86,9 @@ std::ostream & operator<< (std::ostream& str, const RefinementParameters& params
   }
   if ( params.use_boundary_fm_refiner || params.use_localized_fm_refiner ) {
     str << params.fm;
+  }
+  if ( params.use_exact_refiner ) {
+    str << params.exact;
   }
   return str;
 }

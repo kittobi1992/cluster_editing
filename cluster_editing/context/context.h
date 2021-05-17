@@ -73,14 +73,24 @@ struct FMParameters {
 
 std::ostream & operator<< (std::ostream& str, const FMParameters& params);
 
+struct ExactParameters {
+  size_t min_subgraph_size = 0;
+  size_t max_subgraph_size = 0;
+  int time_limit = 0;
+};
+
+std::ostream & operator<< (std::ostream& str, const ExactParameters& params);
+
 struct RefinementParameters {
   bool use_evo = false;
   bool use_lp_refiner = false;
   bool use_boundary_fm_refiner = false;
   bool use_localized_fm_refiner = false;
+  bool use_exact_refiner = false;
   EvolutionaryParameters evo;
   LabelPropagationRefinerParameters lp;
   FMParameters fm;
+  ExactParameters exact;
 };
 
 std::ostream & operator<< (std::ostream& str, const RefinementParameters& params);

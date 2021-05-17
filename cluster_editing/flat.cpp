@@ -4,6 +4,7 @@
 #include "cluster_editing/refinement/evolutionary.h"
 #include "cluster_editing/refinement/lp_refiner.h"
 #include "cluster_editing/refinement/fm_refiner.h"
+#include "cluster_editing/refinement/exact_refiner.h"
 #include "cluster_editing/refinement/stopping_rule.h"
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/utils/randomize.h"
@@ -47,6 +48,13 @@ void solve(Graph& graph, const Context& context) {
     Evolutionary evo(graph, context);
     evo.initialize(graph);
     current_edits = evo.refine(graph, current_edits);
+  }
+
+  // Exact Refiner
+  if ( context.refinement.use_exact_refiner ) {
+    ExactRefiner exact(graph, context);
+    exact.initialize(graph);
+    current_edits = exact.refine(graph, current_edits);
   }
 
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
