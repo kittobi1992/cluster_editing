@@ -27,8 +27,6 @@ namespace cluster_editing {
 
   std::ostream & operator<< (std::ostream& os, const Mutation& mutation) {
     switch (mutation) {
-      case Mutation::LARGE_CLIQUE_ISOLATOR: return os << "LARGE_CLIQUE_ISOLATOR";
-      case Mutation::LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR: return os << "LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR";
       case Mutation::RANDOM_NODE_ISOLATOR: return os << "RANDOM_NODE_ISOLATOR";
       case Mutation::RANDOM_NODE_MOVER: return os << "RANDOM_NODE_MOVER";
       case Mutation::TEST_MUTATION: return os << "TEST_MUTATION";
