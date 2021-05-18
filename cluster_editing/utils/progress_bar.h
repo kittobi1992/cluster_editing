@@ -42,11 +42,11 @@ class ProgressBar {
                        const bool enable = true) :
     _display_mutex(),
     _count(0),
-    _next_tic_count(0),
     _expected_count(expected_count),
     _start(std::chrono::high_resolution_clock::now()),
     _objective(objective),
-    _enable(enable) {
+    _enable(enable),
+    _finalized(false) {
     display_progress();
   }
 
@@ -79,16 +79,14 @@ class ProgressBar {
 
   void reset() {
     _count = 0;
-    _next_tic_count = 0;
+    _finalized = false;
     display_progress();
   }
 
   size_t operator+=( const size_t increment ) {
     if ( _enable ) {
       _count.fetch_add(increment);
-      if ( _count >= _next_tic_count ) {
-        display_progress();
-      }
+      display_progress();
     }
     return _count;
   }
@@ -101,17 +99,15 @@ class ProgressBar {
   void finalize() {
     if ( _count.load() < _expected_count ) {
       _count = _expected_count;
-      _next_tic_count = std::numeric_limits<size_t>::max();
       display_progress();
     }
   }
 
   void display_progress() {
-    if ( _enable ) {
+    if ( _enable && !_finalized ) {
       std::lock_guard<std::mutex> lock(_display_mutex);
       HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
       size_t current_count = std::min(_count.load(), _expected_count);
-      _next_tic_count = compute_next_tic_count(current_count);
       size_t current_tics = get_tics(current_count);
       size_t progress = get_progress(current_count);
 
@@ -134,6 +130,7 @@ class ProgressBar {
       std::cout << " - Current Objective: " << _objective;
 
       if ( current_count == _expected_count ) {
+        _finalized = true;
         std::cout << std::endl;
       } else {
         std::cout << "\r" << std::flush;
@@ -172,11 +169,11 @@ class ProgressBar {
 
   std::mutex _display_mutex;
   std::atomic<size_t> _count;
-  std::atomic<size_t> _next_tic_count;
   size_t _expected_count;
   HighResClockTimepoint _start;
   EdgeWeight _objective;
   bool _enable;
+  bool _finalized;
 };
 
 }  // namespace utils

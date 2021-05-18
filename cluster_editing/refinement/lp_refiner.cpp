@@ -131,6 +131,12 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph,
       max_lp_iterations *= 2;
       lp_progress.reset();
     }
+
+    const EdgeWeight remaining_rounds = (max_lp_iterations - (i + 1));
+    if ( target_edits != 0 && remaining_rounds > 10 &&
+         current_metric - std::max(3, round_delta) * remaining_rounds > target_edits ) {
+      break;
+    }
   }
   lp_progress += (_context.refinement.lp.maximum_lp_iterations - lp_progress.count());
 
@@ -141,6 +147,7 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph,
     utils::Timer::instance().stop_timer("checkpoint");
   }
   utils::Timer::instance().stop_timer("lp");
+
   return current_metric;
 }
 

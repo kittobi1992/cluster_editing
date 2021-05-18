@@ -5,6 +5,7 @@
 #include "cluster_editing/refinement/lp_refiner.h"
 #include "cluster_editing/refinement/fm_refiner.h"
 #include "cluster_editing/refinement/stopping_rule.h"
+#include "cluster_editing/datastructures/fast_reset_flag_array.h"
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/utils/randomize.h"
 #include "cluster_editing/metrics.h"
