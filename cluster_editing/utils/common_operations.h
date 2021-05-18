@@ -23,7 +23,6 @@
 #include <algorithm>
 #include <cstring>
 #include <limits>
-#include <numeric>
 #include <vector>
 
 #include "cluster_editing/definitions.h"
@@ -92,14 +91,11 @@ class CommonOperations {
 
  private:
   CommonOperations(const Graph& graph) :
-    _nodes(graph.numNodes(), 0),
     _cluster_sizes(graph.numNodes(), 0),
     _internal_edges(graph.numNodes(), 0),
     _empty_cliques(),
     _cliques(graph.numNodes()),
-    _rating(3 * graph.maxDegree(), 0) {
-    std::iota(_nodes.begin(), _nodes.end(), 0);
-  }
+    _rating(3 * graph.maxDegree(), 0) { }
 
   ~CommonOperations() = default;
 
@@ -109,7 +105,6 @@ class CommonOperations {
   }
 
  public:
-  std::vector<NodeID> _nodes;
   std::vector<NodeID> _cluster_sizes;
   std::vector<NodeID> _internal_edges;
   std::vector<CliqueID> _empty_cliques;
