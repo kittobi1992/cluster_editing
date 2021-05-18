@@ -138,7 +138,7 @@ EdgeWeight Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
     _context.refinement.evo.use_random_node_ordering,
     _show_detailed_output,
     initial_edits);
-  _mutator.updateProbs(mutation, initial_edits, edits);
+  _mutator.notifyResult(mutation, initial_edits, edits);
   if ( edits < initial_edits ) {
     if ( _show_detailed_output ) {
       LOG << GREEN << "MUTATE: Improved solution quality from"

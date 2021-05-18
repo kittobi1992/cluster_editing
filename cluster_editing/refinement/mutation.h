@@ -168,7 +168,7 @@ class RandomNodeMover {
   RandomNodeMover() { }
 };
 
-class TestMutation {
+class CliqueSplitter {
 
  public:
   static void mutate(Graph& graph, const float prob) {
@@ -182,17 +182,20 @@ class TestMutation {
       utils::CommonOperations::instance(graph)._cluster_sizes;
     for ( const CliqueID& c : graph.nodes() ) {
       if ( cliques[c].size() > 2 && utils::Randomize::instance().getRandomFloat(0.0, 1.0) <= prob ) {
+        // Choose vertex from clique that we isolate
         const int seed_idx = utils::Randomize::instance().getRandomInt(0, cliques[c].size() - 1);
         const NodeID seed = cliques[c][seed_idx];
         std::swap(cliques[c][seed_idx], cliques[c].back());
         cliques[c].pop_back();
 
+        // Isolate selected vertex
         const CliqueID to = empty_cliques.back();
         empty_cliques.pop_back();
         graph.setClique(seed, to);
         --cluster_sizes[c];
         ++cluster_sizes[to];
 
+        // Choose one additional vertex to be moved to isolated vertex
         std::vector<NodeID> best_nodes;
         EdgeWeight best_delta = std::numeric_limits<EdgeWeight>::max();
         for ( const NodeID& u : cliques[c] ) {
@@ -231,14 +234,14 @@ class TestMutation {
   }
 
  private:
-  TestMutation() { }
+  CliqueSplitter() { }
 };
 
-/*class TestMutation {
+class TestMutation {
 
  public:
-  static void mutate(Graph& graph, const EdgeWeight current_edits, const float prob) {
-    utils::CommonOperations::instance(graph).computeEmptyCliques(graph);
+  static void mutate(Graph&, const float) {
+    /*utils::CommonOperations::instance(graph).computeEmptyCliques(graph);
     ds::FixedSizeSparseMap<CliqueID, EdgeWeight>& rating =
       utils::CommonOperations::instance(graph)._rating;
     std::vector<CliqueID>& empty_cliques =
@@ -294,36 +297,20 @@ class TestMutation {
       if ( overall_delta > budget ) {
         break;
       }
-    }
+    }*/
   }
 
  private:
   TestMutation() { }
-};*/
+};
 
 class Mutator {
-
-  struct MutationProbs {
-    float clique_isolation_prob;
-    float neighbor_clique_isolation_prob;
-    float node_isolation_prob;
-    float node_move_prob;
-    float node_move_or_isolate_prob;
-    float last_prob;
-  };
-
  public:
   explicit Mutator(const Context& context) :
     _context(context),
     _show_detailed_output(context.general.verbose_output && context.refinement.evo.enable_detailed_output),
-    _probs(),
     _mutation_selector() {
     activateMutations(_context.refinement.evo.enabled_mutations);
-    _probs.clique_isolation_prob = _context.refinement.evo.max_clique_isolate_prob;
-    _probs.neighbor_clique_isolation_prob = _context.refinement.evo.max_neighbor_clique_isolate_prob;
-    _probs.node_isolation_prob = _context.refinement.evo.max_node_isolation_prob;
-    _probs.node_move_prob = _context.refinement.evo.max_node_move_prob;
-    _probs.node_move_or_isolate_prob = _context.refinement.evo.max_test_mutation_prob;
   }
 
   Mutation mutate(Graph& graph) {
@@ -345,52 +332,23 @@ class Mutator {
       if ( _show_detailed_output )
         LOG << "Mutation Action: RANDOM_NODE_MOVER ( p =" << prob << ")";
       RandomNodeMover::mutate(graph, prob);
+    } else if ( mutation == Mutation::CLIQUE_SPLITTER ) {
+      if ( _show_detailed_output )
+        LOG << "Mutation Action: CLIQUE_SPLITTER ( p =" << prob << ")";
+      CliqueSplitter::mutate(graph, prob);
     } else if ( mutation == Mutation::TEST_MUTATION ) {
       if ( _show_detailed_output )
         LOG << "Mutation Action: TEST_MUTATION ( p =" << prob << ")";
       TestMutation::mutate(graph, prob);
     }
-    _probs.last_prob = prob;
     return mutation;
   }
 
-  void updateProbs(const Mutation& mutation,
-                   const EdgeWeight before_edits,
-                   const EdgeWeight after_edits) {
-    const EdgeWeight delta = (after_edits - before_edits);
-    const bool improvement = delta < 0;
-    const float factor = (delta < 0 ? 2.0 : ( delta == 0 ? 1.0 : 0.5 ) );
-    auto update_prob = [&](float& prob, const float min_prob, const float max_prob) {
-      if ( improvement && prob < _probs.last_prob ) {
-        prob = _probs.last_prob;
-      } else if ( prob == _probs.last_prob ) {
-        prob = std::min(max_prob, std::max( min_prob, prob * factor ));
-      }
-    };
-
-    if ( mutation == Mutation::LARGE_CLIQUE_ISOLATOR ) {
-      update_prob(_probs.clique_isolation_prob,
-        _context.refinement.evo.min_clique_isolate_prob,
-        _context.refinement.evo.max_clique_isolate_prob);
-    } else if ( mutation == Mutation::LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR ) {
-      update_prob(_probs.neighbor_clique_isolation_prob,
-        _context.refinement.evo.min_neighbor_clique_isolate_prob,
-        _context.refinement.evo.max_neighbor_clique_isolate_prob);
-    } else if ( mutation == Mutation::RANDOM_NODE_ISOLATOR ) {
-      update_prob(_probs.node_isolation_prob,
-        _context.refinement.evo.min_node_isolation_prob,
-        _context.refinement.evo.max_node_isolation_prob);
-    } else if ( mutation == Mutation::RANDOM_NODE_MOVER ) {
-      update_prob(_probs.node_move_prob,
-        _context.refinement.evo.min_node_move_prob,
-        _context.refinement.evo.max_node_move_prob);
-    } else if ( mutation == Mutation::TEST_MUTATION ) {
-      update_prob(_probs.node_move_or_isolate_prob,
-        _context.refinement.evo.min_test_mutation_prob,
-        _context.refinement.evo.max_test_mutation_prob);
-    }
-
-    _mutation_selector.notifyImprovement(mutation, std::max( 0, before_edits - after_edits ));
+  void notifyResult(const Mutation& mutation,
+                    const EdgeWeight before_edits,
+                    const EdgeWeight after_edits) {
+    _mutation_selector.notifyImprovement(
+      mutation, std::max( 0, before_edits - after_edits ));
   }
 
   void activateMutations(const std::string& enabled_mutations) {
@@ -405,57 +363,36 @@ class Mutator {
 
  private:
   float chooseMutationProbability(const Mutation& mutation) {
-    const bool select_random_probability =
-      utils::Randomize::instance().getRandomFloat(0.0, 1.0) <=
-      _context.refinement.evo.random_prob_selection_prob;
     if ( mutation == Mutation::LARGE_CLIQUE_ISOLATOR ) {
-      if ( !select_random_probability ) {
-        return _probs.clique_isolation_prob;
-      } else {
-        return utils::Randomize::instance().getRandomFloat(
-          _context.refinement.evo.min_clique_isolate_prob,
-          _context.refinement.evo.max_clique_isolate_prob);
-      }
+      return utils::Randomize::instance().getRandomFloat(
+        _context.refinement.evo.min_clique_isolate_prob,
+        _context.refinement.evo.max_clique_isolate_prob);
     } else if ( mutation == Mutation::LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR ) {
-      if ( !select_random_probability ) {
-        return _probs.neighbor_clique_isolation_prob;
-      } else {
-        return utils::Randomize::instance().getRandomFloat(
-          _context.refinement.evo.min_neighbor_clique_isolate_prob,
-          _context.refinement.evo.max_neighbor_clique_isolate_prob);
-      }
-      return _probs.neighbor_clique_isolation_prob;
+      return utils::Randomize::instance().getRandomFloat(
+        _context.refinement.evo.min_neighbor_clique_isolate_prob,
+        _context.refinement.evo.max_neighbor_clique_isolate_prob);
     } else if ( mutation == Mutation::RANDOM_NODE_ISOLATOR ) {
-      if ( !select_random_probability ) {
-        return _probs.node_isolation_prob;
-      } else {
-        return utils::Randomize::instance().getRandomFloat(
-          _context.refinement.evo.min_node_isolation_prob,
-          _context.refinement.evo.max_node_isolation_prob);
-      }
+      return utils::Randomize::instance().getRandomFloat(
+        _context.refinement.evo.min_node_isolation_prob,
+        _context.refinement.evo.max_node_isolation_prob);
     } else if ( mutation == Mutation::RANDOM_NODE_MOVER ) {
-      if ( !select_random_probability ) {
-        return _probs.node_move_prob;
-      } else {
-        return utils::Randomize::instance().getRandomFloat(
-          _context.refinement.evo.min_node_move_prob,
-          _context.refinement.evo.max_node_move_prob);
-      }
+      return utils::Randomize::instance().getRandomFloat(
+        _context.refinement.evo.min_node_move_prob,
+        _context.refinement.evo.max_node_move_prob);
+    } else if ( mutation == Mutation::CLIQUE_SPLITTER ) {
+      return utils::Randomize::instance().getRandomFloat(
+        _context.refinement.evo.min_clique_split_mutation_prob,
+        _context.refinement.evo.max_clique_split_mutation_prob);
     } else if ( mutation == Mutation::TEST_MUTATION ) {
-      if ( !select_random_probability ) {
-        return _probs.node_move_or_isolate_prob;
-      } else {
-        return utils::Randomize::instance().getRandomFloat(
-          _context.refinement.evo.min_test_mutation_prob,
-          _context.refinement.evo.max_test_mutation_prob);
-      }
+      return utils::Randomize::instance().getRandomFloat(
+        _context.refinement.evo.min_test_mutation_prob,
+        _context.refinement.evo.max_test_mutation_prob);
     }
     return 0.0f;
   }
 
   const Context& _context;
   const bool _show_detailed_output;
-  MutationProbs _probs;
   ActionSelector<Mutation> _mutation_selector;
 };
 
