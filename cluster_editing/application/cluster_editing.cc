@@ -109,13 +109,7 @@ int main() {
   context.refinement.evo.intensivate_lp_iterations = 25;
   context.refinement.evo.lp_iterations_after_mutate = 50;
   context.refinement.evo.use_random_node_ordering = false;
-  context.refinement.evo.enable_all_mutations_after_steps = 500;
-  context.refinement.evo.enabled_mutations = "00110";
-  context.refinement.evo.large_clique_threshold = 3;
-  context.refinement.evo.min_clique_isolate_prob = 0.01;
-  context.refinement.evo.max_clique_isolate_prob = 0.1;
-  context.refinement.evo.min_neighbor_clique_isolate_prob = 0.0001;
-  context.refinement.evo.max_neighbor_clique_isolate_prob = 0.01;
+  context.refinement.evo.enabled_mutations = "110";
   context.refinement.evo.min_node_isolation_prob = 0.01;
   context.refinement.evo.max_node_isolation_prob = 0.25;
   context.refinement.evo.min_node_move_prob = 0.01;
