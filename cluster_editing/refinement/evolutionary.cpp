@@ -41,12 +41,6 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph,
       evo_progress += 1;
     }
 
-    if ( i == _context.refinement.evo.enable_all_mutations_after_steps ) {
-      const std::string enable_all_mutations(
-        static_cast<int>(Mutation::NUM_MUTATIONS), '1');
-      _mutator.activateMutations(enable_all_mutations);
-    }
-
     if ( _context.isTimeLimitReached() ) {
       break;
     }
@@ -122,7 +116,7 @@ EdgeWeight Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
   const EdgeWeight initial_edits = stats.edits;
 
   // Mutate
-  const Mutation mutation = _mutator.mutate(graph);
+  const Mutation mutation = _mutator.mutate(graph, initial_edits);
   if ( _show_detailed_output ) {
     const EdgeWeight mutate_edits = metrics::edits(graph);
     LOG << "Mutation changed solution from" << initial_edits

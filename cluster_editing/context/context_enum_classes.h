@@ -24,12 +24,10 @@ enum class EvoAction : uint8_t {
 };
 
 enum class Mutation : uint8_t {
-  LARGE_CLIQUE_ISOLATOR = 0,
-  LARGE_CLIQUE_WITH_NEIGHBOR_ISOLATOR = 1,
-  RANDOM_NODE_ISOLATOR = 2,
-  RANDOM_NODE_MOVER = 3,
-  TEST_MUTATION = 4,
-  NUM_MUTATIONS = 5
+  RANDOM_NODE_ISOLATOR = 0,
+  RANDOM_NODE_MOVER = 1,
+  TEST_MUTATION = 2,
+  NUM_MUTATIONS = 3
 };
 
 std::ostream & operator<< (std::ostream& os, const NodeOrdering& order);

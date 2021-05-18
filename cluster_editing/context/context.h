@@ -32,13 +32,7 @@ struct EvolutionaryParameters {
   int intensivate_lp_iterations = 0;
   int lp_iterations_after_mutate = 0;
   bool use_random_node_ordering = true;
-  int enable_all_mutations_after_steps = 0;
-  std::string enabled_mutations = "0000";
-  size_t large_clique_threshold = 0;
-  float min_clique_isolate_prob = 0.0;
-  float max_clique_isolate_prob = 0.0;
-  float min_neighbor_clique_isolate_prob = 0.0;
-  float max_neighbor_clique_isolate_prob = 0.0;
+  std::string enabled_mutations = "000";
   float min_node_isolation_prob = 0.0;
   float max_node_isolation_prob = 0.0;
   float min_node_move_prob = 0.0;
