@@ -122,7 +122,7 @@ EdgeWeight Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
   const EdgeWeight initial_edits = stats.edits;
 
   // Mutate
-  const Mutation mutation = _mutator.mutate(graph);
+  const Mutation mutation = _mutator.mutate(graph, initial_edits);
   if ( _show_detailed_output ) {
     const EdgeWeight mutate_edits = metrics::edits(graph);
     LOG << "Mutation changed solution from" << initial_edits

@@ -25,6 +25,7 @@
 #include "cluster_editing/utils/randomize.h"
 #include "cluster_editing/utils/common_operations.h"
 #include "cluster_editing/refinement/action_selector.h"
+#include "cluster_editing/metrics.h"
 
 namespace cluster_editing {
 
@@ -106,27 +107,40 @@ class LargeCliqueWithNeighborIsolator {
 class RandomNodeIsolator {
 
  public:
-  static void mutate(Graph& graph, const float prob) {
-    utils::CommonOperations::instance(graph).computeNodesOfCliqueWithEmptyCliques(graph);
+  static void mutate(Graph& graph, const EdgeWeight current_edits, const float prob) {
+    utils::CommonOperations::instance(graph).computeEmptyCliques(graph);
     std::vector<CliqueID>& empty_cliques =
       utils::CommonOperations::instance(graph)._empty_cliques;
-    std::vector<std::vector<NodeID>> cliques =
-      utils::CommonOperations::instance(graph)._cliques;
-    for ( const CliqueID& c : graph.nodes() ) {
-      if ( cliques[c].size() > 1 ) {
-        size_t current_size = cliques[c].size();
-        for ( const NodeID& u : cliques[c] ) {
-          const float p = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
-          if ( p <= prob ) {
-            const CliqueID target = empty_cliques.back();
-            empty_cliques.pop_back();
-            graph.setClique(u, target);
-            --current_size;
-          }
-          if ( current_size == 1 ) {
-            break;
+    std::vector<NodeID>& cluster_sizes =
+      utils::CommonOperations::instance(graph)._cluster_sizes;
+    std::vector<NodeID>& nodes =
+      utils::CommonOperations::instance(graph)._nodes;
+    std::random_shuffle(nodes.begin(), nodes.end());
+    EdgeWeight overall_delta = 0;
+    const EdgeWeight budget = static_cast<float>(current_edits) * prob;
+    for ( const NodeID& u : nodes ) {
+      const NodeID u_degree = graph.degree(u);
+      const CliqueID from = graph.clique(u);
+      if ( cluster_sizes[from] > 1 ) {
+        EdgeWeight edges_to_from = 0;
+        for ( const NodeID& v : graph.neighbors(u) ) {
+          if ( graph.clique(v) == from ) {
+            ++edges_to_from;
           }
         }
+
+        const EdgeWeight from_rating = cluster_sizes[from] - 1 + u_degree - 2 * edges_to_from;
+        const EdgeWeight isolation_delta = u_degree - from_rating;
+        overall_delta += isolation_delta;
+        const CliqueID to = empty_cliques.back();
+        empty_cliques.pop_back();
+        graph.setClique(u, to);
+        --cluster_sizes[from];
+        ++cluster_sizes[to];
+      }
+
+      if ( overall_delta > budget ) {
+        break;
       }
     }
   }
@@ -138,28 +152,50 @@ class RandomNodeIsolator {
 class RandomNodeMover {
 
  public:
-  static void mutate(Graph& graph, const float prob) {
+  static void mutate(Graph& graph, const EdgeWeight current_edits, const float prob) {
+    utils::CommonOperations::instance(graph).computeClusterSizes(graph);
+    ds::FixedSizeSparseMap<CliqueID, EdgeWeight>& rating =
+      utils::CommonOperations::instance(graph)._rating;
+    std::vector<NodeID>& cluster_sizes =
+      utils::CommonOperations::instance(graph)._cluster_sizes;
+    std::vector<NodeID>& nodes =
+      utils::CommonOperations::instance(graph)._nodes;
+    std::random_shuffle(nodes.begin(), nodes.end());
+    EdgeWeight overall_delta = 0;
+    const EdgeWeight budget = static_cast<float>(current_edits) * prob;
     std::vector<CliqueID> target_cliques;
     for ( const NodeID& u : graph.nodes() ) {
       const float p = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
       if ( p <= prob ) {
+        rating.clear();
+        const NodeID u_degree = graph.degree(u);
         const CliqueID from = graph.clique(u);
         for ( const NodeID& v : graph.neighbors(u) ) {
           const CliqueID to = graph.clique(v);
+          ++rating[to];
           if ( from != to ) {
             target_cliques.push_back(to);
           }
         }
 
+        const EdgeWeight from_rating = cluster_sizes[from] - 1 + u_degree - 2 * rating[from];
         if ( !target_cliques.empty() ) {
           std::sort(target_cliques.begin(), target_cliques.end());
           target_cliques.erase( std::unique(
             target_cliques.begin(), target_cliques.end() ), target_cliques.end() );
-          const CliqueID target = target_cliques[
+          const CliqueID to = target_cliques[
             utils::Randomize::instance().getRandomInt(0, target_cliques.size() - 1)];
-          graph.setClique(u, target);
+          const EdgeWeight to_rating = cluster_sizes[to] + u_degree - 2 * rating[to];
+          const EdgeWeight move_delta = to_rating - from_rating;
+          overall_delta += move_delta;
+          graph.setClique(u, to);
+          ++cluster_sizes[to];
+          --cluster_sizes[from];
           target_cliques.clear();
         }
+      }
+      if ( overall_delta > budget ) {
+        break;
       }
     }
   }
@@ -171,27 +207,7 @@ class RandomNodeMover {
 class TestMutation {
 
  public:
-  static void mutate(Graph&, const float) {
-    /*utils::CommonOperations::instance(graph).computeNodesOfCliqueWithEmptyCliques(graph);
-    std::vector<CliqueID>& empty_cliques =
-      utils::CommonOperations::instance(graph)._empty_cliques;
-    std::vector<std::vector<NodeID>> cliques =
-      utils::CommonOperations::instance(graph)._cliques;
-    for ( const CliqueID& c : graph.nodes() ) {
-      if ( cliques[c].size() > 1 ) {
-        const float p = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
-        if ( p <= prob ) {
-          std::random_shuffle(cliques[c].begin(), cliques[c].end());
-          const CliqueID target = empty_cliques.back();
-          empty_cliques.pop_back();
-          for ( size_t i = 0; i < cliques[c].size() / 2; ++i ) {
-            const NodeID u = cliques[c][i];
-            graph.setClique(u, target);
-          }
-        }
-      }
-    }*/
-  }
+  static void mutate(Graph&, const float) { }
 
  private:
   TestMutation() { }
@@ -222,7 +238,7 @@ class Mutator {
     _probs.node_move_or_isolate_prob = _context.refinement.evo.max_test_mutation_prob;
   }
 
-  Mutation mutate(Graph& graph) {
+  Mutation mutate(Graph& graph, const EdgeWeight current_edits) {
     const Mutation mutation = _mutation_selector.chooseAction(_show_detailed_output);
     const float prob = chooseMutationProbability(mutation);
     if ( mutation == Mutation::LARGE_CLIQUE_ISOLATOR ) {
@@ -236,11 +252,11 @@ class Mutator {
     } else if ( mutation == Mutation::RANDOM_NODE_ISOLATOR ) {
       if ( _show_detailed_output )
         LOG << "Mutation Action: RANDOM_NODE_ISOLATOR ( p =" << prob << ")";
-      RandomNodeIsolator::mutate(graph, prob);
+      RandomNodeIsolator::mutate(graph, current_edits, prob);
     } else if ( mutation == Mutation::RANDOM_NODE_MOVER ) {
       if ( _show_detailed_output )
         LOG << "Mutation Action: RANDOM_NODE_MOVER ( p =" << prob << ")";
-      RandomNodeMover::mutate(graph, prob);
+      RandomNodeMover::mutate(graph, current_edits, prob);
     } else if ( mutation == Mutation::TEST_MUTATION ) {
       if ( _show_detailed_output )
         LOG << "Mutation Action: TEST_MUTATION ( p =" << prob << ")";
