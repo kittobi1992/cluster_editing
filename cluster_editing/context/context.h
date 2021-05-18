@@ -31,6 +31,7 @@ struct EvolutionaryParameters {
   int initial_lp_iterations = 0;
   int intensivate_lp_iterations = 0;
   int lp_iterations_after_mutate = 0;
+  int clique_remover_iterations = 0;
   bool use_random_node_ordering = true;
   int enable_all_mutations_after_steps = 0;
   std::string enabled_mutations = "000000";

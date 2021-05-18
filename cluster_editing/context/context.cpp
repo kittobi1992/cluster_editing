@@ -26,6 +26,7 @@ std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& para
   str << "    Initial LP Iterations:       " << params.initial_lp_iterations << std::endl;
   str << "    Intensivate LP Iterations:   " << params.intensivate_lp_iterations << std::endl;
   str << "    LP Iterations After Mutate:  " << params.lp_iterations_after_mutate << std::endl;
+  str << "    Clique Remover Iterations:   " << params.clique_remover_iterations << std::endl;
   str << "    Use Random Node Ordering:    " << std::boolalpha << params.use_random_node_ordering << std::endl;
   str << "    Enable All Mut. After Steps: " << params.enable_all_mutations_after_steps << std::endl;
   str << "    Enabled Mutations:           " << params.enabled_mutations << std::endl;

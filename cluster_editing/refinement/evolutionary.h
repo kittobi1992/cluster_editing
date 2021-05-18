@@ -22,6 +22,7 @@
 
 #include "cluster_editing/refinement/i_refiner.h"
 #include "cluster_editing/refinement/lp_refiner.h"
+#include "cluster_editing/refinement/clique_remover.h"
 #include "cluster_editing/context/context.h"
 #include "cluster_editing/datastructures/sparse_map.h"
 #include "cluster_editing/datastructures/fast_reset_flag_array.h"
@@ -55,6 +56,7 @@ class Evolutionary final : public IRefiner {
       static_cast<EdgeWeight>(graph.numEdges() / 2), nullptr}),
     _solutions(context.refinement.evo.solution_pool_size),
     _lp_refiner(graph, _context),
+    _clique_remover(graph, _context),
     _mutator(_context),
     _evo_action_selector( { EvoAction::INTESIVATE, EvoAction::MUTATE } ) { }
 
@@ -135,6 +137,7 @@ class Evolutionary final : public IRefiner {
   Population _population;
   std::vector<Solution> _solutions;
   LabelPropagationRefiner _lp_refiner;
+  CliqueRemover _clique_remover;
   Mutator _mutator;
   ActionSelector<EvoAction> _evo_action_selector;
 };

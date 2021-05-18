@@ -160,6 +160,8 @@ EdgeWeight Evolutionary::refineSolution(Graph& graph,
                                         const bool use_random_node_order,
                                         const bool show_detailed_output,
                                         const EdgeWeight target_edits) {
+  const bool is_mutation = target_edits != 0;
+
   _lp_refiner.initialize(graph);
   // Choose some random node ordering for LP refiner
   _context.refinement.lp.maximum_lp_iterations = lp_iterations;
@@ -170,7 +172,14 @@ EdgeWeight Evolutionary::refineSolution(Graph& graph,
     _context.refinement.lp.node_order = _original_context.refinement.lp.node_order;
   }
   _context.general.verbose_output = show_detailed_output;
-  const EdgeWeight edits = _lp_refiner.refine(graph, current_edits, target_edits);
+  EdgeWeight edits = _lp_refiner.refine(graph, current_edits, target_edits);
+
+  const bool was_aborted = utils::CommonOperations::instance(graph)._lp_aborted_flag;
+  if ( is_mutation && !was_aborted ) {
+    _clique_remover.initialize(graph);
+    edits = _clique_remover.refine(graph, edits, target_edits);
+  }
+
   _context.general.verbose_output = _original_context.general.verbose_output;
   return edits;
 }
