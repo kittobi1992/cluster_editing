@@ -29,6 +29,7 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph,
   utils::Timer::instance().stop_timer("initial_population");
 
   sortSolutions();
+  if ( _context.general.verbose_output ) LOG << "Evolutionary Algorithm:";
   utils::ProgressBar evo_progress(
     _context.refinement.evo.evolutionary_steps, _population[0].edits,
     _context.general.verbose_output && !debug && !_context.refinement.evo.enable_detailed_output);
@@ -67,8 +68,10 @@ void Evolutionary::createInitialPopulation(Graph& graph, const EdgeWeight curren
   for ( int i = 0; i < _context.refinement.evo.solution_pool_size; ++i ) {
     _population[i].edits = refineSolution(graph, current_edits,
       _context.refinement.evo.initial_lp_iterations,
+      _context.refinement.evo.initial_node_swapper_iterations,
       _context.refinement.evo.use_random_node_ordering,
-      _context.general.verbose_output);
+      _context.general.verbose_output,
+      0, true);
     storeSolution(graph, *_population[i].solution);
   }
   sortSolutions();
@@ -104,6 +107,7 @@ EdgeWeight Evolutionary::intensivate(Graph& graph, SolutionStats& stats) {
   const EdgeWeight initial_edits = stats.edits;
   stats.edits = refineSolution(graph, stats.edits,
     _context.refinement.evo.intensivate_lp_iterations,
+    _context.refinement.evo.node_swapper_iterations,
     _context.refinement.evo.use_random_node_ordering,
     _show_detailed_output);
   storeSolution(graph, *stats.solution);
@@ -135,6 +139,7 @@ EdgeWeight Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
   const EdgeWeight edits = refineSolution(graph,
     metrics::edits(graph),
     _context.refinement.evo.lp_iterations_after_mutate,
+    _context.refinement.evo.node_swapper_iterations,
     _context.refinement.evo.use_random_node_ordering,
     _show_detailed_output,
     initial_edits);
@@ -157,9 +162,11 @@ EdgeWeight Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
 EdgeWeight Evolutionary::refineSolution(Graph& graph,
                                         const EdgeWeight current_edits,
                                         const int lp_iterations,
+                                        const int node_swapper_iterations,
                                         const bool use_random_node_order,
                                         const bool show_detailed_output,
-                                        const EdgeWeight target_edits) {
+                                        const EdgeWeight target_edits,
+                                        const bool is_initial_partition) {
   const bool is_mutation = target_edits != 0;
 
   _lp_refiner.initialize(graph);
@@ -172,17 +179,31 @@ EdgeWeight Evolutionary::refineSolution(Graph& graph,
     _context.refinement.lp.node_order = _original_context.refinement.lp.node_order;
   }
   _context.general.verbose_output = show_detailed_output;
+  if ( show_detailed_output ) LOG << "Label Propagation Refiner:";
   EdgeWeight edits = _lp_refiner.refine(graph, current_edits, target_edits);
-
   const bool was_aborted = utils::CommonOperations::instance(graph)._lp_aborted_flag;
-  if ( is_mutation && !was_aborted ) {
-    // Clique Remover Refiner
-    _clique_remover.initialize(graph);
-    edits = _clique_remover.refine(graph, edits, target_edits);
 
-    // Clique Splitter Refiner
-    _clique_splitter.initialize(graph);
-    edits = _clique_splitter.refine(graph, edits, target_edits);
+  // Node Swapper Refiner
+  if ( !was_aborted ) {
+    _context.refinement.evo.node_swapper_iterations = node_swapper_iterations;
+    _node_swapper.initialize(graph);
+    if ( show_detailed_output ) LOG << "Node Swapper Refiner:";
+    edits = _node_swapper.refine(graph, edits, target_edits);
+    _context.refinement.evo.node_swapper_iterations =
+      _original_context.refinement.evo.node_swapper_iterations;
+
+
+    if ( is_mutation || is_initial_partition ) {
+      // Clique Remover Refiner
+      _clique_remover.initialize(graph);
+      if ( show_detailed_output ) LOG << "Clique Remover Refiner:";
+      edits = _clique_remover.refine(graph, edits, target_edits);
+
+      // Clique Splitter Refiner
+      _clique_splitter.initialize(graph);
+      if ( show_detailed_output ) LOG << "Clique Splitter Refiner:";
+      edits = _clique_splitter.refine(graph, edits, target_edits);
+    }
   }
 
   _context.general.verbose_output = _original_context.general.verbose_output;
