@@ -96,7 +96,7 @@ int main() {
   context.general.print_result_line = true;
   context.general.seed = 1;
   context.general.num_repititions = 1000;
-  context.general.num_fruitless_repititions = 10;
+  context.general.num_fruitless_repititions = 20;
   context.general.time_limit = 590; // 9 min and 50 secs
   utils::Randomize::instance().setSeed(context.general.seed);
 
@@ -106,10 +106,13 @@ int main() {
   context.refinement.evo.solution_pool_size = 1;
   context.refinement.evo.evolutionary_steps = 1000;
   context.refinement.evo.initial_lp_iterations = 100;
+  context.refinement.evo.initial_node_swapper_iterations = 20;
   context.refinement.evo.intensivate_lp_iterations = 25;
   context.refinement.evo.lp_iterations_after_mutate = 50;
   context.refinement.evo.clique_remover_iterations = 10;
   context.refinement.evo.clique_splitter_iterations = 10;
+  context.refinement.evo.node_swapper_iterations = 5;
+  context.refinement.evo.node_swapper_max_cluster_size = 32;
   context.refinement.evo.use_random_node_ordering = false;
   context.refinement.evo.enable_all_mutations_after_steps = 500;
   context.refinement.evo.enabled_mutations = "001110";

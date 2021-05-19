@@ -29,10 +29,13 @@ struct EvolutionaryParameters {
   int solution_pool_size = 0;
   int evolutionary_steps = 0;
   int initial_lp_iterations = 0;
+  int initial_node_swapper_iterations = 0;
   int intensivate_lp_iterations = 0;
   int lp_iterations_after_mutate = 0;
   int clique_remover_iterations = 0;
   int clique_splitter_iterations = 0;
+  int node_swapper_iterations = 0;
+  int node_swapper_max_cluster_size = 0;
   bool use_random_node_ordering = true;
   int enable_all_mutations_after_steps = 0;
   std::string enabled_mutations = "000000";

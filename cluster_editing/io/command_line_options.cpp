@@ -83,6 +83,8 @@ namespace cluster_editing {
              "Steps made by evolutionary algorithm")
             ("r-evo-initial-lp-iterations", po::value<int>(&context.refinement.evo.initial_lp_iterations)->value_name("<int>"),
              "Number of LP iterations for initial solution in evolutionary algorithm")
+            ("r-evo-initial-node-swapper-iterations", po::value<int>(&context.refinement.evo.initial_node_swapper_iterations)->value_name("<int>"),
+             "Number of node swapper iterations for initial solution in evolutionary algorithm")
             ("r-evo-intensivate-lp-iterations", po::value<int>(&context.refinement.evo.intensivate_lp_iterations)->value_name("<int>"),
              "Number of LP iterations for intensivate operation in evolutionary algorithm")
             ("r-evo-lp-iterations-after-mutate", po::value<int>(&context.refinement.evo.lp_iterations_after_mutate)->value_name("<int>"),
@@ -91,6 +93,10 @@ namespace cluster_editing {
              "Number of clique remover iterations after mutate operation in evolutionary algorithm")
             ("r-evo-clique-splitter-iterations", po::value<int>(&context.refinement.evo.clique_splitter_iterations)->value_name("<int>"),
              "Number of clique splitter iterations after mutate operation in evolutionary algorithm")
+            ("r-evo-node-swapper-iterations", po::value<int>(&context.refinement.evo.node_swapper_iterations)->value_name("<int>"),
+             "Number of node swapper iterations after mutate operation in evolutionary algorithm")
+            ("r-evo-node-swapper-max-cluster-size", po::value<int>(&context.refinement.evo.node_swapper_max_cluster_size)->value_name("<int>"),
+             "Maximum cluster size consider in node swapper refiner")
             ("r-evo-lp-use-random-node-ordering", po::value<bool>(&context.refinement.evo.use_random_node_ordering)->value_name("<bool>"),
              "If true, then we choose a random node order in LP refiner")
             ("r-evo-enable-all-mutations-after-step", po::value<int>(&context.refinement.evo.enable_all_mutations_after_steps)->value_name("<int>"),

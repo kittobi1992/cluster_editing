@@ -71,7 +71,7 @@ EdgeWeight CliqueRemover::refineImpl(Graph& graph,
           }
         }
 
-        if ( delta < 0 ) {
+        if ( delta <= 0 ) {
           edits += delta;
           // Add nodes to target cliques
           size_t clique_size = _cliques[from].size();

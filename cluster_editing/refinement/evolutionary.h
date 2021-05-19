@@ -24,6 +24,7 @@
 #include "cluster_editing/refinement/lp_refiner.h"
 #include "cluster_editing/refinement/clique_remover.h"
 #include "cluster_editing/refinement/clique_splitter.h"
+#include "cluster_editing/refinement/node_swapper.h"
 #include "cluster_editing/context/context.h"
 #include "cluster_editing/datastructures/sparse_map.h"
 #include "cluster_editing/datastructures/fast_reset_flag_array.h"
@@ -52,6 +53,7 @@ class Evolutionary final : public IRefiner {
                         const Context& context) :
     _context(context),
     _original_context(context),
+    _is_special_instance(false),
     _show_detailed_output(context.general.verbose_output && context.refinement.evo.enable_detailed_output),
     _population(context.refinement.evo.solution_pool_size, SolutionStats {
       static_cast<EdgeWeight>(graph.numEdges() / 2), nullptr}),
@@ -59,6 +61,7 @@ class Evolutionary final : public IRefiner {
     _lp_refiner(graph, _context),
     _clique_remover(graph, _context),
     _clique_splitter(graph, _context),
+    _node_swapper(graph, _context),
     _mutator(_context),
     _evo_action_selector( { EvoAction::INTESIVATE, EvoAction::MUTATE } ) { }
 
@@ -87,15 +90,17 @@ class Evolutionary final : public IRefiner {
   EdgeWeight refineSolution(Graph& graph,
                             const EdgeWeight current_edits,
                             const int lp_iterations,
+                            const int node_swapper_iterations,
                             const bool use_random_node_order,
                             const bool show_detailed_output,
-                            const EdgeWeight target_edits = 0);
+                            const EdgeWeight target_edits = 0,
+                            const bool is_initial_partition = false);
 
   void evictSolution(const Graph& graph,
                      const EdgeWeight edits) {
     sortSolutions();
     const EdgeWeight worst_edits = _population.back().edits;
-    if ( edits < worst_edits ) {
+    if ( edits <= worst_edits ) {
       _population.back().edits = edits;
       storeSolution(graph, *_population.back().solution);
       if ( _show_detailed_output) {
@@ -135,12 +140,14 @@ class Evolutionary final : public IRefiner {
 
   Context _context;
   const Context& _original_context;
+  bool _is_special_instance;
   const bool _show_detailed_output;
   Population _population;
   std::vector<Solution> _solutions;
   LabelPropagationRefiner _lp_refiner;
   CliqueRemover _clique_remover;
   CliqueSplitter _clique_splitter;
+  NodeSwapper _node_swapper;
   Mutator _mutator;
   ActionSelector<EvoAction> _evo_action_selector;
 };

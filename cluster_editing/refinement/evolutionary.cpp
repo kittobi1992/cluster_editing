@@ -15,6 +15,25 @@ void Evolutionary::initializeImpl(Graph& graph) {
   }
 }
 
+namespace {
+  bool isSpecialInstance(const Graph& graph) {
+    if ( graph.maxDegree() < 20 && graph.numEdges() / 2 > 1000000 ) {
+      utils::CommonOperations::instance(graph).computeClusterSizes(graph);
+      std::vector<NodeID> cluster_sizes =
+        utils::CommonOperations::instance(graph)._cluster_sizes;
+      std::sort(cluster_sizes.begin(), cluster_sizes.end(), std::greater<NodeID>());
+      while ( cluster_sizes.back() == 0 ) {
+        cluster_sizes.pop_back();
+      }
+      size_t percentile = 0.99 * cluster_sizes.size();
+      const NodeID p_99 = cluster_sizes[cluster_sizes.size() - percentile];
+      const NodeID max_cluster_size = cluster_sizes[0];
+      return max_cluster_size <= 5 && p_99 <= 3;
+    }
+    return false;
+  }
+}
+
 EdgeWeight Evolutionary::refineImpl(Graph& graph,
                                     const EdgeWeight current_edits,
                                     const EdgeWeight) {
@@ -29,6 +48,8 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph,
   utils::Timer::instance().stop_timer("initial_population");
 
   sortSolutions();
+  _is_special_instance = isSpecialInstance(graph);
+  if ( _context.general.verbose_output ) LOG << "Evolutionary Algorithm:";
   utils::ProgressBar evo_progress(
     _context.refinement.evo.evolutionary_steps, _population[0].edits,
     _context.general.verbose_output && !debug && !_context.refinement.evo.enable_detailed_output);
@@ -67,8 +88,10 @@ void Evolutionary::createInitialPopulation(Graph& graph, const EdgeWeight curren
   for ( int i = 0; i < _context.refinement.evo.solution_pool_size; ++i ) {
     _population[i].edits = refineSolution(graph, current_edits,
       _context.refinement.evo.initial_lp_iterations,
+      _context.refinement.evo.initial_node_swapper_iterations,
       _context.refinement.evo.use_random_node_ordering,
-      _context.general.verbose_output);
+      _context.general.verbose_output,
+      0, true);
     storeSolution(graph, *_population[i].solution);
   }
   sortSolutions();
@@ -104,6 +127,7 @@ EdgeWeight Evolutionary::intensivate(Graph& graph, SolutionStats& stats) {
   const EdgeWeight initial_edits = stats.edits;
   stats.edits = refineSolution(graph, stats.edits,
     _context.refinement.evo.intensivate_lp_iterations,
+    _context.refinement.evo.node_swapper_iterations,
     _context.refinement.evo.use_random_node_ordering,
     _show_detailed_output);
   storeSolution(graph, *stats.solution);
@@ -135,6 +159,7 @@ EdgeWeight Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
   const EdgeWeight edits = refineSolution(graph,
     metrics::edits(graph),
     _context.refinement.evo.lp_iterations_after_mutate,
+    _context.refinement.evo.node_swapper_iterations,
     _context.refinement.evo.use_random_node_ordering,
     _show_detailed_output,
     initial_edits);
@@ -157,11 +182,11 @@ EdgeWeight Evolutionary::mutate(Graph& graph, SolutionStats& stats) {
 EdgeWeight Evolutionary::refineSolution(Graph& graph,
                                         const EdgeWeight current_edits,
                                         const int lp_iterations,
+                                        const int node_swapper_iterations,
                                         const bool use_random_node_order,
                                         const bool show_detailed_output,
-                                        const EdgeWeight target_edits) {
-  const bool is_mutation = target_edits != 0;
-
+                                        const EdgeWeight target_edits,
+                                        const bool is_initial_partition) {
   _lp_refiner.initialize(graph);
   // Choose some random node ordering for LP refiner
   _context.refinement.lp.maximum_lp_iterations = lp_iterations;
@@ -172,17 +197,32 @@ EdgeWeight Evolutionary::refineSolution(Graph& graph,
     _context.refinement.lp.node_order = _original_context.refinement.lp.node_order;
   }
   _context.general.verbose_output = show_detailed_output;
+  if ( show_detailed_output ) LOG << "Label Propagation Refiner:";
   EdgeWeight edits = _lp_refiner.refine(graph, current_edits, target_edits);
-
   const bool was_aborted = utils::CommonOperations::instance(graph)._lp_aborted_flag;
-  if ( is_mutation && !was_aborted ) {
-    // Clique Remover Refiner
-    _clique_remover.initialize(graph);
-    edits = _clique_remover.refine(graph, edits, target_edits);
 
-    // Clique Splitter Refiner
-    _clique_splitter.initialize(graph);
-    edits = _clique_splitter.refine(graph, edits, target_edits);
+  if ( !was_aborted ) {
+    if ( _is_special_instance || is_initial_partition || utils::Randomize::instance().flipCoin() ) {
+      // Node Swapper Refiner
+      _context.refinement.evo.node_swapper_iterations = node_swapper_iterations;
+      _node_swapper.initialize(graph);
+      if ( show_detailed_output ) LOG << "Node Swapper Refiner:";
+      edits = _node_swapper.refine(graph, edits, target_edits);
+      _context.refinement.evo.node_swapper_iterations =
+        _original_context.refinement.evo.node_swapper_iterations;
+    }
+
+    if ( !_is_special_instance && ( is_initial_partition || utils::Randomize::instance().flipCoin() ) ) {
+      // Clique Remover Refiner
+      _clique_remover.initialize(graph);
+      if ( show_detailed_output ) LOG << "Clique Remover Refiner:";
+      edits = _clique_remover.refine(graph, edits, target_edits);
+
+      // Clique Splitter Refiner
+      _clique_splitter.initialize(graph);
+      if ( show_detailed_output ) LOG << "Clique Splitter Refiner:";
+      edits = _clique_splitter.refine(graph, edits, target_edits);
+    }
   }
 
   _context.general.verbose_output = _original_context.general.verbose_output;

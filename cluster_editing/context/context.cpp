@@ -24,10 +24,13 @@ std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& para
   str << "    Solution Pool Size:          " << params.solution_pool_size << std::endl;
   str << "    Evolutionary Steps:          " << params.evolutionary_steps << std::endl;
   str << "    Initial LP Iterations:       " << params.initial_lp_iterations << std::endl;
+  str << "    Initial Node Swapper Iter.:  " << params.initial_node_swapper_iterations << std::endl;
   str << "    Intensivate LP Iterations:   " << params.intensivate_lp_iterations << std::endl;
   str << "    LP Iterations After Mutate:  " << params.lp_iterations_after_mutate << std::endl;
   str << "    Clique Remover Iterations:   " << params.clique_remover_iterations << std::endl;
   str << "    Clique Splitter Iterations:  " << params.clique_splitter_iterations << std::endl;
+  str << "    Node Swapper Iterations:     " << params.node_swapper_iterations << std::endl;
+  str << "    Node Swapper Max Cl. Size:   " << params.node_swapper_max_cluster_size << std::endl;
   str << "    Use Random Node Ordering:    " << std::boolalpha << params.use_random_node_ordering << std::endl;
   str << "    Enable All Mut. After Steps: " << params.enable_all_mutations_after_steps << std::endl;
   str << "    Enabled Mutations:           " << params.enabled_mutations << std::endl;
