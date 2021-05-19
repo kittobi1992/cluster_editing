@@ -1,5 +1,6 @@
 set(RefinementSources
       clique_remover.cpp
+      clique_splitter.cpp
       evolutionary.cpp
       lp_refiner.cpp
       fm_refiner.cpp

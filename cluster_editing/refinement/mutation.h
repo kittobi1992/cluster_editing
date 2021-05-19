@@ -168,7 +168,7 @@ class RandomNodeMover {
   RandomNodeMover() { }
 };
 
-class CliqueSplitter {
+class CliqueSplit {
 
  public:
   static void mutate(Graph& graph, const float prob) {
@@ -234,70 +234,14 @@ class CliqueSplitter {
   }
 
  private:
-  CliqueSplitter() { }
+  CliqueSplit() { }
 };
 
 class TestMutation {
 
  public:
   static void mutate(Graph&, const float) {
-    /*utils::CommonOperations::instance(graph).computeEmptyCliques(graph);
-    ds::FixedSizeSparseMap<CliqueID, EdgeWeight>& rating =
-      utils::CommonOperations::instance(graph)._rating;
-    std::vector<CliqueID>& empty_cliques =
-      utils::CommonOperations::instance(graph)._empty_cliques;
-    std::vector<NodeID>& cluster_sizes =
-      utils::CommonOperations::instance(graph)._cluster_sizes;
-    std::vector<NodeID>& nodes =
-      utils::CommonOperations::instance(graph)._nodes;
-    std::random_shuffle(nodes.begin(), nodes.end());
-    EdgeWeight overall_delta = 0;
-    const EdgeWeight budget = static_cast<float>(current_edits) * prob;
-    std::vector<CliqueID> target_cliques;
-    for ( const NodeID& u : graph.nodes() ) {
-      const float p = utils::Randomize::instance().getRandomFloat(0.0, 1.0);
-      if ( p <= prob ) {
-        const bool is_move = utils::Randomize::instance().flipCoin();
-        rating.clear();
-        const NodeID u_degree = graph.degree(u);
-        const CliqueID from = graph.clique(u);
-        for ( const NodeID& v : graph.neighbors(u) ) {
-          const CliqueID to = graph.clique(v);
-          ++rating[to];
-          if ( from != to && is_move ) {
-            target_cliques.push_back(to);
-          }
-        }
 
-        const EdgeWeight from_rating = cluster_sizes[from] - 1 + u_degree - 2 * rating[from];
-        EdgeWeight delta = 0;
-        CliqueID to = INVALID_CLIQUE;
-        if ( is_move && !target_cliques.empty() ) {
-          std::sort(target_cliques.begin(), target_cliques.end());
-          target_cliques.erase( std::unique(
-            target_cliques.begin(), target_cliques.end() ), target_cliques.end() );
-          const CliqueID to = target_cliques[
-            utils::Randomize::instance().getRandomInt(0, target_cliques.size() - 1)];
-          const EdgeWeight to_rating = cluster_sizes[to] + u_degree - 2 * rating[to];
-          delta = to_rating - from_rating;
-        } else if ( !is_move && cluster_sizes[from] > 1 ) {
-          delta = u_degree - from_rating;
-          to = empty_cliques.back();
-          empty_cliques.pop_back();
-        }
-
-        if ( to != INVALID_CLIQUE ) {
-          overall_delta += delta;
-          graph.setClique(u, to);
-          ++cluster_sizes[to];
-          --cluster_sizes[from];
-          target_cliques.clear();
-        }
-      }
-      if ( overall_delta > budget ) {
-        break;
-      }
-    }*/
   }
 
  private:
@@ -335,7 +279,7 @@ class Mutator {
     } else if ( mutation == Mutation::CLIQUE_SPLITTER ) {
       if ( _show_detailed_output )
         LOG << "Mutation Action: CLIQUE_SPLITTER ( p =" << prob << ")";
-      CliqueSplitter::mutate(graph, prob);
+      CliqueSplit::mutate(graph, prob);
     } else if ( mutation == Mutation::TEST_MUTATION ) {
       if ( _show_detailed_output )
         LOG << "Mutation Action: TEST_MUTATION ( p =" << prob << ")";

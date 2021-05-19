@@ -176,8 +176,13 @@ EdgeWeight Evolutionary::refineSolution(Graph& graph,
 
   const bool was_aborted = utils::CommonOperations::instance(graph)._lp_aborted_flag;
   if ( is_mutation && !was_aborted ) {
+    // Clique Remover Refiner
     _clique_remover.initialize(graph);
     edits = _clique_remover.refine(graph, edits, target_edits);
+
+    // Clique Splitter Refiner
+    _clique_splitter.initialize(graph);
+    edits = _clique_splitter.refine(graph, edits, target_edits);
   }
 
   _context.general.verbose_output = _original_context.general.verbose_output;

@@ -74,26 +74,14 @@ EdgeWeight CliqueRemover::refineImpl(Graph& graph,
         if ( delta < 0 ) {
           edits += delta;
           // Add nodes to target cliques
-          bool is_one_left = false;
-          for ( const NodeID& u : _cliques[from] ) {
+          size_t clique_size = _cliques[from].size();
+          for ( size_t i = 0; i < clique_size; ++i ) {
+            const NodeID u = _cliques[from][i];
             const CliqueID to = graph.clique(u);
             if ( from != to ) {
+              std::swap(_cliques[from][i--], _cliques[from][--clique_size]);
+              _cliques[from].pop_back();
               _cliques[to].push_back(u);
-            } else {
-              is_one_left = true;
-            }
-          }
-
-          if ( !is_one_left ) {
-            _cliques[from].clear();
-          } else {
-            size_t clique_size = _cliques[from].size();
-            for ( size_t i = 0; i < clique_size; ++i ) {
-              const CliqueID to = graph.clique(_cliques[from][i]);
-              if ( from != to ) {
-                std::swap(_cliques[from][i--], _cliques[from][--clique_size]);
-                _cliques[from].pop_back();
-              }
             }
           }
         } else {

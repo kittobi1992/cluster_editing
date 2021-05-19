@@ -89,6 +89,8 @@ namespace cluster_editing {
              "Number of LP iterations after mutate operation in evolutionary algorithm")
             ("r-evo-clique-remover-iterations", po::value<int>(&context.refinement.evo.clique_remover_iterations)->value_name("<int>"),
              "Number of clique remover iterations after mutate operation in evolutionary algorithm")
+            ("r-evo-clique-splitter-iterations", po::value<int>(&context.refinement.evo.clique_splitter_iterations)->value_name("<int>"),
+             "Number of clique splitter iterations after mutate operation in evolutionary algorithm")
             ("r-evo-lp-use-random-node-ordering", po::value<bool>(&context.refinement.evo.use_random_node_ordering)->value_name("<bool>"),
              "If true, then we choose a random node order in LP refiner")
             ("r-evo-enable-all-mutations-after-step", po::value<int>(&context.refinement.evo.enable_all_mutations_after_steps)->value_name("<int>"),
