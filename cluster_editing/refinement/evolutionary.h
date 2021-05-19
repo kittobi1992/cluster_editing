@@ -53,6 +53,7 @@ class Evolutionary final : public IRefiner {
                         const Context& context) :
     _context(context),
     _original_context(context),
+    _is_special_instance(false),
     _show_detailed_output(context.general.verbose_output && context.refinement.evo.enable_detailed_output),
     _population(context.refinement.evo.solution_pool_size, SolutionStats {
       static_cast<EdgeWeight>(graph.numEdges() / 2), nullptr}),
@@ -99,7 +100,7 @@ class Evolutionary final : public IRefiner {
                      const EdgeWeight edits) {
     sortSolutions();
     const EdgeWeight worst_edits = _population.back().edits;
-    if ( edits < worst_edits ) {
+    if ( edits <= worst_edits ) {
       _population.back().edits = edits;
       storeSolution(graph, *_population.back().solution);
       if ( _show_detailed_output) {
@@ -139,6 +140,7 @@ class Evolutionary final : public IRefiner {
 
   Context _context;
   const Context& _original_context;
+  bool _is_special_instance;
   const bool _show_detailed_output;
   Population _population;
   std::vector<Solution> _solutions;

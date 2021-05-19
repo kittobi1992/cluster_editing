@@ -36,7 +36,7 @@ EdgeWeight NodeSwapper::refineImpl(Graph& graph,
       Rating rating = computeBestTargetClique(graph, u, true, false);
       EdgeWeight delta = rating.delta;
       const CliqueID to = rating.clique;
-      if ( to != INVALID_CLIQUE ) {
+      if ( to != INVALID_CLIQUE && delta < 10 ) {
         graph.setClique(u, to);
         --_cluster_sizes[from];
         ++_cluster_sizes[to];
