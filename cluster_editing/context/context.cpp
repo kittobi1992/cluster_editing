@@ -26,15 +26,24 @@ std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& para
   str << "    Initial LP Iterations:       " << params.initial_lp_iterations << std::endl;
   str << "    Intensivate LP Iterations:   " << params.intensivate_lp_iterations << std::endl;
   str << "    LP Iterations After Mutate:  " << params.lp_iterations_after_mutate << std::endl;
+  str << "    Clique Remover Iterations:   " << params.clique_remover_iterations << std::endl;
+  str << "    Clique Splitter Iterations:  " << params.clique_splitter_iterations << std::endl;
   str << "    Use Random Node Ordering:    " << std::boolalpha << params.use_random_node_ordering << std::endl;
+  str << "    Enable All Mut. After Steps: " << params.enable_all_mutations_after_steps << std::endl;
   str << "    Enabled Mutations:           " << params.enabled_mutations << std::endl;
+  str << "    Large Clique Threshold:      " << params.large_clique_threshold << std::endl;
+  str << "    Min Clique Isolation Prob.:  " << params.min_clique_isolate_prob << std::endl;
+  str << "    Max Clique Isolation Prob.:  " << params.max_clique_isolate_prob << std::endl;
+  str << "    Min NeighClique Isolation P: " << params.min_neighbor_clique_isolate_prob << std::endl;
+  str << "    Max NeighClique Isolation P: " << params.max_neighbor_clique_isolate_prob << std::endl;
   str << "    Min Node Isolation Prob.:    " << params.min_node_isolation_prob << std::endl;
   str << "    Max Node Isolation Prob.:    " << params.max_node_isolation_prob << std::endl;
   str << "    Min Node Move Prob.:         " << params.min_node_move_prob << std::endl;
   str << "    Max Node Move Prob.:         " << params.max_node_move_prob << std::endl;
+  str << "    Min Clique Split Prob.:      " << params.min_clique_split_mutation_prob << std::endl;
+  str << "    Max Clique Split Prob.:      " << params.max_clique_split_mutation_prob << std::endl;
   str << "    Min Test Mutation Prob.:     " << params.min_test_mutation_prob << std::endl;
   str << "    Max Test Mutation Prob.:     " << params.max_test_mutation_prob << std::endl;
-  str << "    Random Prob Selection Prob.: " << params.random_prob_selection_prob << std::endl;
   return str;
 }
 

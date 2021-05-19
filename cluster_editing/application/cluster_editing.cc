@@ -92,12 +92,12 @@ int main() {
   sigaction(SIGTERM, &action, NULL);
 
   // General Options
-  context.general.verbose_output = false;
-  context.general.print_result_line = true;
-  context.general.seed = 2;
+  context.general.verbose_output = true;
+  context.general.print_result_line = false;
+  context.general.seed = 1;
   context.general.num_repititions = 1000;
   context.general.num_fruitless_repititions = 10;
-  context.general.time_limit = 570; // 9 min and 30 secs
+  context.general.time_limit = 590; // 9 min and 50 secs
   utils::Randomize::instance().setSeed(context.general.seed);
 
   // Evolutionary Options
@@ -108,15 +108,24 @@ int main() {
   context.refinement.evo.initial_lp_iterations = 100;
   context.refinement.evo.intensivate_lp_iterations = 25;
   context.refinement.evo.lp_iterations_after_mutate = 50;
+  context.refinement.evo.clique_remover_iterations = 10;
+  context.refinement.evo.clique_splitter_iterations = 10;
   context.refinement.evo.use_random_node_ordering = false;
-  context.refinement.evo.enabled_mutations = "110";
+  context.refinement.evo.enable_all_mutations_after_steps = 500;
+  context.refinement.evo.enabled_mutations = "001110";
+  context.refinement.evo.large_clique_threshold = 3;
+  context.refinement.evo.min_clique_isolate_prob = 0.01;
+  context.refinement.evo.max_clique_isolate_prob = 0.1;
+  context.refinement.evo.min_neighbor_clique_isolate_prob = 0.0001;
+  context.refinement.evo.max_neighbor_clique_isolate_prob = 0.01;
   context.refinement.evo.min_node_isolation_prob = 0.01;
   context.refinement.evo.max_node_isolation_prob = 0.25;
   context.refinement.evo.min_node_move_prob = 0.01;
   context.refinement.evo.max_node_move_prob = 0.25;
+  context.refinement.evo.min_clique_split_mutation_prob = 0.01;
+  context.refinement.evo.max_clique_split_mutation_prob = 0.25;
   context.refinement.evo.min_test_mutation_prob = 0.01;
   context.refinement.evo.max_test_mutation_prob = 0.25;
-  context.refinement.evo.random_prob_selection_prob = 0.1;
 
   // LP Refiner Options
   context.refinement.use_lp_refiner = false;
