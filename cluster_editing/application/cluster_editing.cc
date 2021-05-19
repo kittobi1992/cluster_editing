@@ -92,8 +92,8 @@ int main() {
   sigaction(SIGTERM, &action, NULL);
 
   // General Options
-  context.general.verbose_output = true;
-  context.general.print_result_line = false;
+  context.general.verbose_output = false;
+  context.general.print_result_line = true;
   context.general.seed = 1;
   context.general.num_repititions = 1000;
   context.general.num_fruitless_repititions = 10;
@@ -102,7 +102,7 @@ int main() {
 
   // Evolutionary Options
   context.refinement.use_evo = true;
-  context.refinement.evo.enable_detailed_output = true;
+  context.refinement.evo.enable_detailed_output = false;
   context.refinement.evo.solution_pool_size = 1;
   context.refinement.evo.evolutionary_steps = 1000;
   context.refinement.evo.initial_lp_iterations = 100;
