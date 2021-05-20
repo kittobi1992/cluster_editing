@@ -33,6 +33,10 @@ void printResult(Graph& best) {
     std::cout << context.general.graph_filename.substr(context.general.graph_filename.find_last_of('/') + 1)
               << "," << metrics::edits(best) << "," << elapsed_seconds.count() << std::endl;
   }
+
+  if ( context.general.write_to_file ) {
+    io::writeSolutionFile(graph, context.general.output_file);
+  }
 }
 
 void terminate(int) {

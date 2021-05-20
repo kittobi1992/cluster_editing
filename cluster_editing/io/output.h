@@ -47,4 +47,8 @@ namespace cluster_editing::io {
   void printCoarseningBanner(const Context& context);
   void printFlatBanner(const Context& context);
   void printUncoarseningBanner(const Context& context);
+
+
+  void readSolutionFile(Graph& graph, const std::string& filename);
+  void writeSolutionFile(const Graph& graph, const std::string& filename);
 }  // namespace cluster_editing::io
