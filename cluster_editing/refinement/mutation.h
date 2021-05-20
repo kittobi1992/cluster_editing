@@ -178,15 +178,14 @@ class CliqueSplit {
       utils::CommonOperations::instance(graph)._empty_cliques;
     std::vector<std::vector<NodeID>>& cliques =
       utils::CommonOperations::instance(graph)._cliques;
-    std::vector<NodeID> cluster_sizes =
+    std::vector<NodeID>& cluster_sizes =
       utils::CommonOperations::instance(graph)._cluster_sizes;
+    std::vector<NodeID> best_nodes;
     for ( const CliqueID& c : graph.nodes() ) {
       if ( cliques[c].size() > 2 && utils::Randomize::instance().getRandomFloat(0.0, 1.0) <= prob ) {
         // Choose vertex from clique that we isolate
         const int seed_idx = utils::Randomize::instance().getRandomInt(0, cliques[c].size() - 1);
         const NodeID seed = cliques[c][seed_idx];
-        std::swap(cliques[c][seed_idx], cliques[c].back());
-        cliques[c].pop_back();
 
         // Isolate selected vertex
         const CliqueID to = empty_cliques.back();
@@ -196,29 +195,31 @@ class CliqueSplit {
         ++cluster_sizes[to];
 
         // Choose one additional vertex to be moved to isolated vertex
-        std::vector<NodeID> best_nodes;
+        best_nodes.clear();
         EdgeWeight best_delta = std::numeric_limits<EdgeWeight>::max();
         for ( const NodeID& u : cliques[c] ) {
-          bool is_adjacent_to_seed = false;
-          EdgeWeight edges_to_from = 0;
-          for ( const NodeID& v : graph.neighbors(u) ) {
-            if ( c == graph.clique(v) ) {
-              ++edges_to_from;
-            } else if ( v == seed ) {
-              is_adjacent_to_seed = true;
+          if ( u != seed ) {
+            bool is_adjacent_to_seed = false;
+            EdgeWeight edges_to_from = 0;
+            for ( const NodeID& v : graph.neighbors(u) ) {
+              if ( c == graph.clique(v) ) {
+                ++edges_to_from;
+              } else if ( v == seed ) {
+                is_adjacent_to_seed = true;
+              }
             }
-          }
 
-          const NodeID u_degree = graph.degree(u);
-          const EdgeWeight from_rating = cluster_sizes[c] - 1 + u_degree - 2 * edges_to_from;
-          const EdgeWeight to_rating = 1 + u_degree - 2 * is_adjacent_to_seed;
-          const EdgeWeight delta = to_rating - from_rating;
-          if ( delta < best_delta ) {
-            best_nodes.clear();
-            best_nodes.push_back(u);
-            best_delta = delta;
-          } else if ( delta == best_delta ) {
-            best_nodes.push_back(u);
+            const NodeID u_degree = graph.degree(u);
+            const EdgeWeight from_rating = cluster_sizes[c] - 1 + u_degree - 2 * edges_to_from;
+            const EdgeWeight to_rating = 1 + u_degree - 2 * is_adjacent_to_seed;
+            const EdgeWeight delta = to_rating - from_rating;
+            if ( delta < best_delta ) {
+              best_nodes.clear();
+              best_nodes.push_back(u);
+              best_delta = delta;
+            } else if ( delta == best_delta ) {
+              best_nodes.push_back(u);
+            }
           }
         }
 

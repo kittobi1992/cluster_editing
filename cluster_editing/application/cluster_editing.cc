@@ -71,6 +71,10 @@ void printResult(Graph& best) {
                 << "," << metrics::edits(best) << "," << elapsed_seconds.count() << std::endl;
     }
   }
+
+  if ( context.general.write_to_file ) {
+    io::writeSolutionFile(graph, context.general.output_file);
+  }
 }
 
 void terminate(int) {
@@ -94,6 +98,8 @@ int main() {
   // General Options
   context.general.verbose_output = false;
   context.general.print_result_line = true;
+  context.general.write_to_file = false;
+  context.general.read_from_file = false;
   context.general.seed = 1;
   context.general.num_repititions = 1000;
   context.general.num_fruitless_repititions = 20;
@@ -192,6 +198,10 @@ int main() {
         i < context.general.num_repititions &&
         fruitless_repititions < context.general.num_fruitless_repititions ; ++i ) {
     solve();
+
+    if ( context.isTimeLimitReached() ) {
+      break;
+    }
   }
   utils::Timer::instance().stop_timer("solver");
 

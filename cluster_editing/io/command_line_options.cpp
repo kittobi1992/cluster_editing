@@ -43,6 +43,10 @@ namespace cluster_editing {
              "Verbose main partitioning output")
             ("print-result-line", po::value<bool>(&context.general.print_result_line)->value_name("<bool>")->default_value(true),
              "Prints RESULT-line containing stats, timings and metrics")
+            ("write-to-file", po::value<bool>(&context.general.write_to_file)->value_name("<bool>")->default_value(true),
+             "If true, then solution is written to a file")
+            ("read-from-file", po::value<bool>(&context.general.read_from_file)->value_name("<bool>")->default_value(true),
+             "If true, then solution is read from a file")
             ("csv", po::value<bool>(&context.general.print_csv)->value_name("<bool>")->default_value(false),
              "Prints CSV output")
             ("seed", po::value<int>(&context.general.seed)->value_name("<int>"),

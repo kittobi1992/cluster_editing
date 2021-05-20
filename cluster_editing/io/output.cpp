@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <vector>
 #include <numeric>
+#include <fstream>
+#include <cstring>
 
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/utils/math.h"
@@ -301,5 +303,31 @@ namespace internal {
     LOG << R"(+                                                                |___/        +)";
     LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
   }
+
+  void readSolutionFile(Graph& graph, const std::string& filename) {
+  ASSERT(!filename.empty(), "No filename for solution file specified");
+  std::ifstream file(filename);
+  if (file) {
+    CliqueID clique = INVALID_CLIQUE;
+    NodeID u = 0;
+    while (file >> clique) {
+      graph.setClique(u, clique);
+      ++u;
+    }
+    file.close();
+  }
+}
+
+void writeSolutionFile(const Graph& graph, const std::string& filename) {
+  if (filename.empty()) {
+    LOG << "No filename for partition file specified";
+  } else {
+    std::ofstream out_stream(filename.c_str());
+    for ( const NodeID& u : graph.nodes() ) {
+      out_stream << graph.clique(u) << std::endl;
+    }
+    out_stream.close();
+  }
 }
 } // namespace cluster_editing::io
+}

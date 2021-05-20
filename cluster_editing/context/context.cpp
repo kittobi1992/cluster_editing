@@ -9,6 +9,8 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params) {
   str << "  Graph:                         " << params.graph_filename << std::endl;
   str << "  Config File:                   " << params.config_file << std::endl;
   str << "  Output File:                   " << params.output_file << std::endl;
+  str << "  Write to File:                 " << std::boolalpha << params.write_to_file << std::endl;
+  str << "  Read from File:                " << std::boolalpha << params.read_from_file << std::endl;
   str << "  Verbose Output:                " << std::boolalpha << params.verbose_output << std::endl;
   str << "  Seed:                          " << params.seed << std::endl;
   str << "  Number of Repititions:         " << params.num_repititions << std::endl;

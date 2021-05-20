@@ -36,7 +36,7 @@ EdgeWeight NodeSwapper::refineImpl(Graph& graph,
       Rating rating = computeBestTargetClique(graph, u, true, false);
       EdgeWeight delta = rating.delta;
       const CliqueID to = rating.clique;
-      if ( to != INVALID_CLIQUE && delta < 10 ) {
+      if ( to != INVALID_CLIQUE ) {
         graph.setClique(u, to);
         --_cluster_sizes[from];
         ++_cluster_sizes[to];
@@ -114,6 +114,7 @@ EdgeWeight NodeSwapper::refineImpl(Graph& graph,
   return edits;
 }
 
+
 namespace {
 
   ATTRIBUTE_ALWAYS_INLINE EdgeWeight insertions(const NodeWeight target_clique_weight,
@@ -128,7 +129,7 @@ namespace {
 
 }
 
-NodeSwapper::Rating NodeSwapper::computeBestTargetClique(Graph& graph,
+NodeSwapper::Rating NodeSwapper::computeBestTargetClique(const Graph& graph,
                                                          const NodeID u,
                                                          const bool restrict_max_cluster_size,
                                                          const bool consider_isolating_vertex) {
