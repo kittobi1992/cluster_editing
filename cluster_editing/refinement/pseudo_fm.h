@@ -27,34 +27,38 @@
 
 namespace cluster_editing {
 
-class NodeSwapper final : public IRefiner {
+class PseudoFM final : public IRefiner {
  private:
 
   static constexpr bool debug = false;
 
   struct Rating {
-    CliqueID clique;
+    NodeID u;
+    CliqueID from;
+    CliqueID to;
     EdgeWeight rating;
     EdgeWeight delta;
   };
 
  public:
-  explicit NodeSwapper(const Graph& graph,
+  explicit PseudoFM(const Graph& graph,
                        const Context& context) :
     _context(context),
     _cluster_sizes(utils::CommonOperations::instance(graph)._cluster_sizes),
-    _empty_cliques(utils::CommonOperations::instance(graph)._empty_cliques),
     _cliques(utils::CommonOperations::instance(graph)._cliques),
     _rating(utils::CommonOperations::instance(graph)._rating),
-    _cliques_with_same_rating()  { }
+    _cliques_with_same_rating(),
+    _best_ratings()  { }
 
-  NodeSwapper(const NodeSwapper&) = delete;
-  NodeSwapper(NodeSwapper&&) = delete;
+  PseudoFM(const PseudoFM&) = delete;
+  PseudoFM(PseudoFM&&) = delete;
 
-  NodeSwapper & operator= (const NodeSwapper &) = delete;
-  NodeSwapper & operator= (NodeSwapper &&) = delete;
+  PseudoFM & operator= (const PseudoFM &) = delete;
+  PseudoFM & operator= (PseudoFM &&) = delete;
 
  private:
+
+  void moveVertex(Graph& graph, const NodeID u, const CliqueID to);
 
   void initializeImpl(Graph& graph) final;
 
@@ -62,16 +66,18 @@ class NodeSwapper final : public IRefiner {
                         const EdgeWeight current_edits,
                         const EdgeWeight target_edits) final ;
 
+  Rating computeBestMoveOfClique(const Graph& graph,
+                                 const CliqueID from,
+                                 const NodeID forbidden_u);
+
   Rating computeBestTargetClique(const Graph& graph,
-                                 const NodeID u,
-                                 const bool restrict_max_cluster_size,
-                                 const bool consider_isolating_vertex);
+                                 const NodeID u);
 
   const Context& _context;
   std::vector<NodeID>& _cluster_sizes;
-  std::vector<CliqueID>& _empty_cliques;
   std::vector<std::vector<NodeID>>& _cliques;
   ds::FixedSizeSparseMap<CliqueID, EdgeWeight>& _rating;
   std::vector<CliqueID> _cliques_with_same_rating;
+  std::vector<Rating> _best_ratings;
 };
 }  // namespace cluster_editing

@@ -97,6 +97,10 @@ int main(int argc, char* argv[]) {
     } else {
       ++fruitless_repititions;
     }
+
+    if ( context.isTimeLimitReached() ) {
+      break;
+    }
   }
   utils::Timer::instance().stop_timer("solver");
 
