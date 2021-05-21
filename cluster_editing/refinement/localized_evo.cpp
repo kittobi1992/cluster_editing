@@ -117,11 +117,21 @@ void LocalizedEvolutionary::mutate(Graph& graph,
   _mutation_nodes.clear();
   const int num_mutation_nodes = std::min(
     _context.refinement.localized_evo.num_mutations_nodes, static_cast<int>(graph.numNodes() / 4));
+  utils::Randomize& rnd = utils::Randomize::instance();
   for ( int i = 0; i < num_mutation_nodes; ++i ) {
-    const NodeID u = utils::Randomize::instance().getRandomInt(0, graph.numNodes() - 1);
+    const NodeID u = rnd.getRandomInt(0, graph.numNodes() - 1);
     if ( !_marked[u] ) {
       _marked.set(u, true);
       _mutation_nodes.push_back(u);
+      if ( rnd.getRandomFloat(0.0f, 1.0f) <=
+           _context.refinement.localized_evo.choose_adjacent_mutation_node_prob ) {
+        const NodeID v = graph.randomNeighbor(u);
+        if ( v != INVALID_NODE && !_marked[v] ) {
+          _marked.set(v, true);
+          _mutation_nodes.push_back(v);
+          ++i;
+        }
+      }
     } else {
       --i;
     }
@@ -148,7 +158,7 @@ void LocalizedEvolutionary::mutate(Graph& graph,
     Rating rating;
     rating.to = INVALID_CLIQUE;
     if ( _clique_sizes[from] > 1 &&
-        ( utils::Randomize::instance().flipCoin() || targets.empty() ) ) {
+        ( rnd.flipCoin() || targets.empty() ) ) {
       rating = isolateVertex(graph, u, from_rating);
     } else if ( !targets.empty() ) {
       rating = moveToRandomTarget(graph, u, targets, from_rating);

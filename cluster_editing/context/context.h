@@ -64,6 +64,7 @@ struct LocalizedEvolutionaryParameters {
   bool run_until_time_limit = false;
   int max_lp_iterations = 0;
   int num_mutations_nodes = 0;
+  float choose_adjacent_mutation_node_prob = 0.0f;
   int max_distance_to_mutation_node = 0;
   int degree_sampling_threshold = 0;
 };

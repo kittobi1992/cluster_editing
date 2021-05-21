@@ -145,6 +145,8 @@ namespace cluster_editing {
              "Maximum LP iterations in localized evolutionary algorithm")
             ("r-localized-evo-mutations-nodes", po::value<int>(&context.refinement.localized_evo.num_mutations_nodes)->value_name("<int>"),
              "Number of mutated nodes in localized evolutionary algorithm")
+            ("r-localized-evo-choose-adjacent-mutation-node-prob", po::value<float>(&context.refinement.localized_evo.choose_adjacent_mutation_node_prob)->value_name("<float>"),
+             "Probability that we choose an additional adjacent mutation node")
             ("r-localized-evo-max-distance-to-mutation-node", po::value<int>(&context.refinement.localized_evo.max_distance_to_mutation_node)->value_name("<int>"),
              "The maximum distance of a refinement node to a mutation node")
             ("r-localized-evo-degree-sampling-threshold", po::value<int>(&context.refinement.localized_evo.degree_sampling_threshold)->value_name("<int>"),
