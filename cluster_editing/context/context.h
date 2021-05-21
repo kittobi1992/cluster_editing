@@ -60,10 +60,10 @@ struct EvolutionaryParameters {
 std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& params);
 
 struct LocalizedEvolutionaryParameters {
-  int steps = 0;
+  size_t steps = 0;
+  bool run_until_time_limit = false;
   int max_lp_iterations = 0;
   int num_mutations_nodes = 0;
-  int max_refinement_nodes = 0;
   int max_distance_to_mutation_node = 0;
   int degree_sampling_threshold = 0;
 };
@@ -127,6 +127,8 @@ class Context {
 
       if ( graph.numNodes() < 10000 ) {
         refinement.localized_evo.steps /= 100;
+      } else if ( graph.numNodes() > 50000 ) {
+        refinement.localized_evo.run_until_time_limit = true;
       }
     }
   }

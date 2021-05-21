@@ -64,8 +64,7 @@ class Evolutionary final : public IRefiner {
     _node_swapper(graph, _context),
     _mutator(_context),
     _evo_action_selector( { EvoAction::INTESIVATE, EvoAction::MUTATE } ),
-    _start(),
-    _num_fruitless_intensivates(0) { }
+    _start() { }
 
   Evolutionary(const Evolutionary&) = delete;
   Evolutionary(Evolutionary&&) = delete;
@@ -159,6 +158,5 @@ class Evolutionary final : public IRefiner {
   Mutator _mutator;
   ActionSelector<EvoAction> _evo_action_selector;
   HighResClockTimepoint _start;
-  size_t _num_fruitless_intensivates;
 };
 }  // namespace cluster_editing

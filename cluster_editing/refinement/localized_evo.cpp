@@ -26,15 +26,16 @@ EdgeWeight LocalizedEvolutionary::refineImpl(Graph& graph,
     return current_metric;
   }
 
+  size_t steps = _context.refinement.localized_evo.run_until_time_limit ?
+    std::numeric_limits<size_t>::max() : _context.refinement.localized_evo.steps;
   utils::ProgressBar lp_progress(
-    _context.refinement.localized_evo.steps, start_metric,
-    _context.general.verbose_output && !debug);
+    steps, start_metric, _context.general.verbose_output && !debug);
   // Sorting-based rating is beneficial if the number of nodes is greater
   // than 150000
   const NodeID rating_map_degree_threshold = graph.numNodes() > 150000 ?
     _context.refinement.lp.rating_map_degree_threshold : 0;
   // enable early exit on large graphs, if FM refiner is used afterwards
-  for ( int i = 0; i < _context.refinement.localized_evo.steps; ++i ) {
+  for ( size_t i = 0; i < steps; ++i ) {
     EdgeWeight delta = 0;
     // Mutate a small number of the vertices
     mutate(graph, delta);
@@ -210,14 +211,7 @@ void LocalizedEvolutionary::findRefinementNodes(const Graph& graph) {
     const NodeID u = q.front();
     q.pop();
     const NodeID u_degree = graph.degree(u);
-    if ( u_degree <= HIGH_DEGREE_THRESHOLD ) {
-      _refinement_nodes.push_back(u);
-    }
-
-    if ( static_cast<int>(_refinement_nodes.size()) >=
-        _context.refinement.localized_evo.max_refinement_nodes ) {
-      break;
-    }
+    _refinement_nodes.push_back(u);
 
     if ( distance < _context.refinement.localized_evo.max_distance_to_mutation_node ) {
       if ( static_cast<int>(u_degree) <= _context.refinement.localized_evo.degree_sampling_threshold ) {

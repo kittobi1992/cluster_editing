@@ -139,14 +139,12 @@ namespace cluster_editing {
             ("r-evo-max-test-mutation-prob", po::value<float>(&context.refinement.evo.max_test_mutation_prob)->value_name("<float>"),
              "Maximum probability for test mutation operator")
             // Localized Evolutionary Parameters
-            ("r-localized-evo-steps", po::value<int>(&context.refinement.localized_evo.steps)->value_name("<int>"),
+            ("r-localized-evo-steps", po::value<size_t>(&context.refinement.localized_evo.steps)->value_name("<size_t>"),
              "Number of steps made by localized evolutionary algorithm")
             ("r-localized-evo-lp-iterations", po::value<int>(&context.refinement.localized_evo.max_lp_iterations)->value_name("<int>"),
              "Maximum LP iterations in localized evolutionary algorithm")
             ("r-localized-evo-mutations-nodes", po::value<int>(&context.refinement.localized_evo.num_mutations_nodes)->value_name("<int>"),
              "Number of mutated nodes in localized evolutionary algorithm")
-            ("r-localized-evo-max-refinement-nodes", po::value<int>(&context.refinement.localized_evo.max_refinement_nodes)->value_name("<int>"),
-             "Maximum number of refinement nodes in localized evolutionary algorithm")
             ("r-localized-evo-max-distance-to-mutation-node", po::value<int>(&context.refinement.localized_evo.max_distance_to_mutation_node)->value_name("<int>"),
              "The maximum distance of a refinement node to a mutation node")
             ("r-localized-evo-degree-sampling-threshold", po::value<int>(&context.refinement.localized_evo.degree_sampling_threshold)->value_name("<int>"),
