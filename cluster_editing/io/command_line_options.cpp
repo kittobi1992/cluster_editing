@@ -73,14 +73,19 @@ namespace cluster_editing {
     options.add_options()
             ("r-use-evo", po::value<bool>(&context.refinement.use_evo)->value_name("<bool>")->default_value(false),
              "If true, then evolutionary algorithm is used.")
+            ("r-use-localized-evo", po::value<bool>(&context.refinement.use_localized_evo)->value_name("<bool>")->default_value(false),
+             "If true, then localized evolutionary algorithm is used.")
             ("r-use-lp-refiner", po::value<bool>(&context.refinement.use_lp_refiner)->value_name("<bool>")->default_value(false),
              "If true, then label propagation is used to improve quality.")
             ("r-use-boundary-fm-refiner", po::value<bool>(&context.refinement.use_boundary_fm_refiner)->value_name("<bool>")->default_value(false),
              "If true, then Boundary FM is used to improve quality.")
             ("r-use-localized-fm-refiner", po::value<bool>(&context.refinement.use_localized_fm_refiner)->value_name("<bool>")->default_value(false),
              "If true, then Localized FM is used to improve quality.")
+             // Evolutionary Parameters
             ("r-evo-enable-detailed-output", po::value<bool>(&context.refinement.evo.enable_detailed_output)->value_name("<bool>"),
              "If true, then detailed output is shown in evolutionary algorithm")
+            ("r-evo-time-limit", po::value<double>(&context.refinement.evo.time_limit)->value_name("<double>"),
+             "Time limit for evolutionary algorithm.")
             ("r-evo-pool-size", po::value<int>(&context.refinement.evo.solution_pool_size)->value_name("<int>"),
              "Number of different solution in evolutionary algorithm")
             ("r-evo-steps", po::value<int>(&context.refinement.evo.evolutionary_steps)->value_name("<int>"),
@@ -133,10 +138,22 @@ namespace cluster_editing {
              "Maximum probability for clique split mutation operator")
             ("r-evo-max-test-mutation-prob", po::value<float>(&context.refinement.evo.max_test_mutation_prob)->value_name("<float>"),
              "Maximum probability for test mutation operator")
+            // Localized Evolutionary Parameters
+            ("r-localized-evo-steps", po::value<int>(&context.refinement.localized_evo.steps)->value_name("<int>"),
+             "Number of steps made by localized evolutionary algorithm")
+            ("r-localized-evo-lp-iterations", po::value<int>(&context.refinement.localized_evo.max_lp_iterations)->value_name("<int>"),
+             "Maximum LP iterations in localized evolutionary algorithm")
+            ("r-localized-evo-mutations-nodes", po::value<int>(&context.refinement.localized_evo.num_mutations_nodes)->value_name("<int>"),
+             "Number of mutated nodes in localized evolutionary algorithm")
+            ("r-localized-evo-max-refinement-nodes", po::value<int>(&context.refinement.localized_evo.max_refinement_nodes)->value_name("<int>"),
+             "Maximum number of refinement nodes in localized evolutionary algorithm")
+            ("r-localized-evo-max-distance-to-mutation-node", po::value<int>(&context.refinement.localized_evo.max_distance_to_mutation_node)->value_name("<int>"),
+             "The maximum distance of a refinement node to a mutation node")
+            ("r-localized-evo-degree-sampling-threshold", po::value<int>(&context.refinement.localized_evo.degree_sampling_threshold)->value_name("<int>"),
+             "Some weird stuff")
+            // Label Propagation Parameters
             ("r-maximum-lp-iterations", po::value<int>(&context.refinement.lp.maximum_lp_iterations)->value_name("<int>"),
              "Maximum iterations made by the label propagation refiner")
-            ("r-maximum-fm-iterations", po::value<int>(&context.refinement.fm.maximum_fm_iterations)->value_name("<int>"),
-             "Maximum iterations made by the FM refiner")
             ("r-random-shuffle-each-round", po::value<bool>(&context.refinement.lp.random_shuffle_each_round)->value_name("<bool>")->default_value(false),
              "If true, label propagation random shuffles all nodes after each iteration")
             ("r-lp-node-ordering",
@@ -159,6 +176,9 @@ namespace cluster_editing {
             ("r-lp-early-exit-window", po::value<size_t>(&context.refinement.lp.early_exit_window)->value_name("<size_t>"),
              "If label propagation improvement is less than min_improvement in the last early_exit_window rounds"
              "then label propagation terminates")
+            // FM Parameters
+            ("r-maximum-fm-iterations", po::value<int>(&context.refinement.fm.maximum_fm_iterations)->value_name("<int>"),
+             "Maximum iterations made by the FM refiner")
             ("r-fm-min-improvement", po::value<int>(&context.refinement.fm.min_improvement)->value_name("<int>"),
              "Minimal improvement per early exit window")
             ("r-fm-early-exit-window", po::value<size_t>(&context.refinement.fm.early_exit_window)->value_name("<size_t>"),

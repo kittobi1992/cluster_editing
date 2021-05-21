@@ -23,8 +23,9 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params) {
 std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& params) {
   str << "\n  Evolutionary Parameters:" << std::endl;
   str << "    Enable Detailed Output:      " << std::boolalpha << params.enable_detailed_output << std::endl;
-  str << "    Solution Pool Size:          " << params.solution_pool_size << std::endl;
+  str << "    Evolutionary Time Limit:     " << params.time_limit << std::endl;
   str << "    Evolutionary Steps:          " << params.evolutionary_steps << std::endl;
+  str << "    Solution Pool Size:          " << params.solution_pool_size << std::endl;
   str << "    Initial LP Iterations:       " << params.initial_lp_iterations << std::endl;
   str << "    Initial Node Swapper Iter.:  " << params.initial_node_swapper_iterations << std::endl;
   str << "    Intensivate LP Iterations:   " << params.intensivate_lp_iterations << std::endl;
@@ -49,6 +50,17 @@ std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& para
   str << "    Max Clique Split Prob.:      " << params.max_clique_split_mutation_prob << std::endl;
   str << "    Min Test Mutation Prob.:     " << params.min_test_mutation_prob << std::endl;
   str << "    Max Test Mutation Prob.:     " << params.max_test_mutation_prob << std::endl;
+  return str;
+}
+
+std::ostream & operator<< (std::ostream& str, const LocalizedEvolutionaryParameters& params) {
+  str << "\n  Localized Evolutionary Parameters:" << std::endl;
+  str << "    Localized Evo Steps:         " << params.steps << std::endl;
+  str << "    Maximum LP Iterations:       " << params.max_lp_iterations << std::endl;
+  str << "    Number of Mutation Nodes:    " << params.num_mutations_nodes << std::endl;
+  str << "    Maximum Refinement Nodes:    " << params.max_refinement_nodes << std::endl;
+  str << "    Max. Distance to Mut. Node:  " << params.max_distance_to_mutation_node << std::endl;
+  str << "    Degree Sampling Threshold:   " << params.degree_sampling_threshold << std::endl;
   return str;
 }
 
@@ -80,6 +92,9 @@ std::ostream & operator<< (std::ostream& str, const RefinementParameters& params
   if ( params.use_evo ) {
     str << params.evo;
   }
+  if ( params.use_localized_evo ) {
+    str << params.localized_evo;
+  }
   if ( params.use_evo || params.use_lp_refiner ) {
     str << params.lp;
   }
@@ -99,12 +114,4 @@ std::ostream & operator<< (std::ostream& str, const Context& context) {
       << "-------------------------------------------------------------------------------\n";
   return str;
 }
-
-void Context::computeParameters(const int num_nodes) {
-  if ( refinement.use_boundary_fm_refiner ) {
-    refinement.fm.max_fruitless_moves = std::max(
-      refinement.fm.fraction_of_fruitless_moves * num_nodes, 10000.0);
-  }
-}
-
 } // namespace cluster_editing

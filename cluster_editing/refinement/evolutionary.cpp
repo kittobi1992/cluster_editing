@@ -39,8 +39,9 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph,
                                     const EdgeWeight) {
   utils::Timer::instance().start_timer("evolutionary", "Evolutionary");
   if ( _context.isTimeLimitReached() ) {
-    return 0;
+    return current_edits;
   }
+  _start = std::chrono::high_resolution_clock::now();
 
   // Create Initial Population
   utils::Timer::instance().start_timer("initial_population", "Create Initial Population");
@@ -48,6 +49,10 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph,
   utils::Timer::instance().stop_timer("initial_population");
 
   sortSolutions();
+  if ( _context.isTimeLimitReached() ) {
+    return _population[0].edits;
+  }
+
   _is_special_instance = isSpecialInstance(graph);
   if ( _context.general.verbose_output ) LOG << "Evolutionary Algorithm:";
   utils::ProgressBar evo_progress(
@@ -68,7 +73,8 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph,
       _mutator.activateMutations(enable_all_mutations);
     }
 
-    if ( _context.isTimeLimitReached() ) {
+    if ( _context.isTimeLimitReached() ||
+         ( isEvoTimeLimitReached() && _num_fruitless_intensivates >= 3 ) ) {
       break;
     }
   }
@@ -138,6 +144,9 @@ EdgeWeight Evolutionary::intensivate(Graph& graph, SolutionStats& stats) {
           << "( Delta: " << (stats.edits - initial_edits)
           << ")" << END;
     }
+    _num_fruitless_intensivates = 0;
+  } else {
+    ++_num_fruitless_intensivates;
   }
   return std::max(0, initial_edits - stats.edits);
 }
@@ -202,7 +211,7 @@ EdgeWeight Evolutionary::refineSolution(Graph& graph,
   const bool was_aborted = utils::CommonOperations::instance(graph)._lp_aborted_flag;
 
   if ( !was_aborted ) {
-    if ( _is_special_instance || is_initial_partition || utils::Randomize::instance().flipCoin() ) {
+    if ( _is_special_instance || is_initial_partition ) {
       // Node Swapper Refiner
       _context.refinement.evo.node_swapper_iterations = node_swapper_iterations;
       _node_swapper.initialize(graph);

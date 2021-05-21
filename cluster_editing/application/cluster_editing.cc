@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
   utils::Timer::instance().start_timer("import_graph", "Import Graph");
   graph = io::readGraphFile(context.general.graph_filename);
   utils::Timer::instance().stop_timer("import_graph");
-  context.computeParameters(graph.numNodes());
+  context.configureAlgorithm(graph);
 
   if ( context.general.verbose_output ) {
     io::printBanner();

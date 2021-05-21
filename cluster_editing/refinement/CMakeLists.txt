@@ -3,6 +3,7 @@ set(RefinementSources
       clique_splitter.cpp
       node_swapper.cpp
       pseudo_fm.cpp
+      localized_evo.cpp
       evolutionary.cpp
       lp_refiner.cpp
       fm_refiner.cpp

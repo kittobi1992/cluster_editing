@@ -28,6 +28,7 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);
 
 struct EvolutionaryParameters {
   bool enable_detailed_output = false;
+  double time_limit = 0;
   int solution_pool_size = 0;
   int evolutionary_steps = 0;
   int initial_lp_iterations = 0;
@@ -58,6 +59,17 @@ struct EvolutionaryParameters {
 
 std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& params);
 
+struct LocalizedEvolutionaryParameters {
+  int steps = 0;
+  int max_lp_iterations = 0;
+  int num_mutations_nodes = 0;
+  int max_refinement_nodes = 0;
+  int max_distance_to_mutation_node = 0;
+  int degree_sampling_threshold = 0;
+};
+
+std::ostream & operator<< (std::ostream& str, const LocalizedEvolutionaryParameters& params);
+
 struct LabelPropagationRefinerParameters {
   int maximum_lp_iterations = std::numeric_limits<int>::max();
   bool random_shuffle_each_round = false;
@@ -83,10 +95,12 @@ std::ostream & operator<< (std::ostream& str, const FMParameters& params);
 
 struct RefinementParameters {
   bool use_evo = false;
+  bool use_localized_evo = false;
   bool use_lp_refiner = false;
   bool use_boundary_fm_refiner = false;
   bool use_localized_fm_refiner = false;
   EvolutionaryParameters evo;
+  LocalizedEvolutionaryParameters localized_evo;
   LabelPropagationRefinerParameters lp;
   FMParameters fm;
 };
@@ -100,7 +114,22 @@ class Context {
 
   Context() { }
 
-  void computeParameters(const int num_nodes);
+  void configureAlgorithm(const Graph& graph) {
+    if ( refinement.use_boundary_fm_refiner ) {
+      refinement.fm.max_fruitless_moves = std::max(
+        refinement.fm.fraction_of_fruitless_moves * graph.numNodes(), 10000.0);
+    }
+
+    if ( refinement.use_localized_evo ) {
+      if ( graph.numEdges() / 2 > 1000000 ) {
+        refinement.evo.time_limit *= 2;
+      }
+
+      if ( graph.numNodes() < 10000 ) {
+        refinement.localized_evo.steps /= 100;
+      }
+    }
+  }
 
   bool isTimeLimitReached() const {
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();

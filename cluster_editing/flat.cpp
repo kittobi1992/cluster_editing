@@ -2,6 +2,7 @@
 
 #include "cluster_editing/macros.h"
 #include "cluster_editing/refinement/evolutionary.h"
+#include "cluster_editing/refinement/localized_evo.h"
 #include "cluster_editing/refinement/lp_refiner.h"
 #include "cluster_editing/refinement/fm_refiner.h"
 #include "cluster_editing/refinement/stopping_rule.h"
@@ -53,6 +54,13 @@ void solve(Graph& graph, const Context& context) {
     Evolutionary evo(graph, context);
     evo.initialize(graph);
     current_edits = evo.refine(graph, current_edits);
+  }
+
+  // Localized Evolutionary
+  if ( context.refinement.use_localized_evo ) {
+    LocalizedEvolutionary localized_evo(graph, context);
+    localized_evo.initialize(graph);
+    current_edits = localized_evo.refine(graph, current_edits);
   }
 
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();

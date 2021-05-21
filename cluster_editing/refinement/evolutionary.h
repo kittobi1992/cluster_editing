@@ -63,7 +63,9 @@ class Evolutionary final : public IRefiner {
     _clique_splitter(graph, _context),
     _node_swapper(graph, _context),
     _mutator(_context),
-    _evo_action_selector( { EvoAction::INTESIVATE, EvoAction::MUTATE } ) { }
+    _evo_action_selector( { EvoAction::INTESIVATE, EvoAction::MUTATE } ),
+    _start(),
+    _num_fruitless_intensivates(0) { }
 
   Evolutionary(const Evolutionary&) = delete;
   Evolutionary(Evolutionary&&) = delete;
@@ -138,6 +140,12 @@ class Evolutionary final : public IRefiner {
       });
   }
 
+  bool isEvoTimeLimitReached() const {
+    HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed_seconds(end - _start);
+    return elapsed_seconds.count() > _context.refinement.evo.time_limit;
+  }
+
   Context _context;
   const Context& _original_context;
   bool _is_special_instance;
@@ -150,5 +158,7 @@ class Evolutionary final : public IRefiner {
   NodeSwapper _node_swapper;
   Mutator _mutator;
   ActionSelector<EvoAction> _evo_action_selector;
+  HighResClockTimepoint _start;
+  size_t _num_fruitless_intensivates;
 };
 }  // namespace cluster_editing
