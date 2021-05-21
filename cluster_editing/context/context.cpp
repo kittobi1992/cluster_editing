@@ -56,9 +56,9 @@ std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& para
 std::ostream & operator<< (std::ostream& str, const LocalizedEvolutionaryParameters& params) {
   str << "\n  Localized Evolutionary Parameters:" << std::endl;
   str << "    Localized Evo Steps:         " << params.steps << std::endl;
+  str << "    Run until Time Limit:        " << std::boolalpha << params.run_until_time_limit << std::endl;
   str << "    Maximum LP Iterations:       " << params.max_lp_iterations << std::endl;
   str << "    Number of Mutation Nodes:    " << params.num_mutations_nodes << std::endl;
-  str << "    Maximum Refinement Nodes:    " << params.max_refinement_nodes << std::endl;
   str << "    Max. Distance to Mut. Node:  " << params.max_distance_to_mutation_node << std::endl;
   str << "    Degree Sampling Threshold:   " << params.degree_sampling_threshold << std::endl;
   return str;

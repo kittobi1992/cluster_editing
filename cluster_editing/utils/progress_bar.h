@@ -122,7 +122,12 @@ class ProgressBar {
       std::cout << " ] ";
 
       std::cout << "(" << progress << "% - "
-                << current_count << "/" << _expected_count << ") ";
+                << current_count << "/";
+      if ( _expected_count == std::numeric_limits<size_t>::max() ) {
+        std::cout << "INF" << ") ";
+      } else {
+        std::cout << _expected_count << ") ";
+      }
 
       size_t time = std::chrono::duration<double>(end - _start).count();
       display_time(time);

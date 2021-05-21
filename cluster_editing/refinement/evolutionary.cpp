@@ -74,7 +74,7 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph,
     }
 
     if ( _context.isTimeLimitReached() ||
-         ( isEvoTimeLimitReached() && _num_fruitless_intensivates >= 3 ) ) {
+         ( isEvoTimeLimitReached() && !_is_special_instance ) ) {
       break;
     }
   }
@@ -144,9 +144,6 @@ EdgeWeight Evolutionary::intensivate(Graph& graph, SolutionStats& stats) {
           << "( Delta: " << (stats.edits - initial_edits)
           << ")" << END;
     }
-    _num_fruitless_intensivates = 0;
-  } else {
-    ++_num_fruitless_intensivates;
   }
   return std::max(0, initial_edits - stats.edits);
 }
