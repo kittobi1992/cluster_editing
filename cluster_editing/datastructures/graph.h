@@ -7,6 +7,7 @@
 #include "cluster_editing/datastructures/graph_common.h"
 #include "cluster_editing/datastructures/spin_lock.h"
 #include "cluster_editing/utils/range.h"
+#include "cluster_editing/utils/randomize.h"
 
 namespace cluster_editing {
 namespace ds {
@@ -166,6 +167,18 @@ class Graph {
               [&](const NodeID& lhs, const NodeID& rhs) {
                 return clique(lhs) < clique(rhs);
               });
+  }
+
+  NodeID randomNeighbor(const NodeID u) const {
+    if ( degree(u) > 0 ) {
+      const int start_idx = node(u).firstEntry();
+      const int end_idx = node(u + 1).firstEntry();
+      const int random_tie_breaking =
+        utils::Randomize::instance().getRandomInt(start_idx, end_idx - 1);
+      return _edges[random_tie_breaking];
+    } else {
+      return INVALID_NODE;
+    }
   }
 
   // ####################### Node Information #######################
