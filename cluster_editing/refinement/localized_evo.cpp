@@ -119,17 +119,16 @@ void LocalizedEvolutionary::mutate(Graph& graph,
     _context.refinement.localized_evo.num_mutations_nodes, static_cast<int>(graph.numNodes() / 4));
   utils::Randomize& rnd = utils::Randomize::instance();
   for ( int i = 0; i < num_mutation_nodes; ++i ) {
-    NodeID u = rnd.getRandomInt(0, graph.numNodes() - 1);
+    const NodeID u = rnd.getRandomInt(0, graph.numNodes() - 1);
     if ( !_marked[u] ) {
       _marked.set(u, true);
       _mutation_nodes.push_back(u);
-      while ( rnd.getRandomFloat(0.0f, 1.0f) <=
-              _context.refinement.localized_evo.choose_adjacent_mutation_node_prob ) {
+      if ( rnd.getRandomFloat(0.0f, 1.0f) <=
+           _context.refinement.localized_evo.choose_adjacent_mutation_node_prob ) {
         const NodeID v = graph.randomNeighbor(u);
         if ( v != INVALID_NODE && !_marked[v] ) {
-          u = v;
-          _marked.set(u, true);
-          _mutation_nodes.push_back(u);
+          _marked.set(v, true);
+          _mutation_nodes.push_back(v);
           ++i;
         }
       }
