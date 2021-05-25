@@ -109,7 +109,7 @@ int main() {
   // Evolutionary Options
   context.refinement.use_evo = true;
   context.refinement.evo.enable_detailed_output = false;
-  context.refinement.evo.time_limit = 60; // 60 seconds
+  context.refinement.evo.time_limit = 90; // 90 seconds
   context.refinement.evo.solution_pool_size = 1;
   context.refinement.evo.evolutionary_steps = 1000;
   context.refinement.evo.initial_lp_iterations = 100;
@@ -142,6 +142,7 @@ int main() {
   context.refinement.localized_evo.steps = 1000000;
   context.refinement.localized_evo.max_lp_iterations = 3;
   context.refinement.localized_evo.num_mutations_nodes = 20;
+  context.refinement.localized_evo.choose_adjacent_mutation_node_prob = 0.75;
   context.refinement.localized_evo.max_distance_to_mutation_node = 1;
   context.refinement.localized_evo.degree_sampling_threshold = 128;
 

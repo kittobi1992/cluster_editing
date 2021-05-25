@@ -128,7 +128,7 @@ void LocalizedEvolutionary::mutate(Graph& graph,
            _context.refinement.localized_evo.choose_adjacent_mutation_node_prob ) {
         const NodeID v = graph.randomNeighbor(u);
         from = graph.clique(v);
-        if ( v != INVALID_NODE && !_marked[v] && _clique_sizes[from] > 1 ) {
+        if ( v != INVALID_NODE && !_marked[v] ) {
           u = v;
           _marked.set(u, true);
           _mutation_nodes.push_back(u);
