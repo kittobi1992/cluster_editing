@@ -120,13 +120,15 @@ void LocalizedEvolutionary::mutate(Graph& graph,
   utils::Randomize& rnd = utils::Randomize::instance();
   for ( int i = 0; i < num_mutation_nodes; ++i ) {
     NodeID u = rnd.getRandomInt(0, graph.numNodes() - 1);
-    if ( !_marked[u] ) {
+    CliqueID from = graph.clique(u);
+    if ( !_marked[u] && _clique_sizes[from] > 1 ) {
       _marked.set(u, true);
       _mutation_nodes.push_back(u);
       while ( rnd.getRandomFloat(0.0f, 1.0f) <=
            _context.refinement.localized_evo.choose_adjacent_mutation_node_prob ) {
         const NodeID v = graph.randomNeighbor(u);
-        if ( v != INVALID_NODE && !_marked[v] ) {
+        from = graph.clique(v);
+        if ( v != INVALID_NODE && !_marked[v] && _clique_sizes[from] > 1 ) {
           u = v;
           _marked.set(u, true);
           _mutation_nodes.push_back(u);
@@ -162,6 +164,26 @@ void LocalizedEvolutionary::mutate(Graph& graph,
         ( rnd.flipCoin() || targets.empty() ) ) {
       rating = isolateVertex(graph, u, from_rating);
     } else if ( !targets.empty() ) {
+      if ( rnd.flipCoin() ) {
+        targets.clear();
+        EdgeWeight best_rating = std::numeric_limits<EdgeWeight>::max();
+        for ( const auto& entry : _rating ) {
+          const CliqueID to = entry.key;
+          if ( to != from ) {
+            const EdgeWeight to_rating =
+              insertions(_clique_sizes[to], entry.value) +
+              deletions(u_degree, entry.value);
+
+            if ( to_rating < best_rating ) {
+              best_rating = to_rating;
+              targets.clear();
+              targets.push_back(to);
+            } else if ( to_rating == best_rating ) {
+              targets.push_back(to);
+            }
+          }
+        }
+      }
       rating = moveToRandomTarget(graph, u, targets, from_rating);
     }
 

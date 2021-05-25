@@ -132,7 +132,7 @@ class ProgressBar {
       size_t time = std::chrono::duration<double>(end - _start).count();
       display_time(time);
 
-      std::cout << " - Current Objective: " << _objective;
+      std::cout << " - Current Objective: " << _objective << "   ";
 
       if ( current_count == _expected_count ) {
         _finalized = true;
