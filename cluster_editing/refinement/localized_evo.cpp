@@ -40,7 +40,6 @@ EdgeWeight LocalizedEvolutionary::performTimeLimitedEvoSteps(Graph& graph, doubl
   // than 150000
   const NodeID rating_map_degree_threshold = graph.numNodes() > 150000 ?
                                              _context.refinement.lp.rating_map_degree_threshold : 0;
-  LOG << V(_step);
   // enable early exit on large graphs, if FM refiner is used afterwards
   for ( ; _step < steps; ++_step ) {
     EdgeWeight delta = 0;

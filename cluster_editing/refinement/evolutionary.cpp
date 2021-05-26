@@ -44,7 +44,6 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph,
 EdgeWeight Evolutionary::performTimeLimitedEvoSteps(Graph& graph, double time_limit, EdgeWeight current_edits) {
   utils::Timer::instance().start_timer("evo_steps", "Evolutionary Steps");
   if (current_edits < _population[0].edits) {
-    LOG << "store solution" << V(current_edits) << V(_population[0].edits);
     storeSolution(graph, *_population[0].solution);
     _population[0].edits = current_edits;
   }
@@ -55,7 +54,6 @@ EdgeWeight Evolutionary::performTimeLimitedEvoSteps(Graph& graph, double time_li
   if (evo_progress.isEnabled()) {
     evo_progress += _step;
   }
-  LOG << V(_step);
   auto start_time = std::chrono::high_resolution_clock::now();
   for ( ; _step < _context.refinement.evo.evolutionary_steps; ++_step ) {
     evolutionaryStep(graph);
