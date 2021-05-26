@@ -25,9 +25,13 @@ There are two applications: `heuristic` and `exact`.
 Both read a cluster editing instance from stdin and print the edits to stdout.
 For the input and output format, please refer to the [PACE challenge web page](https://pacechallenge.org/2021/).
 
-A usage example from the `build` folder would be:
+A usage example from the `build` folder of the exact solver would be:
 
     cat ../instances/exact/exact015.gr | ./exact > edits.txt
+
+and of the heuristic solver (also from the `build` folder):
+
+    cat ../instances/heur/heur011.gr | ./heuristic > edits.txt
 
 Run Tests
 -----------
@@ -47,6 +51,7 @@ Submit
 Prepare CMake submission for optil.io with
 
     tar -czvf exact.tgz cluster_editing/ cmake/ CMakeLists.txt config/ googletest/ tests/
+    tar -czvf heuristic.tgz cluster_editing/ cmake/ CMakeLists.txt config/ googletest/ tests/
 
 
 [cmake]: http://www.cmake.org/ "CMake tool"
