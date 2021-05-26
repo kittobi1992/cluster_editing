@@ -1,71 +1,0 @@
-solving instance with n=400
-upper bound 20429
-reduced to n=400 -INFs=4807 spent=336 with force star
-reduced to n=400 -INFs=8264 spent=649 with force star
-reduced to n=400 -INFs=9601 spent=835 with force star
-reduced to n=400 -INFs=11930 spent=1328 with force star
-reduced to n=400 -INFs=12731 spent=1509 with force star
-reduced to n=400 -INFs=13873 spent=1752 with force star
-reduced to n=400 -INFs=14643 spent=1976 with force star
-reduced to n=400 -INFs=16028 spent=2350 with force star
-reduced to n=400 -INFs=18069 spent=2910 with force star
-reduced to n=399 -INFs=20239 spent=3804 with force star
-reduced to n=322 -INFs=12910 spent=7943 with force star
-reduced to n=153 -INFs=964 spent=15628 with force star
-reduced to n=113 -INFs=335 spent=17372 with force star
-reduced to n=112 -INFs=390 spent=17440 with force star
-reduced to n=99 -INFs=268 spent=18033 with force star
-reduced to n=99 -INFs=277 spent=18036 with force star
-reduced to n=99 -INFs=315 spent=18038 with force star
-reduced to n=97 -INFs=301 spent=18160 with force star
-reduced to n=97 -INFs=311 spent=18161 with force star
-reduced to n=94 -INFs=276 spent=18325 with force star
-reduced to n=91 -INFs=257 spent=18428 with force star
-reduced to n=90 -INFs=246 spent=18467 with force star
-reduced to n=87 -INFs=212 spent=18592 with force star
-reduced to n=85 -INFs=190 spent=18649 with force star
-reduced to n=83 -INFs=171 spent=18706 with force star
-reduced to n=81 -INFs=199 spent=18753 with force star
-reduced to n=81 -INFs=208 spent=18758 with force star
-reduced to n=81 -INFs=213 spent=18760 with force star
-reduced to n=80 -INFs=214 spent=18789 with force star
-reduced to n=79 -INFs=182 spent=18814 with twin complex
-reduced to n=78 -INFs=163 spent=18841 with twin complex
-reduced to n=76 -INFs=138 spent=18986 with force star
-reduced to n=76 -INFs=160 spent=18992 with force star
-reduced to n=74 -INFs=157 spent=19069 with force star
-reduced to n=72 -INFs=214 spent=19142 with force star
-reduced to n=72 -INFs=219 spent=19147 with force star
-reduced to n=59 -INFs=123 spent=19575 with force star
-reduced to n=53 -INFs=105 spent=19807 with force star
-reduced to n=53 -INFs=127 spent=19809 with force star
-reduced to n=51 -INFs=144 spent=19899 with force star
-reduced to n=51 -INFs=146 spent=19899 with force star
-reduced to n=50 -INFs=166 spent=19919 with force star
-reduced to n=50 -INFs=167 spent=19919 with heavy non-edge
-INITIAL REDUCTION FINISHED
-time:  910.45 s
-size:  50
-lower: 20412
-upper: 20429
-gap:   17
-STARTING BRANCH AND BOUND
-split into 1 CCs
-start solving CC of size 50 first bound 493
-493	 (total: 20412)494	 (total: 20413)495	 (total: 20414)496	 (total: 20415)497	 (total: 20416)498	 (total: 20417)499	 (total: 20418)500	 (total: 20419)501	 (total: 20420)502	 (total: 20421)503	 (total: 20422)504	 (total: 20423)505	 (total: 20424)506	 (total: 20425)507	 (total: 20426)508	 (total: 20427)509	 (total: 20428)510	 (total: 20429)
-branching nodes: 4
-reductions:      21
-	forced (star): 44
-	forced (p3):   13
-	twin simple:   0
-	twin complex:  11
-	icx:           0
-	h edge (b):    0
-	h edge (s):    2
-	h non edge:    0
-disconnects:     0
-prunes:          18
-
-1
-k=20429
-919.021

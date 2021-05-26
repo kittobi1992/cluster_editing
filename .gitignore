@@ -40,3 +40,7 @@ compile_commands.json
 
 cmake-build-*/
 .idea/
+
+exact.tgz
+heuristic.tgz
+

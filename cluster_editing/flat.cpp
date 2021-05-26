@@ -15,6 +15,24 @@
 namespace cluster_editing {
 namespace flat {
 
+
+bool isSpecialInstance(const Graph& graph) {
+  if ( graph.maxDegree() < 20 && graph.numEdges() / 2 > 1000000 ) {
+    utils::CommonOperations::instance(graph).computeClusterSizes(graph);
+    std::vector<NodeID> cluster_sizes =
+            utils::CommonOperations::instance(graph)._cluster_sizes;
+    std::sort(cluster_sizes.begin(), cluster_sizes.end(), std::greater<NodeID>());
+    while ( cluster_sizes.back() == 0 ) {
+      cluster_sizes.pop_back();
+    }
+    size_t percentile = 0.99 * cluster_sizes.size();
+    const NodeID p_99 = cluster_sizes[cluster_sizes.size() - percentile];
+    const NodeID max_cluster_size = cluster_sizes[0];
+    return max_cluster_size <= 5 && p_99 <= 3;
+  }
+  return false;
+}
+
 void solve(Graph& graph, const Context& context) {
 
   io::printFlatBanner(context);
@@ -50,17 +68,79 @@ void solve(Graph& graph, const Context& context) {
   }
 
   // Evolutionary
+  Evolutionary evo(graph, context);
   if ( context.refinement.use_evo ) {
-    Evolutionary evo(graph, context);
     evo.initialize(graph);
-    current_edits = evo.refine(graph, current_edits);
+    current_edits = evo.createInitialPopulation(graph, current_edits);
+  } else {
+    evo.setDone();
+  }
+
+  if ( current_edits != EdgeWeight(graph.numEdges()/2) ) {
+    // have computed an initial solution --> do special instance check
+    utils::CommonOperations::instance(graph)._is_special_instance = isSpecialInstance(graph);
   }
 
   // Localized Evolutionary
-  if ( context.refinement.use_localized_evo ) {
-    LocalizedEvolutionary localized_evo(graph, context);
-    localized_evo.initialize(graph);
-    current_edits = localized_evo.refine(graph, current_edits);
+  LocalizedEvolutionary localized_evo(graph, context);
+  if (!context.refinement.use_localized_evo) {
+    localized_evo.setDone();
+  }
+
+  double burst_time_limit = 20;   // 20 seconds
+  EdgeWeight evo_edits = -1, localized_evo_edits = -1;
+  double evo_improvement_per_time = 0.0, localized_evo_improvement_per_time = 0.0;
+  size_t evo_not_run = 0, localized_evo_not_run = 0;
+
+  while (!context.isTimeLimitReached() && (!evo.done() || !localized_evo.done())) {
+    if ( context.refinement.use_evo
+        && (evo_edits == -1 || evo_improvement_per_time > localized_evo_improvement_per_time
+                            || !context.refinement.use_localized_evo)) {
+      auto start_time = std::chrono::high_resolution_clock::now();
+      evo_edits = evo.performTimeLimitedEvoSteps(graph, burst_time_limit, current_edits);
+      double elapsed = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start_time).count();
+      evo_improvement_per_time = double(current_edits - evo_edits) / elapsed;
+      current_edits = evo_edits;
+      if ( context.general.verbose_output) {
+        LOG << "Global Evo" << V(elapsed) << V(evo_improvement_per_time) << V(localized_evo_improvement_per_time) << V(current_edits);
+      }
+      evo_not_run = 0;
+    } else {
+      evo_not_run++;
+    }
+
+    if ( context.refinement.use_localized_evo
+         && (localized_evo_edits == -1 || evo_improvement_per_time < localized_evo_improvement_per_time
+                                        || !context.refinement.use_evo)) {
+      auto start_time = std::chrono::high_resolution_clock::now();
+      localized_evo.initialize(graph);
+      localized_evo_edits = localized_evo.performTimeLimitedEvoSteps(graph, burst_time_limit, current_edits);
+      double elapsed = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start_time).count();
+      localized_evo_improvement_per_time = double(current_edits - localized_evo_edits) / elapsed;
+      current_edits = localized_evo_edits;
+      if ( context.general.verbose_output) {
+        LOG << "Localized Evo" << V(elapsed) << V(localized_evo_improvement_per_time) << V(evo_improvement_per_time) << V(current_edits);
+      }
+      localized_evo_not_run = 0;
+    } else {
+      localized_evo_not_run++;
+    }
+
+    if (localized_evo_not_run == 7 && localized_evo_improvement_per_time < 0.05) {
+      localized_evo_edits = -1;   // run again
+    }
+    if (evo_not_run == 7 && evo_improvement_per_time < 0.05) {
+      evo_edits = -1;             // run again
+    }
+
+    if (evo_improvement_per_time == localized_evo_improvement_per_time) {
+      // in case both had the same improvement (most likely zero -.-) randomly decide which one to run again. do global evo more often.
+      if (utils::Randomize::instance().getRandomFloat(0.0, 1.0) < 0.75) {
+        evo_edits = -1;
+      } else {
+        localized_evo_edits = -1;
+      }
+    }
   }
 
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();

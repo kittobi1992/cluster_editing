@@ -141,10 +141,11 @@ int main() {
   context.refinement.use_localized_evo = true;
   context.refinement.localized_evo.steps = 1000000;
   context.refinement.localized_evo.max_lp_iterations = 5;
-  context.refinement.localized_evo.num_mutations_nodes = 1;
+  context.refinement.localized_evo.min_mutations_nodes = 1;
+  context.refinement.localized_evo.max_mutations_nodes = 20;
   context.refinement.localized_evo.choose_adjacent_mutation_node_prob = 0.75;
   context.refinement.localized_evo.max_distance_to_mutation_node = 1;
-  context.refinement.localized_evo.degree_sampling_threshold = 128;
+  context.refinement.localized_evo.degree_sampling_threshold = 1024;
 
   // LP Refiner Options
   context.refinement.use_lp_refiner = false;

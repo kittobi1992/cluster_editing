@@ -11,6 +11,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include_directories(${PROJECT_SOURCE_DIR})
 
+# generate all binaries in root of build dir
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+
 option(DISABLE_ASSERTIONS
   "Disable KaHyPar's internal assertions." OFF)
 
@@ -92,7 +97,7 @@ message(STATUS "CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 
 # add_subdirectory(tests)
 
-add_executable(ClusterEditing ${PROJECT_SOURCE_DIR}/cluster_editing/application/cluster_editing.cc)
+add_executable(ClusterEditing ${PROJECT_SOURCE_DIR}/cluster_editing/application/heuristic.cc)
 target_link_libraries(ClusterEditing ${Boost_LIBRARIES})
 
 set_property(TARGET ClusterEditing PROPERTY CXX_STANDARD_REQUIRED ON)

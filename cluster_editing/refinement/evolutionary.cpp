@@ -13,25 +13,7 @@ void Evolutionary::initializeImpl(Graph& graph) {
     _population[i].edits = graph.numEdges();
     _population[i].solution = &_solutions[i];
   }
-}
-
-namespace {
-  bool isSpecialInstance(const Graph& graph) {
-    if ( graph.maxDegree() < 20 && graph.numEdges() / 2 > 1000000 ) {
-      utils::CommonOperations::instance(graph).computeClusterSizes(graph);
-      std::vector<NodeID> cluster_sizes =
-        utils::CommonOperations::instance(graph)._cluster_sizes;
-      std::sort(cluster_sizes.begin(), cluster_sizes.end(), std::greater<NodeID>());
-      while ( cluster_sizes.back() == 0 ) {
-        cluster_sizes.pop_back();
-      }
-      size_t percentile = 0.99 * cluster_sizes.size();
-      const NodeID p_99 = cluster_sizes[cluster_sizes.size() - percentile];
-      const NodeID max_cluster_size = cluster_sizes[0];
-      return max_cluster_size <= 5 && p_99 <= 3;
-    }
-    return false;
-  }
+  _step = 0;
 }
 
 EdgeWeight Evolutionary::refineImpl(Graph& graph,
@@ -53,14 +35,27 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph,
     return _population[0].edits;
   }
 
-  _is_special_instance = isSpecialInstance(graph);
-  utils::CommonOperations::instance(graph)._is_special_instance = _is_special_instance;
   if ( _context.general.verbose_output ) LOG << "Evolutionary Algorithm:";
-  utils::ProgressBar evo_progress(
-    _context.refinement.evo.evolutionary_steps, _population[0].edits,
-    _context.general.verbose_output && !debug && !_context.refinement.evo.enable_detailed_output);
+  performTimeLimitedEvoSteps(graph, _context.refinement.evo.time_limit, current_edits);
+  utils::Timer::instance().stop_timer("evolutionary");
+  return _population[0].edits;
+}
+
+EdgeWeight Evolutionary::performTimeLimitedEvoSteps(Graph& graph, double time_limit, EdgeWeight current_edits) {
   utils::Timer::instance().start_timer("evo_steps", "Evolutionary Steps");
-  for ( int i = 0; i < _context.refinement.evo.evolutionary_steps; ++i ) {
+  if (current_edits < _population[0].edits) {
+    storeSolution(graph, *_population[0].solution);
+    _population[0].edits = current_edits;
+  }
+  _is_special_instance = utils::CommonOperations::instance(graph)._is_special_instance;
+  utils::ProgressBar evo_progress(
+          _context.refinement.evo.evolutionary_steps, _population[0].edits,
+          _context.general.verbose_output && !debug && !_context.refinement.evo.enable_detailed_output);
+  if (evo_progress.isEnabled()) {
+    evo_progress += _step;
+  }
+  auto start_time = std::chrono::high_resolution_clock::now();
+  for ( ; _step < _context.refinement.evo.evolutionary_steps; ++_step ) {
     evolutionaryStep(graph);
     if ( evo_progress.isEnabled() ) {
       sortSolutions();
@@ -68,29 +63,29 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph,
       evo_progress += 1;
     }
 
-    if ( i == _context.refinement.evo.enable_all_mutations_after_steps ) {
+    if (_step == _context.refinement.evo.enable_all_mutations_after_steps ) {
       const std::string enable_all_mutations(
-        static_cast<int>(Mutation::NUM_MUTATIONS), '1');
+              static_cast<int>(Mutation::NUM_MUTATIONS), '1');
       _mutator.activateMutations(enable_all_mutations);
     }
 
-    if ( _context.isTimeLimitReached() || isEvoTimeLimitReached() ) {
+    std::chrono::duration<double> elapsed_seconds(std::chrono::high_resolution_clock::now() - start_time);
+    if ( _context.isTimeLimitReached() || elapsed_seconds.count() > time_limit ) {
       break;
     }
   }
-  utils::Timer::instance().stop_timer("evo_steps");
+
   evo_progress += (_context.refinement.evo.evolutionary_steps - evo_progress.count());
 
   // Apply best solution to graph
   sortSolutions();
   applySolution(graph, *_population[0].solution);
   ASSERT(metrics::edits(graph) == _population[0].edits);
-
-  utils::Timer::instance().stop_timer("evolutionary");
+  utils::Timer::instance().stop_timer("evo_steps");
   return _population[0].edits;
 }
 
-void Evolutionary::createInitialPopulation(Graph& graph, const EdgeWeight current_edits) {
+EdgeWeight Evolutionary::createInitialPopulation(Graph& graph, const EdgeWeight current_edits) {
   for ( int i = 0; i < _context.refinement.evo.solution_pool_size; ++i ) {
     _population[i].edits = refineSolution(graph, current_edits,
       _context.refinement.evo.initial_lp_iterations,
@@ -109,6 +104,7 @@ void Evolutionary::createInitialPopulation(Graph& graph, const EdgeWeight curren
     }
     std::cout << std::endl;
   }
+  return _population[0].edits;
 }
 
 void Evolutionary::evolutionaryStep(Graph& graph) {
