@@ -115,9 +115,10 @@ void solve(Graph& graph, const Context& context) {
   size_t evo_not_run = 0;
   size_t localized_evo_not_run = 0;
   while (!context.isTimeLimitReached() && (!evo.done() || !localized_evo.done())) {
-    if ( context.refinement.use_evo
-        && (evo_edits == -1 || evo_improvement_per_time > localized_evo_improvement_per_time
-                            || !context.refinement.use_localized_evo)) {
+    if ( context.refinement.use_evo &&
+         ( evo_edits == -1 ||
+           evo_improvement_per_time > localized_evo_improvement_per_time ||
+           !context.refinement.use_localized_evo)) {
       io::printGlobalEvoBanner(context);
       auto start_time = std::chrono::high_resolution_clock::now();
       evo_edits = evo.performTimeLimitedEvoSteps(graph, burst_time_limit, current_edits);
@@ -133,9 +134,10 @@ void solve(Graph& graph, const Context& context) {
       evo_not_run++;
     }
 
-    if ( context.refinement.use_localized_evo
-         && (localized_evo_edits == -1 || evo_improvement_per_time < localized_evo_improvement_per_time
-                                        || !context.refinement.use_evo)) {
+    if ( context.refinement.use_localized_evo &&
+        ( localized_evo_edits == -1 ||
+          evo_improvement_per_time < localized_evo_improvement_per_time ||
+          !context.refinement.use_evo)) {
       io::printLocalizedEvoBanner(context);
       auto start_time = std::chrono::high_resolution_clock::now();
       localized_evo.initialize(graph);
