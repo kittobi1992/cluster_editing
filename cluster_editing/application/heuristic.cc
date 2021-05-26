@@ -59,9 +59,14 @@ int main(int argc, char* argv[]) {
 
   processCommandLineInput(context, argc, argv);
   utils::Randomize::instance().setSeed(context.general.seed);
+  context.configureLogging();
 
   utils::Timer::instance().start_timer("import_graph", "Import Graph");
-  graph = io::readGraphFile();
+  if ( context.general.graph_filename != "" ) {
+    graph = io::readGraphFile(context.general.graph_filename);
+  } else {
+    graph = io::readGraphFile();
+  }
   utils::Timer::instance().stop_timer("import_graph");
   context.configureAlgorithm(graph);
 

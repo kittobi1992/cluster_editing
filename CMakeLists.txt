@@ -100,3 +100,5 @@ add_subdirectory(tests)
 
 # This adds the source files. It's important that this happens after the compile targets have been added
 add_subdirectory(cluster_editing)
+
+configure_file(${CMAKE_SOURCE_DIR}/config/strong.ini ${PROJECT_BINARY_DIR}/strong.ini COPYONLY)

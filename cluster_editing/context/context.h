@@ -12,7 +12,8 @@ struct GeneralParameters {
   std::string graph_filename {};
   std::string config_file {};
   std::string output_file {};
-  bool verbose_output = false;
+  bool enable_logging = false;
+  bool verbose_output = true;
   bool print_result_line = false;
   bool print_csv = false;
   bool write_to_file = false;
@@ -115,6 +116,17 @@ class Context {
   RefinementParameters refinement { };
 
   Context() { }
+
+  void configureLogging() {
+    if ( !general.enable_logging ) {
+      general.verbose_output = false;
+      general.print_result_line = false;
+      general.read_from_file = false;
+      general.print_csv = false;
+      general.write_to_file = false;
+      refinement.evo.enable_detailed_output = false;
+    }
+  }
 
   void configureAlgorithm(const Graph& graph) {
     if ( refinement.use_boundary_fm_refiner ) {

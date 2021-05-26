@@ -39,15 +39,17 @@ namespace cluster_editing {
              po::value<std::string>(&context.general.config_file)->value_name("<string>"),
              "Context Config File (see config directory):\n"
              " - <path-to-custom-ini-file>")
-            ("verbose,v", po::value<bool>(&context.general.verbose_output)->value_name("<bool>")->default_value(true),
+            ("enable-logging", po::value<bool>(&context.general.enable_logging)->value_name("<bool>"),
+             "If true, logging is enabled")
+            ("verbose,v", po::value<bool>(&context.general.verbose_output)->value_name("<bool>"),
              "Verbose main partitioning output")
-            ("print-result-line", po::value<bool>(&context.general.print_result_line)->value_name("<bool>")->default_value(true),
+            ("print-result-line", po::value<bool>(&context.general.print_result_line)->value_name("<bool>"),
              "Prints RESULT-line containing stats, timings and metrics")
-            ("write-to-file", po::value<bool>(&context.general.write_to_file)->value_name("<bool>")->default_value(true),
+            ("write-to-file", po::value<bool>(&context.general.write_to_file)->value_name("<bool>"),
              "If true, then solution is written to a file")
-            ("read-from-file", po::value<bool>(&context.general.read_from_file)->value_name("<bool>")->default_value(true),
+            ("read-from-file", po::value<bool>(&context.general.read_from_file)->value_name("<bool>"),
              "If true, then solution is read from a file")
-            ("csv", po::value<bool>(&context.general.print_csv)->value_name("<bool>")->default_value(false),
+            ("csv", po::value<bool>(&context.general.print_csv)->value_name("<bool>"),
              "Prints CSV output")
             ("seed", po::value<int>(&context.general.seed)->value_name("<int>"),
              "Random Seed");
@@ -214,12 +216,16 @@ namespace cluster_editing {
 
     // placing vm.count("help") here prevents required attributes raising an
     // error if only help was supplied
-    if (cmd_vm.count("help") != 0 || argc == 1) {
+    if (cmd_vm.count("help") != 0) {
       std::cout << cmd_line_options << std::endl;
       exit(0);
     }
 
     po::notify(cmd_vm);
+
+    if ( context.general.config_file == "" ) {
+      context.general.config_file = "strong.ini";
+    }
 
     std::ifstream file(context.general.config_file.c_str());
     if (!file) {

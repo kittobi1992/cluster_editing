@@ -174,6 +174,9 @@ void solve(Graph& graph, const Context& context) {
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds(end - start);
   if ( context.general.verbose_output ) {
+    LOG << "";
+    io::printStripe();
+    LOG << "";
     io::printObjectives(graph, elapsed_seconds);
     io::printCliqueInfo(graph, context);
   }
