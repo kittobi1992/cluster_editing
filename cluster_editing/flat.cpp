@@ -110,7 +110,7 @@ void solve(Graph& graph, const Context& context) {
     }
 
     if ( context.refinement.use_localized_evo
-         && (localized_evo_edits == -1 || evo_improvement_per_time <= localized_evo_improvement_per_time
+         && (localized_evo_edits == -1 || evo_improvement_per_time < localized_evo_improvement_per_time
                                         || !context.refinement.use_evo)) {
       auto start_time = std::chrono::high_resolution_clock::now();
       localized_evo.initialize(graph);
@@ -131,6 +131,15 @@ void solve(Graph& graph, const Context& context) {
     }
     if (evo_not_run == 7 && evo_improvement_per_time < 0.05) {
       evo_edits = -1;             // run again
+    }
+
+    if (evo_improvement_per_time == localized_evo_improvement_per_time) {
+      // in case both had the same improvement (most likely zero -.-) randomly decide which one to run again. do global evo more often.
+      if (utils::Randomize::instance().getRandomFloat(0.0, 1.0) < 0.75) {
+        evo_edits = -1;
+      } else {
+        localized_evo_edits = -1;
+      }
     }
   }
 
