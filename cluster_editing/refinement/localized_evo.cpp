@@ -36,6 +36,7 @@ EdgeWeight LocalizedEvolutionary::performTimeLimitedEvoSteps(Graph& graph, doubl
                  std::numeric_limits<size_t>::max() : _context.refinement.localized_evo.steps;
   utils::ProgressBar lp_progress(
           steps, start_metric, _context.general.verbose_output && !debug);
+  lp_progress += _step;
   // Sorting-based rating is beneficial if the number of nodes is greater
   // than 150000
   const NodeID rating_map_degree_threshold = graph.numNodes() > 150000 ?

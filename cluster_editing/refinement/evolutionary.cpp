@@ -50,6 +50,7 @@ EdgeWeight Evolutionary::performTimeLimitedEvoSteps(Graph& graph, double time_li
   utils::ProgressBar evo_progress(
           _context.refinement.evo.evolutionary_steps, _population[0].edits,
           _context.general.verbose_output && !debug && !_context.refinement.evo.enable_detailed_output);
+  evo_progress += _step;
   auto start_time = std::chrono::high_resolution_clock::now();
   for ( ; _step < _context.refinement.evo.evolutionary_steps; ++_step ) {
     evolutionaryStep(graph);
