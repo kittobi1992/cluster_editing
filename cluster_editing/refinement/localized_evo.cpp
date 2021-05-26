@@ -131,12 +131,14 @@ void LocalizedEvolutionary::mutate(Graph& graph,
   // Select vertices that we mutate
   _marked.reset();
   _mutation_nodes.clear();
-  const int num_mutation_nodes = std::min(
-    _context.refinement.localized_evo.num_mutations_nodes, static_cast<int>(graph.numNodes() / 4));
   utils::Randomize& rnd = utils::Randomize::instance();
+  const int num_mutation_nodes = std::min(
+    rnd.getRandomInt(
+      _context.refinement.localized_evo.min_mutations_nodes, _max_mutation_nodes),
+    static_cast<int>(graph.numNodes() / 4));
   for ( int i = 0; i < num_mutation_nodes; ++i ) {
     NodeID u = rnd.getRandomInt(0, graph.numNodes() - 1);
-    if ( !_marked[u] ) {
+    if ( !_marked[u] && _clique_sizes[graph.clique(u)] > 1 ) {
       _marked.set(u, true);
       _mutation_nodes.push_back(u);
       while ( rnd.getRandomFloat(0.0f, 1.0f) <=
