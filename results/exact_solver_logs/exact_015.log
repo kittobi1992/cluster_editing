@@ -1,30 +1,0 @@
-solving instance with n=40
-upper bound 164
-reduced to n=14 -INFs=27 spent=132 with force star
-reduced to n=14 -INFs=36 spent=134 with force star
-INITIAL REDUCTION FINISHED
-time:  0.778 s
-size:  14
-lower: 161
-upper: 164
-gap:   3
-STARTING BRANCH AND BOUND
-split into 1 CCs
-start solving CC of size 14 first bound 27
-27	 (total: 161)28	 (total: 162)29	 (total: 163)30	 (total: 164)
-branching nodes: 1
-reductions:      5
-	forced (star): 6
-	forced (p3):   3
-	twin simple:   0
-	twin complex:  2
-	icx:           0
-	h edge (b):    0
-	h edge (s):    0
-	h non edge:    0
-disconnects:     0
-prunes:          4
-
-1
-k=164
-0.802342

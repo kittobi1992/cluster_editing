@@ -1,33 +1,0 @@
-solving instance with n=200
-upper bound 5320
-reduced to n=106 -INFs=78 spent=2539 with force star
-reduced to n=100 -INFs=89 spent=2786 with force star
-reduced to n=93 -INFs=75 spent=2886 with force star
-reduced to n=91 -INFs=40 spent=2932 with twin complex
-INITIAL REDUCTION FINISHED
-time:  32.677 s
-size:  91
-lower: 5250
-upper: 5320
-gap:   70
-STARTING BRANCH AND BOUND
-split into 1 CCs
-start solving CC of size 91 first bound 2318
-2318	 (total: 5250)2319	 (total: 5251)2320	 (total: 5252)2321	 (total: 5253)2322	 (total: 5254)2323	 (total: 5255)2324	 (total: 5256)2325	 (total: 5257)2326	 (total: 5258)2327	 (total: 5259)2328	 (total: 5260)2329	 (total: 5261)2330	 (total: 5262)2331	 (total: 5263)2332	 (total: 5264)2333	 (total: 5265)2334	 (total: 5266)2335	 (total: 5267)2336	 (total: 5268)2337	 (total: 5269)2338	 (total: 5270)2339	 (total: 5271)2340	 (total: 5272)2341	 (total: 5273)2342	 (total: 5274)2343	 (total: 5275)2344	 (total: 5276)2345	 (total: 5277)2346	 (total: 5278)2347	 (total: 5279)2348	 (total: 5280)2349	 (total: 5281)2350	 (total: 5282)2351	 (total: 5283)2352	 (total: 5284)2353	 (total: 5285)2354	 (total: 5286)2355	 (total: 5287)2356	 (total: 5288)2357	 (total: 5289)2358	 (total: 5290)2359	 (total: 5291)2360	 (total: 5292)2361	 (total: 5293)2362	 (total: 5294)2363	 (total: 5295)2364	 (total: 5296)2365	 (total: 5297)2366	 (total: 5298)2367	 (total: 5299)2368	 (total: 5300)
-time limit exceeded
-branching nodes: 469
-reductions:      688
-	forced (star): 728
-	forced (p3):   565
-	twin simple:   0
-	twin complex:  610
-	icx:           3
-	h edge (b):    0
-	h edge (s):    252
-	h non edge:    136
-disconnects:     0
-prunes:          512
-
-0
-k=1000000000
-1800.63

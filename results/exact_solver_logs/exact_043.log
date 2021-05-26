@@ -1,29 +1,0 @@
-solving instance with n=100
-upper bound 984
-INITIAL REDUCTION FINISHED
-time:  5.763 s
-size:  100
-lower: 957
-upper: 984
-gap:   27
-STARTING BRANCH AND BOUND
-split into 1 CCs
-start solving CC of size 100 first bound 957
-957	 (total: 957)958	 (total: 958)959	 (total: 959)960	 (total: 960)961	 (total: 961)962	 (total: 962)963	 (total: 963)964	 (total: 964)965	 (total: 965)966	 (total: 966)967	 (total: 967)968	 (total: 968)969	 (total: 969)970	 (total: 970)971	 (total: 971)972	 (total: 972)973	 (total: 973)974	 (total: 974)975	 (total: 975)976	 (total: 976)977	 (total: 977)978	 (total: 978)979	 (total: 979)
-time limit exceeded
-branching nodes: 792
-reductions:      580
-	forced (star): 1133
-	forced (p3):   37
-	twin simple:   0
-	twin complex:  84
-	icx:           0
-	h edge (b):    2
-	h edge (s):    17
-	h non edge:    3
-disconnects:     0
-prunes:          813
-
-0
-k=1000000000
-1800.84

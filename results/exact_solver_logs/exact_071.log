@@ -1,57 +1,0 @@
-solving instance with n=140
-upper bound 2131
-reduced to n=140 -INFs=665 spent=25 with force star
-reduced to n=140 -INFs=782 spent=30 with force star
-reduced to n=140 -INFs=1040 spent=49 with force star
-reduced to n=140 -INFs=1241 spent=80 with force star
-reduced to n=140 -INFs=1314 spent=86 with force star
-reduced to n=140 -INFs=1411 spent=99 with force star
-reduced to n=140 -INFs=1427 spent=102 with force star
-reduced to n=140 -INFs=1450 spent=105 with force star
-reduced to n=139 -INFs=1429 spent=113 with forced single merge
-reduced to n=139 -INFs=1491 spent=124 with force star
-reduced to n=139 -INFs=1576 spent=133 with force star
-reduced to n=138 -INFs=1681 spent=176 with force star
-reduced to n=138 -INFs=1797 spent=190 with force star
-reduced to n=138 -INFs=1807 spent=193 with force star
-reduced to n=138 -INFs=1817 spent=195 with force star
-reduced to n=137 -INFs=1825 spent=228 with force star
-reduced to n=129 -INFs=1631 spent=420 with force star
-reduced to n=92 -INFs=636 spent=1195 with force star
-reduced to n=77 -INFs=310 spent=1535 with force star
-reduced to n=69 -INFs=187 spent=1687 with force star
-reduced to n=67 -INFs=354 spent=1731 with force star
-reduced to n=61 -INFs=379 spent=1790 with force star
-reduced to n=58 -INFs=324 spent=1806 with force star
-reduced to n=57 -INFs=322 spent=1817 with force star
-reduced to n=57 -INFs=330 spent=1817 with force star
-reduced to n=56 -INFs=296 spent=1822 with force star
-reduced to n=55 -INFs=277 spent=1827 with force star
-reduced to n=53 -INFs=237 spent=1842 with force star
-reduced to n=53 -INFs=239 spent=1842 with force star
-INITIAL REDUCTION FINISHED
-time:  33.268 s
-size:  53
-lower: 2122
-upper: 2131
-gap:   9
-STARTING BRANCH AND BOUND
-split into 1 CCs
-start solving CC of size 53 first bound 280
-280	 (total: 2122)281	 (total: 2123)282	 (total: 2124)283	 (total: 2125)284	 (total: 2126)285	 (total: 2127)286	 (total: 2128)287	 (total: 2129)288	 (total: 2130)289	 (total: 2131)
-branching nodes: 2
-reductions:      11
-	forced (star): 47
-	forced (p3):   11
-	twin simple:   1
-	twin complex:  17
-	icx:           0
-	h edge (b):    2
-	h edge (s):    6
-	h non edge:    2
-disconnects:     0
-prunes:          9
-
-1
-k=2131
-38.1778
