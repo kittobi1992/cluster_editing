@@ -96,7 +96,8 @@ class CommonOperations {
     _empty_cliques(),
     _cliques(graph.numNodes()),
     _rating(3 * graph.maxDegree(), 0),
-    _lp_aborted_flag(false) { }
+    _lp_aborted_flag(false),
+    _is_special_instance(false) { }
 
   ~CommonOperations() = default;
 
@@ -112,6 +113,7 @@ class CommonOperations {
   std::vector<std::vector<NodeID>> _cliques;
   ds::FixedSizeSparseMap<CliqueID, EdgeWeight> _rating;
   bool _lp_aborted_flag;
+  bool _is_special_instance;
 
 };
 }  // namespace utils

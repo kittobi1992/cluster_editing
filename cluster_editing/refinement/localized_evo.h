@@ -44,7 +44,7 @@ class LocalizedEvolutionary final : public IRefiner {
 
  public:
   explicit LocalizedEvolutionary(const Graph& graph,
-                 const Context& context) :
+                                 const Context& context) :
     _context(context),
     _moves(),
     _clique_sizes(utils::CommonOperations::instance(graph)._cluster_sizes),
@@ -53,13 +53,28 @@ class LocalizedEvolutionary final : public IRefiner {
     _mutation_nodes(),
     _refinement_nodes(),
     _cliques_with_same_rating(),
-    _marked(graph.numNodes()) { }
+    _marked(graph.numNodes()),
+    _max_distance(context.refinement.localized_evo.max_distance_to_mutation_node),
+    _max_mutation_nodes(context.refinement.localized_evo.max_mutations_nodes) {
+    if ( utils::CommonOperations::instance(graph)._is_special_instance ) {
+      _max_distance = std::max(5, _max_distance);
+      _max_mutation_nodes = std::min(5, _max_mutation_nodes);
+    }
+  }
 
   LocalizedEvolutionary(const LocalizedEvolutionary&) = delete;
   LocalizedEvolutionary(LocalizedEvolutionary&&) = delete;
 
   LocalizedEvolutionary & operator= (const LocalizedEvolutionary &) = delete;
   LocalizedEvolutionary & operator= (LocalizedEvolutionary &&) = delete;
+
+    EdgeWeight performTimeLimitedEvoSteps(Graph& graph, double time_limit, EdgeWeight current_edits);
+    bool done() const {
+      return _step == _context.refinement.localized_evo.steps;
+    }
+    void setDone() {
+      _step = _context.refinement.localized_evo.steps;
+    }
 
  private:
 
@@ -82,6 +97,10 @@ class LocalizedEvolutionary final : public IRefiner {
 
   void findRefinementNodes(const Graph& graph);
 
+  NodeID selectNonMarkedNeighbor(const Graph& graph,
+                                 const NodeID u,
+                                 const bool adjacent);
+
   void moveVertex(Graph& graph, const NodeID u, const CliqueID to);
 
   Rating computeBestTargetCliqueWithRatingMap(Graph& graph, const NodeID u);
@@ -97,5 +116,9 @@ class LocalizedEvolutionary final : public IRefiner {
   std::vector<NodeID> _refinement_nodes;
   std::vector<CliqueID> _cliques_with_same_rating;
   ds::FastResetFlagArray<> _marked;
+  int _max_distance;
+  int _max_mutation_nodes;
+  size_t _step = 0;
+  std::mt19937 _prng { 420 };
 };
 }  // namespace cluster_editing

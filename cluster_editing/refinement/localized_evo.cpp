@@ -18,31 +18,37 @@ void LocalizedEvolutionary::initializeImpl(Graph& graph) {
 EdgeWeight LocalizedEvolutionary::refineImpl(Graph& graph,
                                              const EdgeWeight current_edits,
                                              const EdgeWeight) {
+  double time_limit = std::numeric_limits<double>::max();
+  return performTimeLimitedEvoSteps(graph, time_limit, current_edits);
+}
+
+EdgeWeight LocalizedEvolutionary::performTimeLimitedEvoSteps(Graph& graph, double time_limit, EdgeWeight current_edits) {
   utils::Timer::instance().start_timer("localized_evo", "Localized Evolutionary");
+  auto start_time = std::chrono::high_resolution_clock::now();
   utils::CommonOperations::instance(graph)._lp_aborted_flag = false;
   EdgeWeight start_metric = current_edits;
   EdgeWeight current_metric = current_edits;
   if ( _context.isTimeLimitReached() ) {
     return current_metric;
   }
-
   size_t steps = _context.refinement.localized_evo.run_until_time_limit ?
-    std::numeric_limits<size_t>::max() : _context.refinement.localized_evo.steps;
+                 std::numeric_limits<size_t>::max() : _context.refinement.localized_evo.steps;
   utils::ProgressBar lp_progress(
-    steps, start_metric, _context.general.verbose_output && !debug);
+          steps, start_metric, _context.general.verbose_output && !debug);
+  lp_progress += _step;
   // Sorting-based rating is beneficial if the number of nodes is greater
   // than 150000
   const NodeID rating_map_degree_threshold = graph.numNodes() > 150000 ?
-    _context.refinement.lp.rating_map_degree_threshold : 0;
+                                             _context.refinement.lp.rating_map_degree_threshold : 0;
   // enable early exit on large graphs, if FM refiner is used afterwards
-  for ( size_t i = 0; i < steps; ++i ) {
+  for ( ; _step < steps; ++_step ) {
     EdgeWeight delta = 0;
     // Mutate a small number of the vertices
     mutate(graph, delta);
     findRefinementNodes(graph);
     // Perform highly-localized label propagation around the mutated vertices
     for ( int j = 0; j < _context.refinement.localized_evo.max_lp_iterations; ++j ) {
-      std::random_shuffle(_refinement_nodes.begin(), _refinement_nodes.end());
+      std::shuffle(_refinement_nodes.begin(), _refinement_nodes.end(), _prng);
       for ( const NodeID& u : _refinement_nodes ) {
         const CliqueID from = graph.clique(u);
         const NodeID u_degree = graph.degree(u);
@@ -77,11 +83,13 @@ EdgeWeight LocalizedEvolutionary::refineImpl(Graph& graph,
     lp_progress.setObjective(current_metric);
     lp_progress += 1;
 
-    if ( _context.isTimeLimitReached() ) {
+    // TODO this might be checked too often?
+    std::chrono::duration<double> elapsed_seconds(std::chrono::high_resolution_clock::now() - start_time);
+    if ( _context.isTimeLimitReached() || elapsed_seconds.count() > time_limit ) {
       break;
     }
 
-    if ( i % 100 == 0 ) {
+    if ( _step % 100 == 0 ) {
       const EdgeWeight delta = start_metric - current_metric;
       if ( delta > 0 ) {
         utils::Timer::instance().start_timer("checkpoint", "Checkpoint");
@@ -91,8 +99,16 @@ EdgeWeight LocalizedEvolutionary::refineImpl(Graph& graph,
     }
   }
   lp_progress += (_context.refinement.localized_evo.steps - lp_progress.count());
-  utils::Timer::instance().stop_timer("localized_evo");
 
+  // checkpoint once more in the end
+  const EdgeWeight delta = start_metric - current_metric;
+  if ( delta > 0 ) {
+    utils::Timer::instance().start_timer("checkpoint", "Checkpoint");
+    graph.checkpoint(current_metric);
+    utils::Timer::instance().stop_timer("checkpoint");
+  }
+
+  utils::Timer::instance().stop_timer("localized_evo");
   return current_metric;
 }
 
@@ -115,18 +131,20 @@ void LocalizedEvolutionary::mutate(Graph& graph,
   // Select vertices that we mutate
   _marked.reset();
   _mutation_nodes.clear();
-  const int num_mutation_nodes = std::min(
-    _context.refinement.localized_evo.num_mutations_nodes, static_cast<int>(graph.numNodes() / 4));
   utils::Randomize& rnd = utils::Randomize::instance();
+  const int num_mutation_nodes = std::min(
+    rnd.getRandomInt(
+      _context.refinement.localized_evo.min_mutations_nodes, _max_mutation_nodes),
+    static_cast<int>(graph.numNodes() / 4));
   for ( int i = 0; i < num_mutation_nodes; ++i ) {
     NodeID u = rnd.getRandomInt(0, graph.numNodes() - 1);
-    if ( !_marked[u] ) {
+    if ( !_marked[u] && _clique_sizes[graph.clique(u)] > 1 ) {
       _marked.set(u, true);
       _mutation_nodes.push_back(u);
       while ( rnd.getRandomFloat(0.0f, 1.0f) <=
            _context.refinement.localized_evo.choose_adjacent_mutation_node_prob ) {
-        const NodeID v = graph.randomNeighbor(u);
-        if ( v != INVALID_NODE && !_marked[v] ) {
+        NodeID v = selectNonMarkedNeighbor(graph, u, rnd.flipCoin());
+        if ( v != INVALID_NODE ) {
           u = v;
           _marked.set(u, true);
           _mutation_nodes.push_back(u);
@@ -162,6 +180,26 @@ void LocalizedEvolutionary::mutate(Graph& graph,
         ( rnd.flipCoin() || targets.empty() ) ) {
       rating = isolateVertex(graph, u, from_rating);
     } else if ( !targets.empty() ) {
+      if ( rnd.flipCoin() ) {
+        targets.clear();
+        EdgeWeight best_rating = std::numeric_limits<EdgeWeight>::max();
+        for ( const auto& entry : _rating ) {
+          const CliqueID to = entry.key;
+          if ( to != from ) {
+            const EdgeWeight to_rating =
+              insertions(_clique_sizes[to], entry.value) +
+              deletions(u_degree, entry.value);
+
+            if ( to_rating < best_rating ) {
+              best_rating = to_rating;
+              targets.clear();
+              targets.push_back(to);
+            } else if ( to_rating == best_rating ) {
+              targets.push_back(to);
+            }
+          }
+        }
+      }
       rating = moveToRandomTarget(graph, u, targets, from_rating);
     }
 
@@ -224,7 +262,7 @@ void LocalizedEvolutionary::findRefinementNodes(const Graph& graph) {
     const NodeID u_degree = graph.degree(u);
     _refinement_nodes.push_back(u);
 
-    if ( distance < _context.refinement.localized_evo.max_distance_to_mutation_node ) {
+    if ( distance < _max_distance ) {
       if ( static_cast<int>(u_degree) <= _context.refinement.localized_evo.degree_sampling_threshold ) {
         for ( const NodeID& v : graph.neighbors(u) ) {
           if ( !_marked[v] ) {
@@ -249,6 +287,37 @@ void LocalizedEvolutionary::findRefinementNodes(const Graph& graph) {
       }
     }
   }
+}
+
+
+NodeID LocalizedEvolutionary::selectNonMarkedNeighbor(const Graph& graph,
+                                                      const NodeID u,
+                                                      const bool adjacent) {
+  NodeID v = INVALID_NODE;
+  if ( graph.degree(u) > 0 ) {
+    v = graph.randomNeighbor(u);
+    for ( size_t i = 0; i < 3 && _marked[v]; ++i ) {
+      v = graph.randomNeighbor(u);
+    }
+
+    if ( !adjacent && !_marked[v] && graph.degree(v) > 0 ) {
+      _marked.set(v, true);
+      const NodeID w = v;
+      for ( size_t i = 0; i < 3 && _marked[v]; ++i ) {
+        v = graph.randomNeighbor(w);
+      }
+
+      if ( _marked[v] ) {
+        v = w;
+        _marked.set(v, false);
+      }
+    }
+
+    if ( _marked[v] ) {
+      v = INVALID_NODE;
+    }
+  }
+  return v;
 }
 
 void LocalizedEvolutionary::moveVertex(Graph& graph, const NodeID u, const CliqueID to) {
