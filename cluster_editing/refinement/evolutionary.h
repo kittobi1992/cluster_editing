@@ -72,6 +72,13 @@ class Evolutionary final : public IRefiner {
   Evolutionary & operator= (const Evolutionary &) = delete;
   Evolutionary & operator= (Evolutionary &&) = delete;
 
+  EdgeWeight performTimeLimitedEvoSteps(Graph& graph, double time_limit, EdgeWeight current_edits);
+  bool done() const {
+    return _step == _context.refinement.evo.evolutionary_steps;
+  }
+
+  EdgeWeight createInitialPopulation(Graph& graph, const EdgeWeight current_edits);
+
  private:
 
   void initializeImpl(Graph& graph) final;
@@ -80,7 +87,6 @@ class Evolutionary final : public IRefiner {
                         const EdgeWeight current_edits,
                         const EdgeWeight target_edits) final ;
 
-  void createInitialPopulation(Graph& graph, const EdgeWeight current_edits);
 
   void evolutionaryStep(Graph& graph);
 
@@ -158,5 +164,6 @@ class Evolutionary final : public IRefiner {
   Mutator _mutator;
   ActionSelector<EvoAction> _evo_action_selector;
   HighResClockTimepoint _start;
+  int _step = 0;
 };
 }  // namespace cluster_editing
