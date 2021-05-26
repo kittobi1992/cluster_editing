@@ -72,6 +72,9 @@ class LocalizedEvolutionary final : public IRefiner {
     bool done() const {
       return _step == _context.refinement.localized_evo.steps;
     }
+    void setDone() {
+      _step = _context.refinement.localized_evo.steps;
+    }
 
  private:
 

@@ -76,6 +76,9 @@ class Evolutionary final : public IRefiner {
   bool done() const {
     return _step == _context.refinement.evo.evolutionary_steps;
   }
+  void setDone() {
+    _step = _context.refinement.evo.evolutionary_steps;
+  }
 
   EdgeWeight createInitialPopulation(Graph& graph, const EdgeWeight current_edits);
 

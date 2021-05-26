@@ -72,6 +72,8 @@ void solve(Graph& graph, const Context& context) {
   if ( context.refinement.use_evo ) {
     evo.initialize(graph);
     current_edits = evo.createInitialPopulation(graph, current_edits);
+  } else {
+    evo.setDone();
   }
 
   if ( current_edits != graph.numEdges()/2 ) {
@@ -81,6 +83,9 @@ void solve(Graph& graph, const Context& context) {
 
   // Localized Evolutionary
   LocalizedEvolutionary localized_evo(graph, context);
+  if (!context.refinement.use_localized_evo) {
+    localized_evo.setDone();
+  }
 
   double burst_time_limit = 20;   // 20 seconds
   EdgeWeight evo_edits = -1, localized_evo_edits = -1;
@@ -88,7 +93,7 @@ void solve(Graph& graph, const Context& context) {
 
   // TODO reset measurements at some point (in case either one makes 0 improvement)
 
-  while (!context.isTimeLimitReached() && !evo.done() && !localized_evo.done()) {
+  while (!context.isTimeLimitReached() && (!evo.done() || !localized_evo.done())) {
     if ( context.refinement.use_evo
         && (evo_edits == -1 || evo_improvement_per_time > localized_evo_improvement_per_time
                             || !context.refinement.use_localized_evo)) {
