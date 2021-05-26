@@ -120,15 +120,13 @@ void LocalizedEvolutionary::mutate(Graph& graph,
   utils::Randomize& rnd = utils::Randomize::instance();
   for ( int i = 0; i < num_mutation_nodes; ++i ) {
     NodeID u = rnd.getRandomInt(0, graph.numNodes() - 1);
-    CliqueID from = graph.clique(u);
-    if ( !_marked[u] && _clique_sizes[from] > 1 ) {
+    if ( !_marked[u] ) {
       _marked.set(u, true);
       _mutation_nodes.push_back(u);
       while ( rnd.getRandomFloat(0.0f, 1.0f) <=
            _context.refinement.localized_evo.choose_adjacent_mutation_node_prob ) {
-        const NodeID v = graph.randomNeighbor(u);
-        from = graph.clique(v);
-        if ( v != INVALID_NODE && !_marked[v] && _clique_sizes[from] > 1 ) {
+        NodeID v = selectNonMarkedNeighbor(graph, u, rnd.flipCoin());
+        if ( v != INVALID_NODE ) {
           u = v;
           _marked.set(u, true);
           _mutation_nodes.push_back(u);
@@ -246,7 +244,7 @@ void LocalizedEvolutionary::findRefinementNodes(const Graph& graph) {
     const NodeID u_degree = graph.degree(u);
     _refinement_nodes.push_back(u);
 
-    if ( distance < _context.refinement.localized_evo.max_distance_to_mutation_node ) {
+    if ( distance < _max_distance ) {
       if ( static_cast<int>(u_degree) <= _context.refinement.localized_evo.degree_sampling_threshold ) {
         for ( const NodeID& v : graph.neighbors(u) ) {
           if ( !_marked[v] ) {
@@ -271,6 +269,37 @@ void LocalizedEvolutionary::findRefinementNodes(const Graph& graph) {
       }
     }
   }
+}
+
+
+NodeID LocalizedEvolutionary::selectNonMarkedNeighbor(const Graph& graph,
+                                                      const NodeID u,
+                                                      const bool adjacent) {
+  NodeID v = INVALID_NODE;
+  if ( graph.degree(u) > 0 ) {
+    v = graph.randomNeighbor(u);
+    for ( size_t i = 0; i < 3 && _marked[v]; ++i ) {
+      v = graph.randomNeighbor(u);
+    }
+
+    if ( !adjacent && !_marked[v] && graph.degree(v) > 0 ) {
+      _marked.set(v, true);
+      const NodeID w = v;
+      for ( size_t i = 0; i < 3 && _marked[v]; ++i ) {
+        v = graph.randomNeighbor(w);
+      }
+
+      if ( _marked[v] ) {
+        v = w;
+        _marked.set(v, false);
+      }
+    }
+
+    if ( _marked[v] ) {
+      v = INVALID_NODE;
+    }
+  }
+  return v;
 }
 
 void LocalizedEvolutionary::moveVertex(Graph& graph, const NodeID u, const CliqueID to) {

@@ -211,7 +211,7 @@ class Graph {
 
   void checkpoint(const EdgeWeight quality) {
     copy_lock.lock();
-    if ( quality <= _best_quality ) {
+    if ( quality < _best_quality ) {
       for ( const NodeID& u : nodes() ) {
         _best_cliques[u] = clique(u);
       }
