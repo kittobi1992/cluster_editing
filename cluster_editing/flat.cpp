@@ -76,7 +76,7 @@ void solve(Graph& graph, const Context& context) {
     evo.setDone();
   }
 
-  if ( current_edits != graph.numEdges()/2 ) {
+  if ( current_edits != EdgeWeight(graph.numEdges()/2) ) {
     // have computed an initial solution --> do special instance check
     utils::CommonOperations::instance(graph)._is_special_instance = isSpecialInstance(graph);
   }
