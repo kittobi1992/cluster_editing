@@ -35,6 +35,7 @@ namespace cluster_editing::io {
   void printResultLine(const Graph& graph,
                        const Context& context,
                        const std::chrono::duration<double>& elapsed_seconds);
+  void printEdits(const Graph& graph);
 
   void printStripe();
   void printBanner();

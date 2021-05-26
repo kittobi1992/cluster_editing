@@ -37,6 +37,10 @@ void printResult(Graph& best) {
   if ( context.general.write_to_file && context.general.graph_filename != "" ) {
     io::writeSolutionFile(graph, context.general.output_file);
   }
+
+  if ( context.general.print_edits ) {
+    io::printEdits(best);
+  }
 }
 
 void terminate(int) {

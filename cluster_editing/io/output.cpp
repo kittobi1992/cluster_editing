@@ -5,9 +5,12 @@
 #include <numeric>
 #include <fstream>
 #include <cstring>
+#include <set>
 
+#include "cluster_editing/datastructures/fast_reset_flag_array.h"
 #include "cluster_editing/utils/timer.h"
 #include "cluster_editing/utils/math.h"
+#include "cluster_editing/utils/common_operations.h"
 #include "cluster_editing/metrics.h"
 
 namespace cluster_editing::io {
@@ -278,6 +281,47 @@ namespace internal {
     std::cout << " insertions=" << edge_insertions
               << " deletions=" << edge_deletions
               << " modifications=" << (edge_insertions + edge_deletions) << std::endl;
+  }
+
+  void printEdits(const Graph& graph) {
+    utils::CommonOperations::instance(graph).computeNodesOfCliqueWithEmptyCliques(graph);
+    const std::vector<std::vector<NodeID>>& cliques =
+      utils::CommonOperations::instance(graph)._cliques;
+    // Deletions
+    for ( const NodeID u : graph.nodes() ) {
+      for ( const NodeID& v : graph.neighbors(u) ) {
+        if ( u < v && graph.clique(u) != graph.clique(v) ) {
+          std::cout << (u + 1) << " " << (v + 1) << std::endl;
+        }
+      }
+    }
+
+    // Insertions
+    for ( CliqueID c = 0; c < graph.numNodes(); ++c ) {
+      if ( cliques[c].size() > 0 ) {
+        std::set<NodeID> clique(cliques[c].begin(), cliques[c].end());
+
+        for ( const NodeID u : cliques[c] ) {
+          for ( const NodeID& v : graph.neighbors(u) ) {
+            if ( graph.clique(u) == graph.clique(v) ) {
+              clique.erase(v);
+            }
+          }
+
+          for ( const NodeID v : clique ) {
+            if ( u < v ) {
+              std::cout << (u + 1) << " " << (v + 1) << std::endl;
+            }
+          }
+
+          for ( const NodeID& v : graph.neighbors(u) ) {
+            if ( graph.clique(u) == graph.clique(v) ) {
+              clique.insert(v);
+            }
+          }
+        }
+      }
+    }
   }
 
   void printStripe() {

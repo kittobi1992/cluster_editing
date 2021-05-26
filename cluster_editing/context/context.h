@@ -16,6 +16,7 @@ struct GeneralParameters {
   bool verbose_output = true;
   bool print_result_line = false;
   bool print_csv = false;
+  bool print_edits = false;
   bool write_to_file = false;
   bool read_from_file = false;
   int seed = 0;
@@ -119,6 +120,7 @@ class Context {
 
   void configureLogging() {
     if ( !general.enable_logging ) {
+      general.print_edits = true;
       general.verbose_output = false;
       general.print_result_line = false;
       general.read_from_file = false;
