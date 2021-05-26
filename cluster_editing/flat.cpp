@@ -90,8 +90,7 @@ void solve(Graph& graph, const Context& context) {
   double burst_time_limit = 20;   // 20 seconds
   EdgeWeight evo_edits = -1, localized_evo_edits = -1;
   double evo_improvement_per_time = 0.0, localized_evo_improvement_per_time = 0.0;
-
-  // TODO reset measurements at some point (in case either one makes 0 improvement)
+  size_t evo_not_run = 0, localized_evo_not_run = 0;
 
   while (!context.isTimeLimitReached() && (!evo.done() || !localized_evo.done())) {
     if ( context.refinement.use_evo
@@ -102,8 +101,12 @@ void solve(Graph& graph, const Context& context) {
       double elapsed = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start_time).count();
       evo_improvement_per_time = double(current_edits - evo_edits) / elapsed;
       current_edits = evo_edits;
-      if ( context.general.verbose_output)
-        LOG << V(elapsed) << V(evo_improvement_per_time) << V(current_edits);
+      if ( context.general.verbose_output) {
+        LOG << "Global Evo" << V(elapsed) << V(evo_improvement_per_time) << V(localized_evo_improvement_per_time) << V(current_edits);
+      }
+      evo_not_run = 0;
+    } else {
+      evo_not_run++;
     }
 
     if ( context.refinement.use_localized_evo
@@ -115,8 +118,19 @@ void solve(Graph& graph, const Context& context) {
       double elapsed = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start_time).count();
       localized_evo_improvement_per_time = double(current_edits - localized_evo_edits) / elapsed;
       current_edits = localized_evo_edits;
-      if ( context.general.verbose_output)
-        LOG << V(elapsed) << V(localized_evo_improvement_per_time) << V(current_edits);
+      if ( context.general.verbose_output) {
+        LOG << "Localized Evo" << V(elapsed) << V(localized_evo_improvement_per_time) << V(evo_improvement_per_time) << V(current_edits);
+      }
+      localized_evo_not_run = 0;
+    } else {
+      localized_evo_not_run++;
+    }
+
+    if (localized_evo_not_run == 7 && localized_evo_improvement_per_time < 0.05) {
+      localized_evo_edits = -1;   // run again
+    }
+    if (evo_not_run == 7 && evo_improvement_per_time < 0.05) {
+      evo_edits = -1;             // run again
     }
   }
 
