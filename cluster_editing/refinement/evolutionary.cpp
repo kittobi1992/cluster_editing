@@ -54,6 +54,7 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph,
   }
 
   _is_special_instance = isSpecialInstance(graph);
+  utils::CommonOperations::instance(graph)._is_special_instance = _is_special_instance;
   if ( _context.general.verbose_output ) LOG << "Evolutionary Algorithm:";
   utils::ProgressBar evo_progress(
     _context.refinement.evo.evolutionary_steps, _population[0].edits,
@@ -73,8 +74,7 @@ EdgeWeight Evolutionary::refineImpl(Graph& graph,
       _mutator.activateMutations(enable_all_mutations);
     }
 
-    if ( _context.isTimeLimitReached() ||
-         ( isEvoTimeLimitReached() && !_is_special_instance ) ) {
+    if ( _context.isTimeLimitReached() || isEvoTimeLimitReached() ) {
       break;
     }
   }
