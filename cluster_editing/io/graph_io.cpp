@@ -13,7 +13,9 @@ namespace cluster_editing::io {
 
 using AdjacencyList = std::vector<std::vector<NodeID>>;
 
-void readHeader(std::ifstream& file,
+namespace {
+
+void readHeader(std::istream& file,
                 NodeID& num_nodes,
                 EdgeID& num_edges) {
   std::string line;
@@ -30,7 +32,7 @@ void readHeader(std::ifstream& file,
   sstream >> skip >> skip >> num_nodes >> num_edges;
 }
 
-void readEdges(std::ifstream& file,
+void readEdges(std::istream& file,
                const EdgeID num_edges,
                AdjacencyList& adj_list) {
   std::string line;
@@ -51,6 +53,20 @@ void readEdges(std::ifstream& file,
     adj_list[u].push_back(v);
     adj_list[v].push_back(u);
   }
+}
+} // namespace
+
+Graph readGraphFile() {
+  AdjacencyList adj_list;
+  NodeID num_nodes = 0;
+  EdgeID num_edges = 0;
+  readHeader(std::cin, num_nodes, num_edges);
+
+  // Read Egges
+  adj_list.resize(num_nodes);
+  readEdges(std::cin, num_edges, adj_list);
+
+  return ds::GraphFactory::construct(adj_list);
 }
 
 Graph readGraphFile(const std::string& filename) {

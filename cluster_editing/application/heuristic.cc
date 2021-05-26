@@ -34,7 +34,7 @@ void printResult(Graph& best) {
               << "," << metrics::edits(best) << "," << elapsed_seconds.count() << std::endl;
   }
 
-  if ( context.general.write_to_file ) {
+  if ( context.general.write_to_file && context.general.graph_filename != "" ) {
     io::writeSolutionFile(graph, context.general.output_file);
   }
 }
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
   utils::Randomize::instance().setSeed(context.general.seed);
 
   utils::Timer::instance().start_timer("import_graph", "Import Graph");
-  graph = io::readGraphFile(context.general.graph_filename);
+  graph = io::readGraphFile();
   utils::Timer::instance().stop_timer("import_graph");
   context.configureAlgorithm(graph);
 

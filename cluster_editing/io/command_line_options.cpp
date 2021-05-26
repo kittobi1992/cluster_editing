@@ -33,7 +33,7 @@ namespace cluster_editing {
     options.add_options()
             ("help", "show help message")
             ("graph,g",
-             po::value<std::string>(&context.general.graph_filename)->value_name("<string>")->required(),
+             po::value<std::string>(&context.general.graph_filename)->value_name("<string>"),
              "Graph filename")
             ("config,c",
              po::value<std::string>(&context.general.config_file)->value_name("<string>"),

@@ -59,7 +59,7 @@ void solve(Graph& graph, const Context& context) {
 
   EdgeWeight current_edits = static_cast<EdgeWeight>(graph.numEdges()) / 2;
 
-  if ( context.general.read_from_file ) {
+  if ( context.general.read_from_file && context.general.graph_filename != "" ) {
     io::readSolutionFile(graph, context.general.output_file);
     current_edits = metrics::edits(graph);
   }

@@ -6,6 +6,7 @@
 
 namespace cluster_editing::io {
 
+Graph readGraphFile();
 Graph readGraphFile(const std::string& filename);
 
 } // namespace cluster_editing::io

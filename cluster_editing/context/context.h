@@ -12,7 +12,7 @@ struct GeneralParameters {
   std::string graph_filename {};
   std::string config_file {};
   std::string output_file {};
-  bool verbose_output = true;
+  bool verbose_output = false;
   bool print_result_line = false;
   bool print_csv = false;
   bool write_to_file = false;
