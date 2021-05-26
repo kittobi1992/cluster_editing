@@ -68,6 +68,11 @@ class LocalizedEvolutionary final : public IRefiner {
   LocalizedEvolutionary & operator= (const LocalizedEvolutionary &) = delete;
   LocalizedEvolutionary & operator= (LocalizedEvolutionary &&) = delete;
 
+    EdgeWeight performTimeLimitedEvoSteps(Graph& graph, double time_limit, EdgeWeight current_edits);
+    bool done() const {
+      return _step == _context.refinement.localized_evo.steps;
+    }
+
  private:
 
   void initializeImpl(Graph& graph) final;
@@ -110,5 +115,7 @@ class LocalizedEvolutionary final : public IRefiner {
   ds::FastResetFlagArray<> _marked;
   int _max_distance;
   int _max_mutation_nodes;
+  size_t _step;
+  std::mt19937 _prng { 420 };
 };
 }  // namespace cluster_editing
