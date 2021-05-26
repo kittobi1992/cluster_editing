@@ -1,29 +1,0 @@
-solving instance with n=30
-upper bound 86
-reduced to n=30 -INFs=58 spent=0 with force star
-INITIAL REDUCTION FINISHED
-time:  1.151 s
-size:  30
-lower: 81
-upper: 86
-gap:   5
-STARTING BRANCH AND BOUND
-split into 1 CCs
-start solving CC of size 30 first bound 81
-81	 (total: 81)82	 (total: 82)83	 (total: 83)84	 (total: 84)85	 (total: 85)86	 (total: 86)
-branching nodes: 6
-reductions:      16
-	forced (star): 46
-	forced (p3):   13
-	twin simple:   0
-	twin complex:  21
-	icx:           1
-	h edge (b):    3
-	h edge (s):    1
-	h non edge:    12
-disconnects:     2
-prunes:          10
-
-1
-k=86
-2.14334

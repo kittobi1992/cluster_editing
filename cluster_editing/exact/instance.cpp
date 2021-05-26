@@ -4,19 +4,14 @@
 #include <cassert>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 #include <string>
 
 #include <cluster_editing/data_path.h>
 
 using namespace std;
 
-Instance load_exact_instance(int num) {
-    assert(1<=num && num<=199 && num%2);
-    auto suf = to_string(num);
-    while(size(suf)<3) suf = '0'+suf;
-    auto file_name = EXACT_DATA_DIR + ("exact" + suf + ".gr");
-    ifstream in(file_name);
-
+Instance readInstance(istream& in) {
     std::istringstream sstream;
     auto getline = [&]() {
         std::string line;
@@ -47,6 +42,19 @@ Instance load_exact_instance(int num) {
     inst.edges = res;
     inst.orig = res;
     return inst;
+}
+
+Instance load_exact_instance() {
+    return readInstance(cin);
+}
+
+Instance load_exact_instance(int num) {
+    assert(1<=num && num<=199 && num%2);
+    auto suf = to_string(num);
+    while(size(suf)<3) suf = '0'+suf;
+    auto file_name = EXACT_DATA_DIR + ("exact" + suf + ".gr");
+    ifstream in(file_name);
+    return readInstance(in);
 }
 
 int forbiddenEdges(const Instance &inst) {

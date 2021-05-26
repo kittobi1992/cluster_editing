@@ -11,6 +11,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include_directories(${PROJECT_SOURCE_DIR})
 
+# generate all binaries in root of build dir
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+
 option(DISABLE_ASSERTIONS
   "Disable KaHyPar's internal assertions." OFF)
 
@@ -40,7 +45,7 @@ if(Boost_FOUND)
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
-  set( CMAKE_BUILD_TYPE Debug CACHE STRING
+  set( CMAKE_BUILD_TYPE Release CACHE STRING
        "Choose the type of build, options are: Debug Release, RelWithDebInfo"
        FORCE )
 endif()

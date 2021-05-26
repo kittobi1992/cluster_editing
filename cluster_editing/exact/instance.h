@@ -29,5 +29,6 @@ struct Instance {
 int forbiddenEdges(const Instance& inst);
 
 Instance load_exact_instance(int num);
+Instance load_exact_instance(); // from stdin
 
 Instance remove_nodes(const Instance& inst, const std::vector<int>& nodes);

@@ -1,122 +1,0 @@
-solving instance with n=250
-upper bound 697
-reduced to n=232 -INFs=23490 spent=165 with force star
-reduced to n=215 -INFs=19862 spent=165 with force star
-reduced to n=215 -INFs=19863 spent=165 with force star
-reduced to n=185 -INFs=14098 spent=165 with twin simple
-reduced to n=185 -INFs=14100 spent=165 with force star
-reduced to n=176 -INFs=12548 spent=174 with twin complex
-reduced to n=175 -INFs=12374 spent=174 with twin simple
-reduced to n=175 -INFs=12385 spent=174 with force star
-reduced to n=172 -INFs=11897 spent=180 with twin complex
-reduced to n=170 -INFs=11576 spent=185 with twin complex
-reduced to n=167 -INFs=11088 spent=195 with twin complex
-reduced to n=166 -INFs=10923 spent=195 with twin simple
-reduced to n=165 -INFs=10762 spent=197 with twin complex
-reduced to n=164 -INFs=10604 spent=197 with twin complex
-reduced to n=164 -INFs=10605 spent=197 with force star
-reduced to n=163 -INFs=10452 spent=199 with twin complex
-reduced to n=162 -INFs=10304 spent=200 with twin complex
-reduced to n=161 -INFs=10156 spent=201 with twin complex
-reduced to n=160 -INFs=10001 spent=202 with twin complex
-reduced to n=159 -INFs=9879 spent=203 with twin complex
-reduced to n=158 -INFs=9724 spent=204 with twin complex
-reduced to n=157 -INFs=9571 spent=206 with heavy edge (b)
-reduced to n=157 -INFs=9572 spent=206 with force star
-reduced to n=157 -INFs=9635 spent=206 with heavy non-edge
-INITIAL REDUCTION FINISHED
-time:  11.042 s
-size:  157
-lower: 682
-upper: 697
-gap:   15
-STARTING BRANCH AND BOUND
-split into 36 CCs
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 1 first bound 0
-0	 (total: 206)
-start solving CC of size 6 first bound 0
-0	 (total: 206)1	 (total: 207)2	 (total: 208)3	 (total: 209)4	 (total: 210)
-start solving CC of size 10 first bound 18
-18	 (total: 228)19	 (total: 229)20	 (total: 230)
-start solving CC of size 19 first bound 46
-46	 (total: 276)47	 (total: 277)
-start solving CC of size 90 first bound 408
-408	 (total: 685)409	 (total: 686)410	 (total: 687)411	 (total: 688)412	 (total: 689)413	 (total: 690)414	 (total: 691)415	 (total: 692)416	 (total: 693)417	 (total: 694)418	 (total: 695)419	 (total: 696)420	 (total: 697)
-branching nodes: 35
-reductions:      64
-	forced (star): 195
-	forced (p3):   12
-	twin simple:   6
-	twin complex:  59
-	icx:           0
-	h edge (b):    18
-	h edge (s):    14
-	h non edge:    63
-disconnects:     32
-prunes:          41
-
-1
-k=697
-51.9827
