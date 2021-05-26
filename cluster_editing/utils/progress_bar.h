@@ -121,8 +121,12 @@ class ProgressBar {
       }
       std::cout << " ] ";
 
-      std::cout << "(" << progress << "% - "
-                << current_count << "/";
+      std::cout << "(" << progress << "% - ";
+      if ( current_count == std::numeric_limits<size_t>::max() ) {
+        std::cout << "INF/";
+      } else {
+        std::cout << current_count << "/";
+      }
       if ( _expected_count == std::numeric_limits<size_t>::max() ) {
         std::cout << "INF" << ") ";
       } else {

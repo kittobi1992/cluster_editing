@@ -42,11 +42,10 @@ namespace cluster_editing::io {
   void printInputInfo(const Graph& graph, const Context& context);
   void printGraphInfo(const Graph& graph, const Context& context, const std::string& name);
   void printCliqueInfo(const Graph& graph, const Context& context);
-  void printPreprocessingBanner(const Context& context);
-  void printUndoPreprocessingBanner(const Context& context);
-  void printCoarseningBanner(const Context& context);
-  void printFlatBanner(const Context& context);
-  void printUncoarseningBanner(const Context& context);
+  void printClusteringBanner(const Context& context);
+  void printInitialSolutionBanner(const Context& context);
+  void printGlobalEvoBanner(const Context& context);
+  void printLocalizedEvoBanner(const Context& context);
 
 
   void readSolutionFile(Graph& graph, const std::string& filename);

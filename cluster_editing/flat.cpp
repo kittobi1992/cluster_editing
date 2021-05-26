@@ -15,6 +15,7 @@
 namespace cluster_editing {
 namespace flat {
 
+namespace {
 
 bool isSpecialInstance(const Graph& graph) {
   if ( graph.maxDegree() < 20 && graph.numEdges() / 2 > 1000000 ) {
@@ -33,9 +34,26 @@ bool isSpecialInstance(const Graph& graph) {
   return false;
 }
 
+void printEvoProgress(const Context& context,
+                      const double last_burst_time,
+                      const double evo_improvement_per_seconds,
+                      const double localized_evo_improvement_per_seconds,
+                      const EdgeWeight last_evo_delta,
+                      const EdgeWeight last_localized_evo_delta) {
+  if ( context.general.verbose_output ) {
+    LOG << "Last Burst Elapsed Time (seconds)                =" << last_burst_time;
+    LOG << "Evo. Improvement Per Sec. (last burst)           ="
+        << evo_improvement_per_seconds << "( Last Delta =" << last_evo_delta << ")";
+    LOG << "Localized Evo. Improvement Per Sec. (last burst) ="
+        << localized_evo_improvement_per_seconds<< "( Last Delta =" << last_localized_evo_delta << ")";
+  }
+}
+
+} // namespace
+
 void solve(Graph& graph, const Context& context) {
 
-  io::printFlatBanner(context);
+  io::printInitialSolutionBanner(context);
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 
@@ -88,22 +106,28 @@ void solve(Graph& graph, const Context& context) {
   }
 
   double burst_time_limit = 20;   // 20 seconds
-  EdgeWeight evo_edits = -1, localized_evo_edits = -1;
-  double evo_improvement_per_time = 0.0, localized_evo_improvement_per_time = 0.0;
-  size_t evo_not_run = 0, localized_evo_not_run = 0;
-
+  EdgeWeight evo_edits = -1;
+  EdgeWeight evo_last_delta = 0;
+  EdgeWeight localized_evo_edits = -1;
+  EdgeWeight localized_evo_last_delta = 0;
+  double evo_improvement_per_time = 0.0;
+  double localized_evo_improvement_per_time = 0.0;
+  size_t evo_not_run = 0;
+  size_t localized_evo_not_run = 0;
   while (!context.isTimeLimitReached() && (!evo.done() || !localized_evo.done())) {
     if ( context.refinement.use_evo
         && (evo_edits == -1 || evo_improvement_per_time > localized_evo_improvement_per_time
                             || !context.refinement.use_localized_evo)) {
+      io::printGlobalEvoBanner(context);
       auto start_time = std::chrono::high_resolution_clock::now();
       evo_edits = evo.performTimeLimitedEvoSteps(graph, burst_time_limit, current_edits);
       double elapsed = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start_time).count();
-      evo_improvement_per_time = double(current_edits - evo_edits) / elapsed;
+      evo_last_delta = current_edits - evo_edits;
+      evo_improvement_per_time = static_cast<double>(evo_last_delta) / elapsed;
       current_edits = evo_edits;
-      if ( context.general.verbose_output) {
-        LOG << "Global Evo" << V(elapsed) << V(evo_improvement_per_time) << V(localized_evo_improvement_per_time) << V(current_edits);
-      }
+      printEvoProgress(context, elapsed,
+        evo_improvement_per_time, localized_evo_improvement_per_time,
+        evo_last_delta, localized_evo_last_delta);
       evo_not_run = 0;
     } else {
       evo_not_run++;
@@ -112,15 +136,17 @@ void solve(Graph& graph, const Context& context) {
     if ( context.refinement.use_localized_evo
          && (localized_evo_edits == -1 || evo_improvement_per_time < localized_evo_improvement_per_time
                                         || !context.refinement.use_evo)) {
+      io::printLocalizedEvoBanner(context);
       auto start_time = std::chrono::high_resolution_clock::now();
       localized_evo.initialize(graph);
       localized_evo_edits = localized_evo.performTimeLimitedEvoSteps(graph, burst_time_limit, current_edits);
       double elapsed = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start_time).count();
-      localized_evo_improvement_per_time = double(current_edits - localized_evo_edits) / elapsed;
+      localized_evo_last_delta = current_edits - localized_evo_edits;
+      localized_evo_improvement_per_time = static_cast<double>(localized_evo_last_delta) / elapsed;
       current_edits = localized_evo_edits;
-      if ( context.general.verbose_output) {
-        LOG << "Localized Evo" << V(elapsed) << V(localized_evo_improvement_per_time) << V(evo_improvement_per_time) << V(current_edits);
-      }
+      printEvoProgress(context, elapsed,
+        evo_improvement_per_time, localized_evo_improvement_per_time,
+        evo_last_delta, localized_evo_last_delta);
       localized_evo_not_run = 0;
     } else {
       localized_evo_not_run++;

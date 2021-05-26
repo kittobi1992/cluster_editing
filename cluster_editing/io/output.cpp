@@ -190,42 +190,34 @@ namespace internal {
     }
   }
 
-  void printPreprocessingBanner(const Context& context) {
+  void printClusteringBanner(const Context& context) {
     if (context.general.verbose_output) {
       LOG << "\n********************************************************************************";
-      LOG << "*                              Preprocessing...                                *";
+      LOG << "*                               Clustering...                                  *";
       LOG << "********************************************************************************";
     }
   }
 
-  void printUndoPreprocessingBanner(const Context& context) {
+  void printInitialSolutionBanner(const Context& context) {
     if (context.general.verbose_output) {
       LOG << "\n********************************************************************************";
-      LOG << "*                            Undo Preprocessing...                             *";
+      LOG << "*                        Create Initial Solution...                            *";
       LOG << "********************************************************************************";
     }
   }
 
-  void printCoarseningBanner(const Context& context) {
+  void printGlobalEvoBanner(const Context& context) {
     if (context.general.verbose_output) {
       LOG << "\n********************************************************************************";
-      LOG << "*                                Coarsening...                                 *";
+      LOG << "*                       Global Evolutionary Burst...                           *";
       LOG << "********************************************************************************";
     }
   }
 
-  void printFlatBanner(const Context& context) {
+  void printLocalizedEvoBanner(const Context& context) {
     if (context.general.verbose_output) {
       LOG << "\n********************************************************************************";
-      LOG << "*                             Flat Clustering...                               *";
-      LOG << "********************************************************************************";
-    }
-  }
-
-  void printUncoarseningBanner(const Context& context) {
-    if (context.general.verbose_output) {
-      LOG << "\n********************************************************************************";
-      LOG << "*                              Uncoarsening...                                 *";
+      LOG << "*                      Localized Evolutionary Burst...                         *";
       LOG << "********************************************************************************";
     }
   }
