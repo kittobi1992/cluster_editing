@@ -112,7 +112,7 @@ class LocalizedEvolutionary final : public IRefiner {
   std::vector<CliqueID> _cliques_with_same_rating;
   ds::FastResetFlagArray<> _marked;
   int _max_distance;
-  size_t _step;
+  size_t _step = 0;
   std::mt19937 _prng { 420 };
 };
 }  // namespace cluster_editing

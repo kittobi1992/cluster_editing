@@ -13,7 +13,6 @@ namespace cluster_editing {
 
 void LocalizedEvolutionary::initializeImpl(Graph& graph) {
   utils::CommonOperations::instance(graph).computeEmptyCliques(graph);
-  _step = 0;
 }
 
 EdgeWeight LocalizedEvolutionary::refineImpl(Graph& graph,
