@@ -577,7 +577,7 @@ void FMRefiner<StoppingRule>::checkCliqueWeights(const Graph& graph) {
 
 }
 
-#include "cluster_editing/refinement/stopping_rule.h"
+#include "cluster_editing/heuristic/stopping_rule.h"
 
 namespace cluster_editing {
 template class FMRefiner<FruitlessMovesStoppingRule>;

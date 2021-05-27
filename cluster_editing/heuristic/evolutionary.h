@@ -20,17 +20,17 @@
 
 #pragma once
 
-#include "cluster_editing/refinement/i_refiner.h"
-#include "cluster_editing/refinement/lp_refiner.h"
-#include "cluster_editing/refinement/clique_remover.h"
-#include "cluster_editing/refinement/clique_splitter.h"
-#include "cluster_editing/refinement/node_swapper.h"
+#include "cluster_editing/heuristic/i_refiner.h"
+#include "cluster_editing/heuristic/lp_refiner.h"
+#include "cluster_editing/heuristic/clique_remover.h"
+#include "cluster_editing/heuristic/clique_splitter.h"
+#include "cluster_editing/heuristic/node_swapper.h"
 #include "cluster_editing/context/context.h"
 #include "cluster_editing/datastructures/sparse_map.h"
 #include "cluster_editing/datastructures/fast_reset_flag_array.h"
 #include "cluster_editing/utils/randomize.h"
-#include "cluster_editing/refinement/mutation.h"
-#include "cluster_editing/refinement/action_selector.h"
+#include "cluster_editing/heuristic/mutation.h"
+#include "cluster_editing/heuristic/action_selector.h"
 
 namespace cluster_editing {
 

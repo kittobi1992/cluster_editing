@@ -20,31 +20,40 @@
 
 #pragma once
 
-#include "cluster_editing/refinement/i_refiner.h"
+#include "cluster_editing/heuristic/i_refiner.h"
 #include "cluster_editing/context/context.h"
 #include "cluster_editing/utils/common_operations.h"
+#include "cluster_editing/datastructures/fast_reset_flag_array.h"
+#include "cluster_editing/datastructures/sparse_map.h"
 
 namespace cluster_editing {
 
-class CliqueRemover final : public IRefiner {
+class CliqueSplitter final : public IRefiner {
  private:
 
   static constexpr bool debug = false;
 
+  struct NonEdge {
+    NodeID u;
+    NodeID v;
+  };
+
  public:
-  explicit CliqueRemover(const Graph& graph,
-                                   const Context& context) :
+  explicit CliqueSplitter(const Graph& graph,
+                          const Context& context) :
     _context(context),
     _cluster_sizes(utils::CommonOperations::instance(graph)._cluster_sizes),
+    _empty_cliques(utils::CommonOperations::instance(graph)._empty_cliques),
     _cliques(utils::CommonOperations::instance(graph)._cliques),
-    _rating(utils::CommonOperations::instance(graph)._rating),
-    _best_cliques() { }
+    _non_edges(),
+    _marked(graph.numNodes()),
+    _rating_to_from(graph.numNodes()) { }
 
-  CliqueRemover(const CliqueRemover&) = delete;
-  CliqueRemover(CliqueRemover&&) = delete;
+  CliqueSplitter(const CliqueSplitter&) = delete;
+  CliqueSplitter(CliqueSplitter&&) = delete;
 
-  CliqueRemover & operator= (const CliqueRemover &) = delete;
-  CliqueRemover & operator= (CliqueRemover &&) = delete;
+  CliqueSplitter & operator= (const CliqueSplitter &) = delete;
+  CliqueSplitter & operator= (CliqueSplitter &&) = delete;
 
  private:
 
@@ -54,10 +63,16 @@ class CliqueRemover final : public IRefiner {
                         const EdgeWeight current_edits,
                         const EdgeWeight target_edits) final ;
 
+  EdgeWeight isolateAllVertices(Graph& graph,
+                                const CliqueID from,
+                                const std::vector<NodeID>& clique);
+
   const Context& _context;
   std::vector<NodeID>& _cluster_sizes;
+  std::vector<CliqueID>& _empty_cliques;
   std::vector<std::vector<NodeID>>& _cliques;
-  ds::FixedSizeSparseMap<CliqueID, EdgeWeight>& _rating;
-  std::vector<CliqueID> _best_cliques;
+  std::vector<NonEdge> _non_edges;
+  ds::FastResetFlagArray<> _marked;
+  ds::SparseMap<NodeID, EdgeWeight> _rating_to_from;
 };
 }  // namespace cluster_editing

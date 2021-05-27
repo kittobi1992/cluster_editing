@@ -24,7 +24,7 @@
 #include "cluster_editing/definitions.h"
 #include "cluster_editing/utils/randomize.h"
 #include "cluster_editing/utils/common_operations.h"
-#include "cluster_editing/refinement/action_selector.h"
+#include "cluster_editing/heuristic/action_selector.h"
 
 namespace cluster_editing {
 

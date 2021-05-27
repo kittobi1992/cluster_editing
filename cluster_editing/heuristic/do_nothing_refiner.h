@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cluster_editing/refinement/i_refiner.h"
+#include "cluster_editing/heuristic/i_refiner.h"
 
 namespace cluster_editing {
 class DoNothingRefiner final : public IRefiner {

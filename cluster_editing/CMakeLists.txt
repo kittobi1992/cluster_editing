@@ -1,9 +1,8 @@
 add_subdirectory(context)
 add_subdirectory(datastructures)
 add_subdirectory(io)
-add_subdirectory(refinement)
+add_subdirectory(heuristic)
 add_subdirectory(utils)
-
 add_subdirectory(exact)
 
 configure_file(data_path.h.in data_path.h)
