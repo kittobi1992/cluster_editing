@@ -37,7 +37,8 @@ and of the heuristic solver (also from the `build` folder):
 
     cat ../instances/heur/heur011.gr | ./heuristic > edits.txt
 
-Per default, the heuristic solver runs for 10 minutes and the exact solver until an optimal solution is found. The time limit of the heuristic solver can be adjusted via the `--time-limit` flag (in seconds):
+Per default, the heuristic solver runs for 10 minutes and the exact solver until an optimal solution is found. 
+The time limit of the solvers can be adjusted via the `--time-limit` flag (in seconds):
 
     cat ../instances/heur/heur011.gr | ./heuristic --time-limit=100 > edits.txt
 
