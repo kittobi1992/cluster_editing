@@ -10,7 +10,7 @@
 #include <cluster_editing/exact/lower_bounds.h>
 #include <cluster_editing/exact/thomas.h>
 #include <cluster_editing/exact/star_bound.h>
-#include <cluster_editing/flat.h>
+#include <cluster_editing/heuristic/clustering.h>
 
 #include "cluster_editing/io/graph_io.h"
 #include "cluster_editing/metrics.h"
@@ -270,7 +270,7 @@ Solution solve_heuristic(const Instance &inst) {
     };
 
     for (size_t i = 0; i < num_reps; ++i) {
-        cluster_editing::flat::solve(graph, context);
+        cluster_editing::solve(graph, context);
         update();
     }
 

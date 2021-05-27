@@ -6,6 +6,7 @@ set(RefinementSources
       evolutionary.cpp
       lp_refiner.cpp
       fm_refiner.cpp
+      clustering.cpp
       )
 
 foreach(modtarget IN LISTS TARGETS_WANTING_ALL_SOURCES)

@@ -1,4 +1,4 @@
-#include "flat.h"
+#include "clustering.h"
 
 #include "cluster_editing/macros.h"
 #include "cluster_editing/heuristic/evolutionary.h"
@@ -13,7 +13,6 @@
 #include "cluster_editing/io/output.h"
 
 namespace cluster_editing {
-namespace flat {
 
 namespace {
 
@@ -182,5 +181,4 @@ void solve(Graph& graph, const Context& context) {
   }
 }
 
-} // namespace flat
 } // namespace cluster_editing
