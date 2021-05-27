@@ -19,7 +19,7 @@ struct GeneralParameters {
   bool print_edits = false;
   bool write_to_file = false;
   bool read_from_file = false;
-  int seed = 0;
+  int seed = 1;
   int num_repititions = 0;
   int num_fruitless_repititions = 0;
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
