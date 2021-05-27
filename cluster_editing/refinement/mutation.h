@@ -238,17 +238,6 @@ class CliqueSplit {
   CliqueSplit() { }
 };
 
-class TestMutation {
-
- public:
-  static void mutate(Graph&, const float) {
-
-  }
-
- private:
-  TestMutation() { }
-};
-
 class Mutator {
  public:
   explicit Mutator(const Context& context) :
@@ -281,10 +270,6 @@ class Mutator {
       if ( _show_detailed_output )
         LOG << "Mutation Action: CLIQUE_SPLITTER ( p =" << prob << ")";
       CliqueSplit::mutate(graph, prob);
-    } else if ( mutation == Mutation::TEST_MUTATION ) {
-      if ( _show_detailed_output )
-        LOG << "Mutation Action: TEST_MUTATION ( p =" << prob << ")";
-      TestMutation::mutate(graph, prob);
     }
     return mutation;
   }
@@ -328,10 +313,6 @@ class Mutator {
       return utils::Randomize::instance().getRandomFloat(
         _context.refinement.evo.min_clique_split_mutation_prob,
         _context.refinement.evo.max_clique_split_mutation_prob);
-    } else if ( mutation == Mutation::TEST_MUTATION ) {
-      return utils::Randomize::instance().getRandomFloat(
-        _context.refinement.evo.min_test_mutation_prob,
-        _context.refinement.evo.max_test_mutation_prob);
     }
     return 0.0f;
   }
