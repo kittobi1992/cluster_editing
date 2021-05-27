@@ -5,7 +5,6 @@
 #include <numeric>
 #include <fstream>
 #include <cstring>
-#include <set>
 
 #include "cluster_editing/datastructures/fast_reset_flag_array.h"
 #include "cluster_editing/utils/timer.h"
@@ -287,36 +286,25 @@ namespace internal {
     utils::CommonOperations::instance(graph).computeNodesOfCliqueWithEmptyCliques(graph);
     const std::vector<std::vector<NodeID>>& cliques =
       utils::CommonOperations::instance(graph)._cliques;
-    // Deletions
-    for ( const NodeID u : graph.nodes() ) {
-      for ( const NodeID& v : graph.neighbors(u) ) {
-        if ( u < v && graph.clique(u) != graph.clique(v) ) {
-          std::cout << (u + 1) << " " << (v + 1) << std::endl;
-        }
-      }
-    }
-
-    // Insertions
+    ds::FastResetFlagArray<> neighbors(graph.numNodes());
     for ( CliqueID c = 0; c < graph.numNodes(); ++c ) {
       if ( cliques[c].size() > 0 ) {
-        std::set<NodeID> clique(cliques[c].begin(), cliques[c].end());
-
         for ( const NodeID u : cliques[c] ) {
+          neighbors.reset();
+          neighbors.set(u, true);
           for ( const NodeID& v : graph.neighbors(u) ) {
             if ( graph.clique(u) == graph.clique(v) ) {
-              clique.erase(v);
-            }
-          }
-
-          for ( const NodeID v : clique ) {
-            if ( u < v ) {
+              neighbors.set(v, true);
+            } else if ( u < v ) {
+              // Deletions
               std::cout << (u + 1) << " " << (v + 1) << std::endl;
             }
           }
 
-          for ( const NodeID& v : graph.neighbors(u) ) {
-            if ( graph.clique(u) == graph.clique(v) ) {
-              clique.insert(v);
+          // Insertions
+          for ( const NodeID v : cliques[c] ) {
+            if ( u < v && !neighbors[v] ) {
+              std::cout << (u + 1) << " " << (v + 1) << std::endl;
             }
           }
         }
