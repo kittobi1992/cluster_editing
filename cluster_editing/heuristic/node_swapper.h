@@ -46,7 +46,8 @@ class NodeSwapper final : public IRefiner {
     _empty_cliques(utils::CommonOperations::instance(graph)._empty_cliques),
     _cliques(utils::CommonOperations::instance(graph)._cliques),
     _rating(utils::CommonOperations::instance(graph)._rating),
-    _cliques_with_same_rating()  { }
+    _cliques_with_same_rating(),
+    _prefer_isolation(false)  { }
 
   NodeSwapper(const NodeSwapper&) = delete;
   NodeSwapper(NodeSwapper&&) = delete;
@@ -73,5 +74,6 @@ class NodeSwapper final : public IRefiner {
   std::vector<std::vector<NodeID>>& _cliques;
   ds::FixedSizeSparseMap<CliqueID, EdgeWeight>& _rating;
   std::vector<CliqueID> _cliques_with_same_rating;
+  bool _prefer_isolation;
 };
 }  // namespace cluster_editing

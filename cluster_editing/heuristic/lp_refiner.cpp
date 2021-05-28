@@ -27,6 +27,7 @@ EdgeWeight LabelPropagationRefiner::refineImpl(Graph& graph,
                                                const EdgeWeight target_edits) {
   utils::Timer::instance().start_timer("lp", "Label Propagation");
   utils::CommonOperations::instance(graph)._lp_aborted_flag = false;
+  _prefer_isolation = utils::CommonOperations::instance(graph)._is_special_instance;
   bool converged = false;
   EdgeWeight start_metric = current_edits;
   EdgeWeight current_metric = current_edits;
@@ -228,7 +229,8 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique
   }
 
   // Check if it is beneficial to isolate the vertex
-  if ( !_empty_cliques.empty() &&  u_degree < best_rating.rating ) {
+  if ( !_empty_cliques.empty() && ( u_degree < best_rating.rating ||
+       ( u_degree == best_rating.rating && _prefer_isolation ) ) ) {
     best_rating.clique = _empty_cliques.back();
     best_rating.rating = u_degree;
     best_rating.delta = u_degree - from_rating;
@@ -307,7 +309,8 @@ LabelPropagationRefiner::Rating LabelPropagationRefiner::computeBestTargetClique
   }
 
   // Check if it is beneficial to isolate the vertex
-  if ( !_empty_cliques.empty() &&  u_degree < best_rating.rating ) {
+  if ( !_empty_cliques.empty() && ( u_degree < best_rating.rating ||
+       ( u_degree == best_rating.rating && _prefer_isolation ) ) ) {
     best_rating.clique = _empty_cliques.back();
     best_rating.rating = u_degree;
     best_rating.delta = u_degree - from_rating;

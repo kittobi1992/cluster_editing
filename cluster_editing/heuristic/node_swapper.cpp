@@ -19,6 +19,7 @@ EdgeWeight NodeSwapper::refineImpl(Graph& graph,
                                    const EdgeWeight) {
   utils::Timer::instance().start_timer("node_swapper", "Node Swapper");
   EdgeWeight edits = current_edits;
+  _prefer_isolation = utils::CommonOperations::instance(graph)._is_special_instance;
 
   if ( _context.isTimeLimitReached() ) {
     return current_edits;
@@ -174,7 +175,8 @@ NodeSwapper::Rating NodeSwapper::computeBestTargetClique(const Graph& graph,
 
   if ( consider_isolating_vertex ) {
   // Check if it is beneficial to isolate the vertex
-  if ( !_empty_cliques.empty() &&  u_degree < best_rating.rating ) {
+    if ( !_empty_cliques.empty() && ( u_degree < best_rating.rating ||
+        ( u_degree == best_rating.rating && _prefer_isolation ) ) ) {
       best_rating.clique = _empty_cliques.back();
       best_rating.rating = u_degree;
       best_rating.delta = u_degree - from_rating;

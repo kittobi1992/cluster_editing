@@ -48,7 +48,8 @@ class LabelPropagationRefiner final : public IRefiner {
     _rating(utils::CommonOperations::instance(graph)._rating),
     _window_improvement(0),
     _round_improvements(),
-    _cliques_with_same_rating() { }
+    _cliques_with_same_rating(),
+    _prefer_isolation(false) { }
 
   LabelPropagationRefiner(const LabelPropagationRefiner&) = delete;
   LabelPropagationRefiner(LabelPropagationRefiner&&) = delete;
@@ -83,5 +84,6 @@ class LabelPropagationRefiner final : public IRefiner {
   EdgeWeight _window_improvement;
   std::vector<EdgeWeight> _round_improvements;
   std::vector<CliqueID> _cliques_with_same_rating;
+  bool _prefer_isolation;
 };
 }  // namespace cluster_editing

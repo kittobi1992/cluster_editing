@@ -26,6 +26,7 @@ EdgeWeight LocalizedEvolutionary::performTimeLimitedEvoSteps(Graph& graph, doubl
   utils::Timer::instance().start_timer("localized_evo", "Localized Evolutionary");
   auto start_time = std::chrono::high_resolution_clock::now();
   utils::CommonOperations::instance(graph)._lp_aborted_flag = false;
+  _prefer_isolation = utils::CommonOperations::instance(graph)._is_special_instance;
   EdgeWeight start_metric = current_edits;
   EdgeWeight current_metric = current_edits;
   if ( _context.isTimeLimitReached() ) {
@@ -381,7 +382,8 @@ LocalizedEvolutionary::Rating LocalizedEvolutionary::computeBestTargetCliqueWith
   }
 
   // Check if it is beneficial to isolate the vertex
-  if ( !_empty_cliques.empty() &&  u_degree < best_rating.rating ) {
+  if ( !_empty_cliques.empty() && ( u_degree < best_rating.rating ||
+       ( u_degree == best_rating.rating && _prefer_isolation ) ) ) {
     best_rating.to = _empty_cliques.back();
     best_rating.rating = u_degree;
     best_rating.delta = u_degree - from_rating;
@@ -462,7 +464,8 @@ LocalizedEvolutionary::Rating LocalizedEvolutionary::computeBestTargetCliqueWith
   }
 
   // Check if it is beneficial to isolate the vertex
-  if ( !_empty_cliques.empty() &&  u_degree < best_rating.rating ) {
+  if ( !_empty_cliques.empty() && ( u_degree < best_rating.rating ||
+       ( u_degree == best_rating.rating && _prefer_isolation ) ) ) {
     best_rating.to = _empty_cliques.back();
     best_rating.rating = u_degree;
     best_rating.delta = u_degree - from_rating;
