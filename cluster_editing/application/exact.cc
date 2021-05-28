@@ -40,7 +40,24 @@ int main(int argc, char *argv[]) {
     auto inst = load_exact_instance(); // read from stdin
 
     ExactSolver solver;
+
+    // handle args
+    for(int i=1; i<argc; ++i) {
+        string param = argv[i];
+        if(param=="--enable-logging=true")
+            solver.verbose = true;
+        if(param.find("--time-limit=")==0) {
+            int secs = stoi(param.substr(13));
+            solver.time_limit = chrono::steady_clock::now() + chrono::seconds(secs);
+        }
+    }
+
     auto solution = solver.solve(inst);
+
+    if(solver.verbose) {
+        cout << solver << endl;
+        cout << "instance solved with " << solution.cost << " edits" << endl;
+    }
 
     print_edits(inst.edges, solution);
 
