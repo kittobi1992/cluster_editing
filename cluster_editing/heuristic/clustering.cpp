@@ -17,7 +17,7 @@ namespace cluster_editing {
 namespace {
 
 bool isSpecialInstance(const Graph& graph) {
-  if ( graph.maxDegree() < 20 && graph.numEdges() / 2 > 1000000 ) {
+  if ( graph.numEdges() / 2 > 750000 ) {
     utils::CommonOperations::instance(graph).computeClusterSizes(graph);
     std::vector<NodeID> cluster_sizes =
             utils::CommonOperations::instance(graph)._cluster_sizes;
@@ -30,7 +30,7 @@ bool isSpecialInstance(const Graph& graph) {
     const NodeID p_75 = cluster_sizes[cluster_sizes.size() - percentile_75];
     const NodeID p_99 = cluster_sizes[cluster_sizes.size() - percentile_99];
     const NodeID max_cluster_size = cluster_sizes[0];
-    return p_75 <= 2 && p_99 <= 4 && max_cluster_size <= 6;
+    return p_75 <= 3 && p_99 <= 5 && max_cluster_size <= 8;
   }
   return false;
 }
