@@ -92,11 +92,12 @@ void solve(Graph& graph, const Context& context) {
     HighResClockTimepoint start_init = std::chrono::high_resolution_clock::now();
     HighResClockTimepoint end_init = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_seconds(end_init - start_init);
-    for ( size_t i = 0; i < 100 && elapsed_seconds.count() <= 10; ++i ) {
+    for ( size_t i = 0; i < 100 && elapsed_seconds.count() <= 10 && !context.isTimeLimitReached(); ++i ) {
       graph.reset();
       current_edits = static_cast<EdgeWeight>(graph.numEdges()) / 2;
       evo.initialize(graph);
       current_edits = evo.createInitialPopulation(graph, current_edits);
+      graph.checkpoint(current_edits);
       end_init = std::chrono::high_resolution_clock::now();
       elapsed_seconds = end_init - start_init;
       if ( context.general.verbose_output ) io::printStripe();
