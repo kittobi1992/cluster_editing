@@ -122,6 +122,7 @@ void Evolutionary::evolutionaryStep(Graph& graph) {
     delta = mutate(graph, _population[i]);
   }
   _evo_action_selector.notifyImprovement(action, delta);
+  graph.checkpoint(_population[i].edits);
 }
 
 EdgeWeight Evolutionary::intensivate(Graph& graph, SolutionStats& stats) {
