@@ -58,6 +58,7 @@ class LocalizedEvolutionary final : public IRefiner {
     _max_mutation_nodes(context.refinement.localized_evo.max_mutations_nodes),
     _step(0),
     _max_steps(context.refinement.localized_evo.steps),
+    _prng(420),
     _prefer_isolation(false) {
     if ( utils::CommonOperations::instance(graph)._is_special_instance ) {
       _max_distance = std::max(5, _max_distance);
@@ -128,7 +129,7 @@ class LocalizedEvolutionary final : public IRefiner {
   int _max_mutation_nodes;
   size_t _step;
   size_t _max_steps;
-  std::mt19937 _prng { 420 };
+  std::mt19937 _prng;
   bool _prefer_isolation;
 };
 }  // namespace cluster_editing
