@@ -56,10 +56,15 @@ class LocalizedEvolutionary final : public IRefiner {
     _marked(graph.numNodes()),
     _max_distance(context.refinement.localized_evo.max_distance_to_mutation_node),
     _max_mutation_nodes(context.refinement.localized_evo.max_mutations_nodes),
+    _step(0),
+    _max_steps(context.refinement.localized_evo.steps),
     _prefer_isolation(false) {
     if ( utils::CommonOperations::instance(graph)._is_special_instance ) {
       _max_distance = std::max(5, _max_distance);
       _max_mutation_nodes = std::min(5, _max_mutation_nodes);
+    }
+    if ( _context.refinement.localized_evo.run_until_time_limit ) {
+      _max_steps = std::numeric_limits<size_t>::max();
     }
   }
 
@@ -69,13 +74,15 @@ class LocalizedEvolutionary final : public IRefiner {
   LocalizedEvolutionary & operator= (const LocalizedEvolutionary &) = delete;
   LocalizedEvolutionary & operator= (LocalizedEvolutionary &&) = delete;
 
-    EdgeWeight performTimeLimitedEvoSteps(Graph& graph, double time_limit, EdgeWeight current_edits);
-    bool done() const {
-      return _step == _context.refinement.localized_evo.steps;
-    }
-    void setDone() {
-      _step = _context.refinement.localized_evo.steps;
-    }
+  EdgeWeight performTimeLimitedEvoSteps(Graph& graph, double time_limit, EdgeWeight current_edits);
+
+  bool done() const {
+    return _step >= _max_steps;
+  }
+
+  void setDone() {
+    _step = _max_steps;
+  }
 
  private:
 
@@ -119,7 +126,8 @@ class LocalizedEvolutionary final : public IRefiner {
   ds::FastResetFlagArray<> _marked;
   int _max_distance;
   int _max_mutation_nodes;
-  size_t _step = 0;
+  size_t _step;
+  size_t _max_steps;
   std::mt19937 _prng { 420 };
   bool _prefer_isolation;
 };

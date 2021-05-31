@@ -49,13 +49,13 @@ EdgeWeight Evolutionary::performTimeLimitedEvoSteps(Graph& graph, double time_li
   }
   _is_special_instance = utils::CommonOperations::instance(graph)._is_special_instance;
   utils::ProgressBar evo_progress(
-          _context.refinement.evo.evolutionary_steps, _population[0].edits,
+          _max_steps, _population[0].edits,
           _context.general.verbose_output && !debug && !_context.refinement.evo.enable_detailed_output);
   if (evo_progress.isEnabled()) {
     evo_progress += _step;
   }
   auto start_time = std::chrono::high_resolution_clock::now();
-  for ( ; _step < _context.refinement.evo.evolutionary_steps; ++_step ) {
+  for ( ; _step < _max_steps; ++_step ) {
     evolutionaryStep(graph);
     if ( evo_progress.isEnabled() ) {
       sortSolutions();
@@ -63,7 +63,7 @@ EdgeWeight Evolutionary::performTimeLimitedEvoSteps(Graph& graph, double time_li
       evo_progress += 1;
     }
 
-    if (_step == _context.refinement.evo.enable_all_mutations_after_steps ) {
+    if (_step == static_cast<size_t>(_context.refinement.evo.enable_all_mutations_after_steps) ) {
       const std::string enable_all_mutations(
               static_cast<int>(Mutation::NUM_MUTATIONS), '1');
       _mutator.activateMutations(enable_all_mutations);
@@ -75,7 +75,7 @@ EdgeWeight Evolutionary::performTimeLimitedEvoSteps(Graph& graph, double time_li
     }
   }
 
-  evo_progress += (_context.refinement.evo.evolutionary_steps - evo_progress.count());
+  evo_progress += (_max_steps - evo_progress.count());
 
   // Apply best solution to graph
   sortSolutions();

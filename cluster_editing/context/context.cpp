@@ -24,6 +24,7 @@ std::ostream & operator<< (std::ostream& str, const EvolutionaryParameters& para
   str << "\n  Evolutionary Parameters:" << std::endl;
   str << "    Enable Detailed Output:      " << std::boolalpha << params.enable_detailed_output << std::endl;
   str << "    Evolutionary Time Limit:     " << params.time_limit << std::endl;
+  str << "    Run until Time Limit:        " << std::boolalpha << params.run_until_time_limit << std::endl;
   str << "    Evolutionary Steps:          " << params.evolutionary_steps << std::endl;
   str << "    Solution Pool Size:          " << params.solution_pool_size << std::endl;
   str << "    Initial LP Iterations:       " << params.initial_lp_iterations << std::endl;

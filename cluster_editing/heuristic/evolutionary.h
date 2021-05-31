@@ -64,7 +64,13 @@ class Evolutionary final : public IRefiner {
     _node_swapper(graph, _context),
     _mutator(_context),
     _evo_action_selector( { EvoAction::INTESIVATE, EvoAction::MUTATE } ),
-    _start() { }
+    _start(),
+    _step(0),
+    _max_steps(_context.refinement.evo.evolutionary_steps) {
+    if ( _context.refinement.evo.run_until_time_limit ) {
+      _max_steps = std::numeric_limits<size_t>::max();
+    }
+  }
 
   Evolutionary(const Evolutionary&) = delete;
   Evolutionary(Evolutionary&&) = delete;
@@ -73,11 +79,13 @@ class Evolutionary final : public IRefiner {
   Evolutionary & operator= (Evolutionary &&) = delete;
 
   EdgeWeight performTimeLimitedEvoSteps(Graph& graph, double time_limit, EdgeWeight current_edits);
+
   bool done() const {
-    return _step == _context.refinement.evo.evolutionary_steps;
+    return _step >= _max_steps;
   }
+
   void setDone() {
-    _step = _context.refinement.evo.evolutionary_steps;
+    _step = _max_steps;
   }
 
   EdgeWeight createInitialPopulation(Graph& graph, const EdgeWeight current_edits);
@@ -167,6 +175,7 @@ class Evolutionary final : public IRefiner {
   Mutator _mutator;
   ActionSelector<EvoAction> _evo_action_selector;
   HighResClockTimepoint _start;
-  int _step = 0;
+  size_t _step;
+  size_t _max_steps;
 };
 }  // namespace cluster_editing

@@ -31,6 +31,7 @@ std::ostream & operator<< (std::ostream& str, const GeneralParameters& params);
 struct EvolutionaryParameters {
   bool enable_detailed_output = false;
   double time_limit = 0;
+  bool run_until_time_limit = false;
   int solution_pool_size = 0;
   int evolutionary_steps = 0;
   int initial_lp_iterations = 0;
@@ -144,6 +145,7 @@ class Context {
       if ( graph.numNodes() < 10000 ) {
         refinement.localized_evo.steps /= 100;
       } else if ( graph.numNodes() > 50000 ) {
+        refinement.evo.run_until_time_limit = true;
         refinement.localized_evo.run_until_time_limit = true;
       }
     }

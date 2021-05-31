@@ -32,17 +32,15 @@ EdgeWeight LocalizedEvolutionary::performTimeLimitedEvoSteps(Graph& graph, doubl
   if ( _context.isTimeLimitReached() ) {
     return current_metric;
   }
-  size_t steps = _context.refinement.localized_evo.run_until_time_limit ?
-                 std::numeric_limits<size_t>::max() : _context.refinement.localized_evo.steps;
   utils::ProgressBar lp_progress(
-          steps, start_metric, _context.general.verbose_output && !debug);
+          _max_steps, start_metric, _context.general.verbose_output && !debug);
   lp_progress += _step;
   // Sorting-based rating is beneficial if the number of nodes is greater
   // than 150000
   const NodeID rating_map_degree_threshold = graph.numNodes() > 150000 ?
                                              _context.refinement.lp.rating_map_degree_threshold : 0;
   // enable early exit on large graphs, if FM refiner is used afterwards
-  for ( ; _step < steps; ++_step ) {
+  for ( ; _step < _max_steps; ++_step ) {
     EdgeWeight delta = 0;
     // Mutate a small number of the vertices
     mutate(graph, delta);
@@ -99,7 +97,7 @@ EdgeWeight LocalizedEvolutionary::performTimeLimitedEvoSteps(Graph& graph, doubl
       }
     }
   }
-  lp_progress += (_context.refinement.localized_evo.steps - lp_progress.count());
+  lp_progress += (_max_steps - lp_progress.count());
 
   // checkpoint once more in the end
   const EdgeWeight delta = start_metric - current_metric;
