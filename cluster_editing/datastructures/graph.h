@@ -201,6 +201,10 @@ class Graph {
 
   // ####################### Checkpointing #######################
 
+  EdgeWeight bestEdits() const {
+    return _best_quality;
+  }
+
   void applyBestCliques() {
     copy_lock.lock();
     for ( const NodeID& u : nodes() ) {
