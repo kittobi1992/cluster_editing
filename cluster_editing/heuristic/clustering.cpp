@@ -25,10 +25,12 @@ bool isSpecialInstance(const Graph& graph) {
     while ( cluster_sizes.back() == 0 ) {
       cluster_sizes.pop_back();
     }
-    size_t percentile = 0.99 * cluster_sizes.size();
-    const NodeID p_99 = cluster_sizes[cluster_sizes.size() - percentile];
+    size_t percentile_75 = 0.75 * cluster_sizes.size();
+    size_t percentile_99 = 0.99 * cluster_sizes.size();
+    const NodeID p_75 = cluster_sizes[cluster_sizes.size() - percentile_75];
+    const NodeID p_99 = cluster_sizes[cluster_sizes.size() - percentile_99];
     const NodeID max_cluster_size = cluster_sizes[0];
-    return max_cluster_size <= 5 && p_99 <= 3;
+    return p_75 <= 2 && p_99 <= 4 && max_cluster_size <= 6;
   }
   return false;
 }
