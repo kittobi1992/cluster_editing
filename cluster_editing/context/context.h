@@ -141,14 +141,10 @@ class Context {
       if ( graph.numEdges() / 2 > 1000000 ) {
         refinement.evo.time_limit *= 1.5;
       }
-
-      if ( graph.numNodes() < 10000 ) {
-        refinement.localized_evo.steps /= 100;
-      } else if ( graph.numNodes() > 50000 ) {
-        refinement.evo.run_until_time_limit = true;
-        refinement.localized_evo.run_until_time_limit = true;
-      }
     }
+
+    refinement.evo.run_until_time_limit = true;
+    refinement.localized_evo.run_until_time_limit = true;
   }
 
   bool isTimeLimitReached() const {
