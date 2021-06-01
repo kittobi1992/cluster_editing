@@ -1,7 +1,7 @@
 # PACE Challenge 2021 - KaPoCE
 
 The **Ka**rlsuhe and **Po**tsdam **C**luster **E**diting framework is a software for
-the cluster editing problem. The cluster editing problem is to transform an input graph into a cluster graph (a disjoint union of complete graphs) by performing a minimum number of edge editing operations.  An edit operation can be either adding a new edge or removing an existing edge. This repository provides an exact and heuristic solver for the cluster editing problem.
+solving the cluster editing problem. The cluster editing problem is to transform an input graph into a cluster graph (a disjoint union of complete graphs) by performing a minimum number of edge editing operations.  An edit operation can be either adding a new edge or removing an existing edge. This repository provides an exact and heuristic solver for the cluster editing problem.
 
 ![cluster-editing](https://user-images.githubusercontent.com/9654047/119774492-88069e00-bec2-11eb-8800-c4abfcacb82f.png)
 
