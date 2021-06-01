@@ -1,3 +1,20 @@
+/*******************************************************************************
+ * This file is part of KaPoCE.
+ *
+ * KaPoCE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * KaPoCE is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with KaPoCE.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
 
 #include "reductions.h"
 
@@ -33,7 +50,7 @@ vector<int> connectedComponents(const Edges& graph) {
 
     numComps++;
   }
-  
+
   return comp;
 }
 
@@ -43,7 +60,7 @@ vector<Instance> constructConnectedComponents(const Instance& graph) {
   auto numComps = *max_element(begin(compNum), end(compNum)) + 1;
   vector<vector<int>> nodesPerComp(numComps);
   vector<Instance> comps;
-  for(int i=0; i<n; ++i) 
+  for(int i=0; i<n; ++i)
     nodesPerComp[compNum[i]].push_back(i);
   for(int c=0; c<numComps; ++c) {
     Instance component(nodesPerComp[c].size());
@@ -113,7 +130,7 @@ Instance merge(const Instance& inst, int u, int v) {
   IDMap mergedmap(n-1);
   // copy all old ones to the right place
   for(int i=0; i<n; ++i)
-    if(i!=v) 
+    if(i!=v)
       mergedmap[newid(i)] = inst.idmap[i];
   // insert all from v into u
   mergedmap[u].insert(end(mergedmap[u]), begin(inst.idmap[v]), end(inst.idmap[v]));
@@ -176,10 +193,10 @@ std::optional<Instance> icxReductions(const Instance& inst, int budget) {
   int n = size(inst.edges);
 
   for(int u=0; u<n; ++u) {
-    for(int v=u+1; v<n; ++v) {  
+    for(int v=u+1; v<n; ++v) {
 
       // unsolvable instance
-      if(min(icf[u][v], icp[u][v]) > budget - inst.spendCost) 
+      if(min(icf[u][v], icp[u][v]) > budget - inst.spendCost)
         return Instance{};
 
       // we must merge
