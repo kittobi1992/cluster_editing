@@ -22,6 +22,7 @@
 
 #include <cluster_editing/exact/instance.h>
 #include <cluster_editing/exact/solver.h>
+#include <cluster_editing/io/output.h>
 
 using namespace std;
 
@@ -68,6 +69,10 @@ int main(int argc, char *argv[]) {
             int secs = stoi(param.substr(13));
             solver.time_limit = chrono::steady_clock::now() + chrono::seconds(secs);
         }
+    }
+
+    if ( solver.verbose ) {
+      cluster_editing::io::printBanner();
     }
 
     auto solution = solver.solve(inst);
