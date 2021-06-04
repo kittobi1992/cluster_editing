@@ -27,6 +27,8 @@
 
 #include "graph_common.h"
 
+// based on https://github.com/boostorg/dynamic_bitset
+
 namespace cluster_editing::ds {
     namespace detail {
         [[nodiscard]] constexpr int ctz(unsigned long long n) noexcept {

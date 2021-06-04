@@ -19,6 +19,8 @@
 
 #include "adjacency_row.h"
 
+// based on https://github.com/boostorg/dynamic_bitset
+
 namespace cluster_editing::ds {
 
     AdjacencyRow::NodeIterator &AdjacencyRow::NodeIterator::operator++() noexcept {
