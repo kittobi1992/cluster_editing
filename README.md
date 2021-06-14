@@ -77,4 +77,4 @@ Prepare CMake submission for optil.io with
 [cmake]: http://www.cmake.org/ "CMake tool"
 [Boost.Program_options]: http://www.boost.org/doc/libs/1_58_0/doc/html/program_options.html
 [heuristic_description]: http://algo2.iti.kit.edu/heuer/kapoce/kapoce_heuristic.pdf "Heuristic Solver Description"
-[exact_description]: http://algo2.iti.kit.edu/heuer/kapoce/kapoce_heuristic.pdf "Exact Solver Description"
+[exact_description]: http://algo2.iti.kit.edu/heuer/kapoce/kapoce_exact.pdf "Exact Solver Description"
