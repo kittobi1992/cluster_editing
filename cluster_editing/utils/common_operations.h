@@ -35,9 +35,16 @@ class CommonOperations {
   CommonOperations& operator= (const CommonOperations&) = delete;
   CommonOperations& operator= (CommonOperations&&) = delete;
 
+  static bool dirty;
+
   static CommonOperations & instance(const Graph& graph) {
-    static CommonOperations instance(graph);
-    return instance;
+    static auto* instance = new CommonOperations(graph);
+    if(dirty) {
+        delete instance;
+        instance = new CommonOperations(graph);
+        dirty = false;
+    }
+    return *instance;
   }
 
   void computeClusterSizes(const Graph& graph) {

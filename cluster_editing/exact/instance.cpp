@@ -67,7 +67,7 @@ Instance load_exact_instance() {
 }
 
 Instance load_exact_instance(int num) {
-    assert(1<=num && num<=199 && num%2);
+    assert(1<=num && num<=200);
     auto suf = to_string(num);
     while(size(suf)<3) suf = '0'+suf;
     auto file_name = EXACT_DATA_DIR + ("exact" + suf + ".gr");

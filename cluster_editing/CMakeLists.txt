@@ -7,9 +7,7 @@ add_subdirectory(exact)
 
 configure_file(data_path.h.in data_path.h)
 
-set(ClusterEditingSources
-      data_path.h
-      )
+set(ClusterEditingSources ${CMAKE_BINARY_DIR}/cluster_editing/data_path.h)
 
 foreach(modtarget IN LISTS TARGETS_WANTING_ALL_SOURCES)
       target_include_directories(${modtarget} PRIVATE ${CMAKE_BINARY_DIR}) # to get the configured file 'data_path.h'

@@ -480,26 +480,33 @@ std::optional<Instance> complexTwin(const Instance &inst, bool calc_dp) {
     return res;
 }
 
-std::optional<Instance> mergeCliques(const Instance &inst) {
+std::optional<Instance> removeCliques(const Instance &inst) {
     int n = size(inst.edges);
     auto compId = connectedComponents(inst.edges);
     int num = 1+ *max_element(begin(compId), end(compId));
     vector isClique(num, true);
-    vector compSize(num, 0);
-    for(int c : compId) compSize[c]++;
+    vector comps(num, vector<int>());
+    for(int v=0; v<n; ++v) comps[compId[v]].push_back(v);
     for(int v=0; v<n; ++v)
         for(int u=v+1; u<n; ++u)
             if(compId[v]==compId[u] && inst.edges[v][u]<0)
                 isClique[compId[v]] = false;
-    bool canMerge = false;
-    for(int c=0; c<num; ++c) canMerge |= (isClique[c] && compSize[c]>1);
-    if(!canMerge) return {};
-    auto res = inst;
-    for(int v=0; v<n; ++v)
-        for(int u=v+1; u<n; ++u)
-            if(compId[v]==compId[u] && isClique[compId[v]])
-                res.edges[v][u] = INF;
-    mergeAllINF(res);
+
+    if(count(begin(isClique), end(isClique), true) == 0)
+        return {};
+
+    Instance res = inst;
+    vector<int> toDelete;
+    for(int i=0; i<num; ++i) {
+        if(!isClique[i]) continue;
+        toDelete.insert(end(toDelete),begin(comps[i]),end(comps[i]));
+        vector<int> expandedNodeSet;
+        for(auto v : comps[i])
+            expandedNodeSet.insert(end(expandedNodeSet), begin(inst.idmap[v]), end(inst.idmap[v]));
+        res.done_clusters.push_back(expandedNodeSet);
+    }
+    res = remove_nodes(res, toDelete);
+
     return res;
 }
 
