@@ -182,16 +182,19 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
                 << " with " << applied << endl;
         }
         auto t2 = chrono::steady_clock::now();
+        int lower = star_bound(inst,upper);
         if(verbose) {
             cout << "INITIAL REDUCTION FINISHED" << endl;
             cout << "time:  " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() * 0.001 << " s\n";
             cout << "size:  " << size(inst.edges) << endl;
-            int lower = star_bound(inst,upper);
             cout << "lower: " << inst.spendCost + lower << endl;
             cout << "upper: " << upper << endl;
             cout << "gap:   " << upper-lower-inst.spendCost << endl;
             cout << "STARTING BRANCH AND BOUND" << endl;
         }
+        root_size = size(inst.edges);
+        root_time = chrono::duration_cast<chrono::milliseconds>(t2-t1).count();
+        root_gap = upper-lower-inst.spendCost;
     }
 
     Solution s_comb;
@@ -236,6 +239,7 @@ Solution solve_exact(Instance inst, int budget_limit, int time_limit) {
     return solver.solve(inst, budget_limit);
 }
 
+bool cluster_editing::utils::CommonOperations::dirty = false;
 Solution solve_heuristic(const Instance &inst) {
 
     // ugly transform to unweighted instance
@@ -261,6 +265,7 @@ Solution solve_heuristic(const Instance &inst) {
 
     // TODO bring over evo
     // TODO stop if lower bound reached
+    cluster_editing::utils::CommonOperations::dirty = true;
 
     cluster_editing::Context context;
     context.refinement.use_lp_refiner = true;

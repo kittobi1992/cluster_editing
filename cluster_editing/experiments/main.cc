@@ -1,7 +1,6 @@
 
 #include <iostream>
 #include <cassert>
-#include <map>
 #include <fstream>
 
 #include <cluster_editing/exact/instance.h>
@@ -11,9 +10,6 @@
 #include <cluster_editing/exact/star_bound.h>
 #include <cluster_editing/exact/lower_bounds.h>
 #include <cluster_editing/exact/thomas.h>
-#include <cluster_editing/utils/common_operations.h>
-
-#include <girgs/Generator.h>
 
 using namespace std;
 
@@ -41,83 +37,6 @@ auto get_edits(const Edges& edges, const Solution& sol) {
             }
     assert(cost == sol.cost);
     return pair(adds, rems);
-}
-
-void make_pdf(
-        std::vector<std::vector<double>> pos,
-        std::vector<std::pair<int, int>> graph,
-        std::string file,
-        map<int,string> nodeColors = {},
-        map<int,string> nodeLabels = {},
-        map<pair<int,int>,string> edgeColors = {},
-        bool torus=true) {
-
-    std::ofstream f{file+".dot"};
-    //f << "graph girg {\n\toverlap=scale;\n\n";
-    f << "graph girg {\n\tscale=2000\n\n";
-
-    if(torus) {
-        f << "\tviewport=\"2000,2000\"\n\n";
-        auto dist = [](auto a, auto b) { return max(abs(a[0]-b[0]), abs(a[1]-b[1])); };
-        auto npos = [&](int v, int i) { return vector{pos[v][0] + (i&1), pos[v][1] + ((i>>1)&1)}; };
-
-        // duplicate nodes 4 times
-        int n = size(pos);
-        for(int i=1;i<4;++i) {
-            for(int v=0; v<n; ++v) {
-                pos.push_back(npos(v,i));
-                if(nodeColors.count(v)) nodeColors[v+i*n] = nodeColors[v];
-                nodeLabels[v+i*n] = nodeLabels.count(v) ? nodeLabels[v] : to_string(v);
-            }
-        }
-
-        // duplicate edges; only draw if dist <= 0.5
-        auto old = graph;
-        graph.clear();
-        for(auto [u,v] : old) {
-            auto it = edgeColors.find(minmax(u,v));
-            for(int i=0;i<4;++i) {
-                for(int j=0; j<4; ++j) {
-                    if(dist(npos(u,i), npos(v,j))>0.5) continue;
-                    graph.emplace_back(u + i*n, v + j*n);
-                    if(it==end(edgeColors)) continue;
-                    edgeColors[minmax(u+i*n,v+j*n)] = it->second;
-                }
-            }
-        }
-    }
-
-    f << std::fixed;
-    for (int i = 0; i < (int)pos.size(); ++i) {
-        f << '\t' << i << " [pos=\"" << pos[i][0] << ',' << pos[i][1] << "\"";
-        if(nodeColors.count(i) > 0)
-            f << " style =\"filled\" fillcolor=\"" << nodeColors[i] << "\"";
-        if(nodeLabels.count(i) > 0)
-            f << " label=\"" << nodeLabels[i] << "\"";
-        f << "];\n";
-    }
-    f << '\n';
-    for (auto e : graph) {
-        auto [a,b] = minmax(e.first,e.second);
-        f << '\t' << a << "\t-- " << b;
-        if(edgeColors.count({a,b}) > 0)
-            f << "\t[color=\"" << edgeColors[{a,b}] << "\"]";
-        f << ";\n";
-    }
-    f << "}\n";
-    f.flush();
-
-    // create pdf
-    string command = "neato -n -Tpdf " + file + ".dot -o " + file + ".pdf";
-    system(command.c_str());
-}
-
-Instance fromEdgeList(int n, const vector<pair<int,int>>& edges) {
-    vector<vector<int>> res(n, vector<int>(n, -1));
-    Instance inst(n);
-    for(auto [u,v] : edges) inst.edges[u][v] = inst.edges[v][u] = 1;
-    inst.orig = inst.edges;
-    return inst;
 }
 
 template<class F>
@@ -166,56 +85,7 @@ Instance reduceWithAll(Instance inst, int upper, bool verbose = false) {
     return inst;
 }
 
-
-void girgs_stuff() {
-    // default girg config
-    int n = 150;
-    int deg = 10;
-    double ple = 2.9;
-    auto alpha = numeric_limits<double>::infinity();
-    int d = 2;
-    int seed1 = 12951243, seed2 = 613241, seed3 = 90192471;
-
-    auto pos = girgs::generatePositions(n,d,seed1);
-    auto wei = girgs::generateWeights(n,ple,seed2);
-    girgs::scaleWeights(wei,deg,d,alpha);
-    auto edges = girgs::generateEdges(wei, pos, alpha, seed3);
-
-    cout << size(edges) << endl;
-
-    Instance inst = fromEdgeList(n,edges);
-    ExactSolver solver;
-    solver.verbose = true;
-    auto sol= solver.solve(inst);
-
-    sort(begin(sol.cliques), end(sol.cliques), [](auto a, auto b) { return size(a)>size(b); });
-    vector which_clique(n,0);
-    for(auto i=0u; i<size(sol.cliques); ++i) {
-        for(auto v : sol.cliques[i])
-            which_clique[v] = i;
-    }
-
-    map<int,string> node_col;
-    map<pair<int,int>,string> edge_col;
-
-    // color nodes by clique
-    for(int i=0;i<n;++i)
-        if(which_clique[i]<12)
-            node_col[i] = "/paired12/"s + to_string(which_clique[i]+1);
-
-    auto [adds, rems] = get_edits(inst.edges, sol);
-    for(auto [u,v] : adds) edges.emplace_back(u,v);
-
-    for(auto [u,v] : adds) edge_col[{u, v}] = "green";
-    for(auto [u,v] : rems) edge_col[{u,v}] = "red";
-
-    make_pdf(pos,edges,"graphimage",node_col, {}, edge_col);
-}
-
-
-bool cluster_editing::utils::CommonOperations::dirty = false;
-
-int main(int argc, char *argv[]) {
+int main(int, char**) {
 
     vector reductions{"all reds", "force p3", "force star", "twin simple", "twin complex", "icx", "heavy edge (b)", "heavy edge (s)", "heavy non-edge", "forced single merge"};
 
@@ -231,8 +101,6 @@ int main(int argc, char *argv[]) {
     csv << endl;
 
     for(int i=1; i<50; ++i) {
-        cluster_editing::utils::CommonOperations::dirty = true;
-
         cout << "\n\ninstance " << i << endl;
 
         // usual stuff
@@ -243,7 +111,7 @@ int main(int argc, char *argv[]) {
         assert(m%2==0); m /= 2;
         ExactSolver solver;
         solver.verbose = true;
-        solver.time_limit = chrono::steady_clock::now() + chrono::seconds(30);
+        solver.time_limit = chrono::steady_clock::now() + chrono::hours(1);
         auto t1 = chrono::steady_clock::now();
         auto sol = solver.solve(inst);
         auto t2 = chrono::steady_clock::now();

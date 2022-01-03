@@ -11,5 +11,9 @@ target_link_libraries(experiments girgs::girgs ${Boost_LIBRARIES})
 set_property(TARGET experiments PROPERTY CXX_STANDARD 17)
 set_property(TARGET experiments PROPERTY CXX_STANDARD_REQUIRED ON)
 
-set(TARGETS_WANTING_ALL_SOURCES ${TARGETS_WANTING_ALL_SOURCES} experiments PARENT_SCOPE)
-message(STATUS ${TARGETS_WANTING_ALL_SOURCES})
+add_executable(gexp gexp.cc)
+target_link_libraries(gexp girgs::girgs ${Boost_LIBRARIES})
+set_property(TARGET gexp PROPERTY CXX_STANDARD 17)
+set_property(TARGET gexp PROPERTY CXX_STANDARD_REQUIRED ON)
+
+set(TARGETS_WANTING_ALL_SOURCES ${TARGETS_WANTING_ALL_SOURCES} experiments gexp PARENT_SCOPE)

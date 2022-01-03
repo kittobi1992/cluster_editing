@@ -49,6 +49,11 @@ public:
     int redHeavyNonEdge = 0;
     int numPrunes = 0; // unsolvable leaf
 
+    // stats after root reduction
+    int root_size = 0;
+    int root_time = 0;
+    int root_gap = 0;
+
     std::chrono::steady_clock::time_point time_limit = std::chrono::steady_clock::time_point::max();
     Solution solve_internal(Instance graph, int budget);
 };
