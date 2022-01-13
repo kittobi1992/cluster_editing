@@ -130,7 +130,7 @@ void runExperiment(int n, int deg, double ple, double T, int d, int s1, int s2, 
     // solving
     ExactSolver solver;
     solver.verbose = true;
-    solver.time_limit = chrono::steady_clock::now() + chrono::hours(1);
+    solver.time_limit = chrono::steady_clock::now() + chrono::minutes(type=="n" ? 60 : 10);
     auto t1 = chrono::steady_clock::now();
     auto sol = solver.solve(inst);
     auto t2 = chrono::steady_clock::now();
