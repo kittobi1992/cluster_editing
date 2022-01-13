@@ -163,7 +163,7 @@ Solution ExactSolver::solve(Instance inst, int budget_limit) {
         if(verbose) cout << "upper bound " << upper << endl;
         if(auto opt = thomas(inst); opt) inst = *opt; // TODO multiple thomas reductions
         if(auto opt = distance4Reduction(inst); opt) inst = *opt;
-        while(true) {
+        while(chrono::steady_clock::now()>time_limit) {
             string applied = "";
             if(empty(applied)) if(auto opt = force_small_components(inst); opt) inst = *opt, applied = "small clean up";
             if(empty(applied)) if(auto opt = forcedChoices(inst, upper); opt) inst = *opt, applied = "force p3";

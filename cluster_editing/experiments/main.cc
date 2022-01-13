@@ -40,9 +40,10 @@ auto get_edits(const Edges& edges, const Solution& sol) {
 }
 
 template<class F>
-Instance reduceWithOne(Instance inst, F&& reduction) {
+Instance reduceWithOne(Instance inst, F&& reduction, chrono::steady_clock::time_point limit) {
     if(auto opt = distance4Reduction(inst); opt) inst = *opt;
     while(true) {
+        if(chrono::steady_clock::now()>limit) break;
         auto opt = reduction(inst);
         if(opt) inst = *opt;
         else break;
@@ -50,11 +51,10 @@ Instance reduceWithOne(Instance inst, F&& reduction) {
     return inst;
 }
 
-Instance reduceWithAll(Instance inst, int upper, bool verbose = false) {
-    if(verbose) cout << "solving instance with n=" << size(inst.edges) << endl;
+Instance reduceWithAll(Instance inst, int upper, chrono::steady_clock::time_point limit) {
     auto t1 = chrono::steady_clock::now();
-    if(verbose) cout << "upper bound " << upper << endl;
     while(true) {
+        if(chrono::steady_clock::now()>limit) break;
         string applied = "";
         if(empty(applied)) if(auto opt = force_small_components(inst); opt) inst = *opt, applied = "small clean up";
         if(empty(applied)) if(auto opt = forcedChoices(inst, upper); opt) inst = *opt, applied = "force p3";
@@ -67,21 +67,8 @@ Instance reduceWithAll(Instance inst, int upper, bool verbose = false) {
         if(empty(applied)) if(auto opt = heavy_non_edge_single_end(inst); opt) inst = *opt, applied = "heavy non-edge";
         if(empty(applied)) if(auto opt = forcedChoicesSingleMerge(inst, upper, false); opt) inst = *opt, applied = "forced single merge";
         if(empty(applied)) break;
-        else if(verbose) cout << "reduced to n=" << size(inst.edges)
-                              << " -INFs=" << forbiddenEdges(inst)
-                              << " spent=" << inst.spendCost
-                              << " with " << applied << endl;
     }
     auto t2 = chrono::steady_clock::now();
-    if(verbose) {
-        cout << "INITIAL REDUCTION FINISHED" << endl;
-        cout << "time:  " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() * 0.001 << " s\n";
-        cout << "size:  " << size(inst.edges) << endl;
-        int lower = star_bound(inst,upper);
-        cout << "lower: " << inst.spendCost + lower << endl;
-        cout << "upper: " << upper << endl;
-        cout << "gap:   " << upper-lower-inst.spendCost << endl;
-    }
     return inst;
 }
 
@@ -90,7 +77,7 @@ int main(int, char**) {
     vector reductions{"all reds", "force p3", "force star", "twin simple", "twin complex", "icx", "heavy edge (b)", "heavy edge (s)", "heavy non-edge", "forced single merge"};
 
     ofstream csv("pace_instances.csv");
-    csv << "num,n,m,solved,opt,upper,dels,adds,low_star,low_p3,time,branches,dist4+";
+    csv << "num,n,m,solved,opt,upper,dels,adds,low_star,low_p3,time,branches,dist4+,n-clean";
     for(auto rule : reductions)
         csv
             << ",after " << rule
@@ -100,7 +87,7 @@ int main(int, char**) {
             << ",lower after " << rule;
     csv << endl;
 
-    for(int i=1; i<50; ++i) {
+    for(int i=1; i<=200; ++i) {
         cout << "\n\ninstance " << i << endl;
 
         // usual stuff
@@ -119,13 +106,16 @@ int main(int, char**) {
         cout << solver << endl;
 
         // dist 4 reduction applies to all
+        int initial_n = size(inst.edges);
         if(auto opt = distance4Reduction(inst); opt) inst = *opt;
+        if(auto opt = removeCliques(inst); opt) inst = *opt;
+
         long dist4num = 0;
         for(auto& row : inst.edges) dist4num += std::count(row.begin(), row.end(), -INF);
         dist4num /= 2;
 
         csv << i
-            << ',' << size(inst.edges)
+            << ',' << initial_n
             << ',' << m
             << ',' << sol.worked
             << ',' << sol.cost
@@ -136,7 +126,8 @@ int main(int, char**) {
             << ',' << packing_local_search_bound(inst,upper)
             << ',' << chrono::duration_cast<chrono::milliseconds>(t2-t1).count()
             << ',' << solver.branchingNodes
-            << ',' << dist4num;
+            << ',' << dist4num
+            << ',' << size(inst.edges); // clean n after cliques are removed
 
         // reduction effectiveness
         for(auto rule : reductions) {
@@ -144,16 +135,17 @@ int main(int, char**) {
 
             Instance reduced;
             auto t3 = chrono::steady_clock::now();
-            if(rule=="all reds"s) reduced = reduceWithAll(inst, upper);
-            if(rule=="force p3"s) reduced = reduceWithOne(inst, [upper](auto& a){ return forcedChoices(a, upper); });
-            if(rule== "force star"s) reduced = reduceWithOne(inst, [upper](auto& a){ return forcedChoicesStarBound(a, upper, false); });
-            if(rule== "twin simple"s) reduced = reduceWithOne(inst, [upper](auto& a){ return simpleTwin(a);});
-            if(rule== "twin complex"s) reduced = reduceWithOne(inst, [upper](auto& a){ return complexTwin(a, true);});
-            if(rule== "icx"s) reduced = reduceWithOne(inst, [upper](auto& a){ return icxReductions(a, upper);});
-            if(rule== "heavy edge (b)"s) reduced = reduceWithOne(inst, [upper](auto& a){ return thomas_pairs(a);});
-            if(rule== "heavy edge (s)"s) reduced = reduceWithOne(inst, [upper](auto& a){ return heavy_edge_single_end(a);});
-            if(rule== "heavy non-edge"s) reduced = reduceWithOne(inst, [upper](auto& a){ return heavy_non_edge_single_end(a);});
-            if(rule== "forced single merge"s) reduced = reduceWithOne(inst, [upper](auto& a){ return forcedChoicesSingleMerge(a, upper, false);});
+            auto limit = t3 + chrono::hours(1);
+            if(rule=="all reds"s) reduced = reduceWithAll(inst, upper, limit);
+            if(rule=="force p3"s) reduced = reduceWithOne(inst, [upper](auto& a){ return forcedChoices(a, upper); }, limit);
+            if(rule== "force star"s) reduced = reduceWithOne(inst, [upper](auto& a){ return forcedChoicesStarBound(a, upper, false); }, limit);
+            if(rule== "twin simple"s) reduced = reduceWithOne(inst, [upper](auto& a){ return simpleTwin(a);}, limit);
+            if(rule== "twin complex"s) reduced = reduceWithOne(inst, [upper](auto& a){ return complexTwin(a, true);}, limit);
+            if(rule== "icx"s) reduced = reduceWithOne(inst, [upper](auto& a){ return icxReductions(a, upper);}, limit);
+            if(rule== "heavy edge (b)"s) reduced = reduceWithOne(inst, [upper](auto& a){ return thomas_pairs(a);}, limit);
+            if(rule== "heavy edge (s)"s) reduced = reduceWithOne(inst, [upper](auto& a){ return heavy_edge_single_end(a);}, limit);
+            if(rule== "heavy non-edge"s) reduced = reduceWithOne(inst, [upper](auto& a){ return heavy_non_edge_single_end(a);}, limit);
+            if(rule== "forced single merge"s) reduced = reduceWithOne(inst, [upper](auto& a){ return forcedChoicesSingleMerge(a, upper, false);}, limit);
             auto t4 = chrono::steady_clock::now();
 
             if(auto opt = removeCliques(reduced); opt) reduced = *opt;
