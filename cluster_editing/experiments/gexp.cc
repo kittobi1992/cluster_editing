@@ -115,28 +115,12 @@ Instance fromEdgeList(int n, const vector<pair<int,int>>& edges) {
     return inst;
 }
 
-Instance generateER(int n, double deg, int seed) {
-    mt19937 gen(seed);
-    uniform_real_distribution dist;
-    auto p = deg / (n-1);
-
-    Instance inst(n);
-    for(int i=0; i<n; ++i) {
-        for(int j=i+1; j<n; ++j) {
-            if(dist(gen)<p)
-                inst.edges[i][j] = inst.edges[j][i] = 1;
-        }
-    }
-    inst.orig = inst.edges;
-    return inst;
-}
-
-void runExperiment(int n, int deg, double ple, double alpha, int d, int s1, int s2, int s3, int rep, ofstream& csv, string type) {
+void runExperiment(int n, int deg, double ple, double T, int d, int s1, int s2, int s3, int rep, ofstream& csv, string type) {
     cout << "starting iteration" << endl;
-    auto T = alpha < numeric_limits<double>::infinity() ? 1/alpha : 0;
     cout << type << ' ' << n << ' ' << deg << ' ' << T << ' ' << rep << endl;
 
     // sampling
+    auto alpha = T==0 ? numeric_limits<double>::infinity() : 1/T;
     auto pos = girgs::generatePositions(n,d,s1);
     auto wei = girgs::generateWeights(n,ple,s2);
     girgs::scaleWeights(wei,deg,d,alpha);
@@ -150,7 +134,9 @@ void runExperiment(int n, int deg, double ple, double alpha, int d, int s1, int 
     auto t1 = chrono::steady_clock::now();
     auto sol = solver.solve(inst);
     auto t2 = chrono::steady_clock::now();
-    cout << solver << endl;
+    cout << solver;
+    cout << "solved (or terminated) after " << std::chrono::duration_cast<chrono::seconds>(t2-t1).count() << 's' << endl;
+    cout << endl;
 
     // printing
     auto upper = solve_heuristic(inst).cost;
@@ -183,10 +169,10 @@ void runExperiment(int n, int deg, double ple, double alpha, int d, int s1, int 
 int main() {
 
     // default girg config
-    int n = 200;
+    int n = 150;
     int deg = 10;
     double ple = 2.9;
-    auto alpha = numeric_limits<double>::infinity();
+    double T = 0;
     int d = 2;
     int s1 = 12951243, s2 = 613241, s3 = 90192471;
 
@@ -194,33 +180,24 @@ int main() {
     csv << "type,n,deg,ple,T,d,s1,s2,s3,rep,time,branches,root_size,root_gap,root_time,lower,upper,solved,opt,adds,dels" << endl;
 
     // varying n
-    for(int n=100; n<=400; n+=50) {
+    for(int n=100; n<=200; n+=10) {
         for(int rep=0; rep<10; ++rep) {
             s1 += n ^ deg ^ rep;
             s2 += n ^ deg ^ rep;
             s3 += n ^ deg ^ rep;
-            runExperiment(n,deg,ple,alpha,d,s1,s2,s3,rep,csv,"n");
+            runExperiment(n,deg,ple,T,d,s1,s2,s3,rep,csv,"n");
         }
     }
 
     // varying deg
-    for(int deg=4; deg<=64; deg*=2) {
-        for(int rep=0; rep<10; ++rep) {
-            s1 += n ^ deg ^ rep;
-            s2 += n ^ deg ^ rep;
-            s3 += n ^ deg ^ rep;
-            runExperiment(n,deg,ple,alpha,d,s1,s2,s3,rep,csv,"deg");
-        }
-    }
-
-    // varying clustering
-    for(auto T : {0.0, 0.2, 0.4, 0.6, 0.8}) {
-        auto alpha = T == 0.0 ? numeric_limits<double>::infinity() : 1/T;
-        for(int rep=0; rep<10; ++rep) {
-            s1 += n ^ deg ^ rep;
-            s2 += n ^ deg ^ rep;
-            s3 += n ^ deg ^ rep;
-            runExperiment(n,deg,ple,alpha,d,s1,s2,s3,rep,csv,"T");
+    for(int deg : {7,8,9,10,11,12,13}) {
+        for(auto T : {0.0, 0.2, 0.4, 0.6, 0.8}) {
+            for(int rep=0; rep<10; ++rep) {
+                s1 += n ^ deg ^ rep;
+                s2 += n ^ deg ^ rep;
+                s3 += n ^ deg ^ rep;
+                runExperiment(n,deg,ple,T,d,s1,s2,s3,rep,csv,"grid");
+            }
         }
     }
 
