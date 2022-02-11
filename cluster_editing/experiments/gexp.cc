@@ -178,7 +178,7 @@ int main() {
 
     ofstream csv("girg.csv");
     csv << "type,n,deg,ple,T,d,s1,s2,s3,rep,time,branches,root_size,root_gap,root_time,lower,upper,solved,opt,adds,dels" << endl;
-
+    /*
     // varying n
     for(int n=100; n<=200; n+=10) {
         for(int rep=0; rep<10; ++rep) {
@@ -200,9 +200,9 @@ int main() {
             }
         }
     }
-
-    /*
+    */
     // print the default girg
+    auto alpha = T==0 ? numeric_limits<double>::infinity() : 1/T;
     auto pos = girgs::generatePositions(n,d,s1);
     auto wei = girgs::generateWeights(n,ple,s2);
     girgs::scaleWeights(wei,deg,d,alpha);
@@ -224,9 +224,9 @@ int main() {
     map<pair<int,int>,string> edge_col;
 
     // color nodes by clique
-    for(int i=0;i<n;++i)
-        if(which_clique[i]<12)
-            node_col[i] = "/paired12/"s + to_string(which_clique[i]+1);
+    //for(int i=0;i<n;++i)
+        //if(which_clique[i]<12)
+            //node_col[i] = "/paired12/"s + to_string(which_clique[i]+1);
 
     auto [adds, rems] = get_edits(inst.edges, sol);
     for(auto [u,v] : adds) edges.emplace_back(u,v);
@@ -235,7 +235,6 @@ int main() {
     for(auto [u,v] : rems) edge_col[{u,v}] = "red";
 
     make_pdf(pos,edges,"graphimage",node_col, {}, edge_col);
-    */
 
     return 0;
 }
